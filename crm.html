@@ -1193,6 +1193,32 @@
 
             // Show sync status
             console.log('Edit saved, pending sync:', editData);
+            
+            // Auto-sync to sheet
+            syncToSheet();
+        }
+        
+        // Sync edits to Google Sheet via local endpoint
+        async function syncToSheet() {
+            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+            if (Object.keys(edits).length === 0) return;
+            
+            try {
+                // Save to local file for processing
+                const response = await fetch('http://localhost:18789/api/crm-edits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(edits)
+                });
+                
+                if (response.ok) {
+                    console.log('Edits synced to sheet');
+                    localStorage.removeItem('crm_edits');
+                    localStorage.setItem('crm_last_sync', new Date().toISOString());
+                }
+            } catch (e) {
+                console.log('Could not sync to sheet (offline mode)');
+            }
         }
 
         // Renderizar Insights
