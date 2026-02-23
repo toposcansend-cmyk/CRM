@@ -1,4 +1,5 @@
 # CRM Toposcan
+Last deployment: 2026-02-23
 
 Sistema de gestao de propostas para Toposcan.
 
