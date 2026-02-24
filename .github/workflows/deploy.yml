@@ -31,6 +31,7 @@ jobs:
           cp proposals.js deploy/proposals.js
           cp logo.png deploy/logo.png
           cp logo-preto.png deploy/logo-preto.png
+          cp logo-branca.png deploy/logo-branca.png
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
