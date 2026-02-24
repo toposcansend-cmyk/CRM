@@ -14,21 +14,23 @@
 const SHEET_ID = '1190S57Jmbb-eJcMHJYaOZ7qIqMCUpOTV-SDlWoSrMO4';
 const SHEET_NAME = 'Planilha1';
 
-// Column mapping (A=1, B=2, ...)
+// Column mapping (after email column added):
+// A=1, B=2, C=3, D=4, E=5 (Telefone), F=6 (Email), G=7 (Servico)...
 const COLUMN_MAP = {
   'vendedor': 1,
   'numeroProposta': 2,
   'cliente': 3,
   'contato': 4,
   'telefoneEmail': 5,
-  'servico': 6,
-  'dataFollowup': 7,
-  'localizacao': 9,
-  'dataProposta': 10,
-  'dataFechamento': 11,
-  'valor': 12,
-  'probabilidade': 13,
-  'observacao': 14
+  'email': 6,
+  'servico': 7,
+  'dataFollowup': 8,
+  'localizacao': 10,
+  'dataProposta': 11,
+  'dataFechamento': 12,
+  'valor': 13,
+  'probabilidade': 14,
+  'observacao': 15
 };
 
 function doPost(e) {
