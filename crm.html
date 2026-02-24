@@ -1245,7 +1245,12 @@
                 const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
                 Object.keys(edits).forEach(id => {
                     const p = propostas.find(x => x.id == id);
-                    if (p) Object.assign(p, edits[id]);
+                    if (p) {
+                        Object.assign(p, edits[id]);
+                    } else {
+                        // Novo lead - adicionar ao array
+                        propostas.push(edits[id]);
+                    }
                 });
             }
 
@@ -1699,6 +1704,19 @@
             checkAuth();
         </script>
     </div><!-- /crmContent -->
-</body>
+<script>
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    if (typeof carregarEdits === 'function') {
+                        carregarEdits();
+                        console.log('Edits carregados do localStorage');
+                    }
+                    if (typeof filtrar === 'function') {
+                        filtrar();
+                    }
+                }, 200);
+            });
+        </script>
+    </body>
 
 </html>
