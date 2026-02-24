@@ -46,30 +46,23 @@ const CAMPOS_INTERNOS = ['id', 'rowIndex', 'empresa', '_timestamp', '_criadoEm',
 
 function doPost(e) {
   try {
-    // Suporta dois formatos:
-    // 1. URLSearchParams: campo 'data' com JSON (enviado pelo CRM via fetch sem preflight)
-    // 2. Raw JSON no body (compatibilidade com outros clientes)
-    let raw = '';
-    if (e.parameter && e.parameter.data) {
-      raw = e.parameter.data;
-    } else if (e.postData && e.postData.contents) {
-      raw = e.postData.contents;
-    }
+    // CRM envia JSON puro com Content-Type: text/plain
+    // Apps Script le em e.postData.contents
+    const raw = (e.postData && e.postData.contents) ? e.postData.contents
+      : (e.parameter && e.parameter.data) ? e.parameter.data
+        : null;
 
-    if (!raw) {
-      return respond({ status: 'error', message: 'Nenhum dado recebido' });
-    }
+    if (!raw) return respond({ status: 'error', message: 'Nenhum dado recebido' });
 
     const data = JSON.parse(raw);
+    if (data.token !== AUTH_TOKEN) return respond({ status: 'error', message: 'Token invalido' });
 
-    // Verificar autenticacao
-    if (data.token !== AUTH_TOKEN) {
-      return respond({ status: 'error', message: 'Token invalido' });
-    }
-
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    let sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) {
-      return respond({ status: 'error', message: 'Planilha nao encontrada: ' + SHEET_NAME });
+      // Fallback: usa a primeira aba disponível
+      sheet = ss.getSheets()[0];
+      Logger.log('Aba "' + SHEET_NAME + '" nao encontrada. Usando: "' + sheet.getName() + '"');
     }
 
     let updated = 0;

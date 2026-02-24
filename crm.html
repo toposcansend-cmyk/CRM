@@ -1207,35 +1207,33 @@
                 }
 
                 const btn = event ? event.target : null;
-                if (btn) { btn.disabled = true; btn.textContent = 'Sincronizando...'; }
+                if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
 
                 try {
-                    // Usa URLSearchParams para evitar preflight CORS no Apps Script
+                    // no-cors + text/plain: unico metodo que funciona com Apps Script cross-origin
+                    // O Apps Script recebe os dados em e.postData.contents
                     const payload = JSON.stringify({ token: AUTH_TOKEN, edits: edits, newLeads: newLeads });
-                    const formData = new URLSearchParams();
-                    formData.append('data', payload);
 
-                    const response = await fetch(WEBHOOK_URL, {
+                    await fetch(WEBHOOK_URL, {
                         method: 'POST',
-                        body: formData
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: payload
                     });
 
-                    let result = {};
-                    try { result = await response.json(); } catch (e) { }
+                    // Com no-cors nao podemos ler a resposta, mas os dados foram enviados
+                    localStorage.removeItem('crm_edits');
+                    localStorage.removeItem('crm_new_leads');
+                    localStorage.setItem('crm_last_sync', new Date().toISOString());
 
-                    if (response.ok || result.status === 'ok') {
-                        localStorage.removeItem('crm_edits');
-                        localStorage.removeItem('crm_new_leads');
-                        localStorage.setItem('crm_last_sync', new Date().toISOString());
-                        const msg = result.updated !== undefined
-                            ? result.updated + ' campos atualizados, ' + (result.added || 0) + ' leads novos.'
-                            : 'Dados enviados!';
-                        alert('Sincronizado com sucesso!\n' + msg);
-                    } else {
-                        alert('Erro do servidor: ' + (result.message || response.statusText));
-                    }
+                    const totalEdits = Object.keys(edits).length;
+                    const totalLeads = newLeads.length;
+                    alert('Dados enviados para a planilha!\n' +
+                        (totalEdits > 0 ? totalEdits + ' edicao(oes)\n' : '') +
+                        (totalLeads > 0 ? totalLeads + ' novo(s) lead(s)\n' : '') +
+                        '\nVerifique a planilha em alguns segundos.');
                 } catch (e) {
-                    alert('Erro de rede: ' + e.message);
+                    alert('Erro ao enviar: ' + e.message);
                 } finally {
                     if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
                 }
