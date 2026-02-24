@@ -1027,6 +1027,11 @@
                 const vendedor = document.getElementById('vendedorFilter').value;
 
                 let f = propostas.filter(p => {
+                    // ESCONDER Fechada e Perdida da lista de oportunidades (quando status = 'todos')
+                    if (status === 'todos' && (p.status === 'Fechada' || p.status === 'Perdida')) {
+                        return false;
+                    }
+                    
                     const matchesStatus = !status || status === 'todos' || p.status === status;
                     const matchesBusca = !busca ||
                         (p.cliente && p.cliente.toLowerCase().includes(busca)) ||
