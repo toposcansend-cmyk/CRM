@@ -553,9 +553,7 @@
             <option value="Marcelo">Marcelo</option>
             <option value="Allana">Allana</option>
         </select>
-        <button onclick="exportarEdits()"
-            style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Exportar
-            Edits</button>
+        <button onclick="syncToSheet()" style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
     </div>
 
     <!-- Modal de Edicao -->
@@ -986,10 +984,40 @@
             container.innerHTML = html;
         }
 
-        // Export edits button
-        function exportarEdits() {
+        // Sync edits to sheet via Google Apps Script Web App
+        async function syncToSheet() {
             const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-            const blob = new Blob([JSON.stringify(edits, null, 2)], { type: 'application/json' });
+            if (Object.keys(edits).length === 0) return;
+            
+            // Webhook URL - configure after deploying Google Apps Script
+            const WEBHOOK_URL = localStorage.getItem('crm_webhook_url') || '';
+            
+            if (!WEBHOOK_URL) {
+                console.log('No webhook URL configured. Edits saved locally.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ edits: edits })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'ok') {
+                    console.log(`Synced ${result.updated} cells to sheet`);
+                    localStorage.removeItem('crm_edits');
+                    localStorage.setItem('crm_last_sync', new Date().toISOString());
+                    alert('Sincronizado com sucesso!');
+                } else {
+                    console.error('Sync failed:', result.message);
+                }
+            } catch (e) {
+                console.log('Could not sync to sheet:', e.message);
+            }
+        }
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
