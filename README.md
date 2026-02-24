@@ -1,26 +1,30 @@
 # CRM Toposcan
-Last deployment: 2026-02-23
 
-Sistema de gestao de propostas para Toposcan.
+Sistema de CRM (Customer Relationship Management) da Toposcan para gerenciamento de propostas e clientes.
+
+## Acesso
+
+- **URL:** https://toposcansend-cmyk.github.io/CRM/
+- **Login:** Solicitar credenciais ao administrador
 
 ## Funcionalidades
 
-- Listagem de propostas com filtros
-- Dashboard com metricas
-- Edicao inline de propostas
-- Sincronizacao com Google Sheets
-- Pipeline Kanban
+- 📊 Dashboard com KPIs e métricas de vendas
+- 📋 Lista de propostas com filtros por status, vendedor e período
+- 📈 Kanban pipeline de vendas
+- 💰 Calculadora de precificação
+- 📅 Sistema de follow-up com priorização
+- 🔍 Insights e oportunidades automáticas
 
-## Como usar
+## Stack
 
-1. Abra `crm.html` no navegador
-2. Use os filtros para encontrar propostas
-3. Clique no nome do cliente para editar
+- Frontend: HTML/CSS/JavaScript (single-page)
+- Dados: Google Sheets como banco de dados
+- Sync: Python (crm-sync.py) + Google Sheets API
+- Deploy: GitHub Actions → GitHub Pages
 
-## Sincronizacao
+## Segurança
 
-O arquivo `proposals.js` e gerado automaticamente pelo script `crm-sync.py`.
-
----
-
-*Desenvolvido por Rafaela (OpenClaw)*
+- Login com autenticação SHA-256
+- Deploy isolado (apenas arquivos públicos)
+- Sessão de 8 horas com logout
