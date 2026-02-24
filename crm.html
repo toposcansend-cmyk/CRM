@@ -1030,12 +1030,8 @@
                 return;
             }
             
-            const WEBHOOK_URL = localStorage.getItem('crm_webhook_url') || '';
-            
-            if (!WEBHOOK_URL) {
-                alert('Configure o webhook URL primeiro.\n\nUse: localStorage.setItem("crm_webhook_url", "SUA_URL")');
-                return;
-            }
+            // Webhook URL configured
+            const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbymndwsGA6Z7Nz-fcuYW6luFJ-jOXX26JzVXE4ILirLqb2zNC5M9gQL4onMGeeMlsSpAw/exec';
             
             try {
                 const response = await fetch(WEBHOOK_URL, {
@@ -1052,7 +1048,7 @@
                     localStorage.setItem('crm_last_sync', new Date().toISOString());
                     alert('Sincronizado com sucesso!');
                 } else {
-                    alert('Erro na sincronizacao: ' + result.message);
+                    alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
                 }
             } catch (e) {
                 alert('Erro ao sincronizar: ' + e.message);
