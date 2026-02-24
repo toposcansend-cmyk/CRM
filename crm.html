@@ -854,7 +854,7 @@
                         <option value="Fechada">Fechada</option>
                         <option value="Perdida">Perdida</option>
                     </select>
-                    <input type="text" id="busca" placeholder="Buscar..." onkeyup="filtrar()">
+                    <input type="text" id="busca" placeholder="Buscar..." onkeyup="filtrar()"><button onclick="abrirNovoLead()" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:bold;white-space:nowrap">+ Novo Lead</button>
                 </div>
                 <table>
                     <thead>
@@ -1020,11 +1020,29 @@
                         matchesVendedor = p.vendedor === vendedor;
                     }
 
-                    // Hide proposals with 0% probability unless status is Perdida
-                    const probNum = parseInt(p.probabilidade) || 0;
-                    const isZero = probNum === 0 && p.status !== 'Perdida' && p.status !== 'Fechada';
+                    // Hide Fechada and Perdida only when status is "todos"
+                    if (status === 'todos' && (p.status === 'Fechada' || p.status === 'Perdida')) {
+                        return false;
+                    }
 
-                    return matchesStatus && matchesBusca && matchesAno && matchesVendedor && !isZero;
+                    return matchesStatus && matchesBusca && matchesAno && matchesVendedor;
+                });
+
+                // Sort by date (most recent first)
+                f.sort((a, b) => {
+                    const dataA = a.dataProposta || a.dataFechamento || '00/00/0000';
+                    const dataB = b.dataProposta || b.dataFechamento || '00/00/0000';
+                    
+                    // Convert DD/MM/YYYY to YYYYMMDD for comparison
+                    const parseDate = (d) => {
+                        const parts = d.split('/');
+                        if (parts.length === 3) {
+                            return `${parts[2]}${parts[1].padStart(2, '0')}${parts[0].padStart(2, '0')}`;
+                        }
+                        return '00000000';
+                    };
+                    
+                    return parseDate(dataB).localeCompare(parseDate(dataA));
                 });
 
                 const total = f.length;
@@ -1248,7 +1266,6 @@
                     if (p) {
                         Object.assign(p, edits[id]);
                     } else {
-                        // Novo lead - adicionar ao array
                         propostas.push(edits[id]);
                     }
                 });
@@ -1432,6 +1449,30 @@
             }
 
             // Modal functions
+            function abrirNovoLead() {
+                const novoId = Math.max(...propostas.map(p => p.id || 0)) + 1;
+                
+                document.getElementById('editId').value = novoId;
+                document.getElementById('editRowIndex').value = '';
+                document.getElementById('editNumeroProposta').value = '';
+                document.getElementById('editNumeroPropostaInput').value = 'Novo Lead';
+                document.getElementById('editVendedor').value = '';
+                document.getElementById('editCliente').value = '';
+                document.getElementById('editContato').value = '';
+                document.getElementById('editTelefoneEmail').value = '';
+                document.getElementById('editServico').value = '';
+                document.getElementById('editLocalizacao').value = '';
+                document.getElementById('editDataProposta').value = new Date().toLocaleDateString('pt-BR');
+                document.getElementById('editDataFechamento').value = '';
+                document.getElementById('editValor').value = '';
+                document.getElementById('editProbabilidade').value = '20%';
+                document.getElementById('editUltimoFollowup').value = '';
+                document.getElementById('editObservacao').value = '';
+
+                atualizarStatusPreview();
+                document.getElementById('editModal').classList.add('active');
+            }
+
             function abrirEdicao(id) {
                 const p = propostas.find(x => x.id === id);
                 if (!p) return;
@@ -1463,16 +1504,18 @@
 
             function salvarEdicao() {
                 const id = parseInt(document.getElementById('editId').value);
-                const p = propostas.find(x => x.id === id);
-                if (!p) return;
+                let p = propostas.find(x => x.id === id);
+                const isNew = !p;
 
                 // Gather all fields
                 const editData = {
+                    id: id,
                     numeroProposta: document.getElementById('editNumeroPropostaInput').value,
                     vendedor: document.getElementById('editVendedor').value,
                     cliente: document.getElementById('editCliente').value,
                     contato: document.getElementById('editContato').value,
                     telefoneEmail: document.getElementById('editTelefoneEmail').value,
+                    email: '',
                     servico: document.getElementById('editServico').value,
                     localizacao: document.getElementById('editLocalizacao').value,
                     dataProposta: document.getElementById('editDataProposta').value,
@@ -1484,8 +1527,15 @@
                     status: document.getElementById('editStatusPreview').textContent
                 };
 
-                // Update local proposal
-                Object.assign(p, editData);
+                if (isNew) {
+                    // New lead - add to array
+                    editData.rowIndex = propostas.length + 2;
+                    propostas.push(editData);
+                    p = propostas[propostas.length - 1];
+                } else {
+                    // Update existing proposal
+                    Object.assign(p, editData);
+                }
 
                 // Save to local edits (for sync back to sheet)
                 const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
@@ -1709,7 +1759,6 @@
                 setTimeout(function() {
                     if (typeof carregarEdits === 'function') {
                         carregarEdits();
-                        console.log('Edits carregados do localStorage');
                     }
                     if (typeof filtrar === 'function') {
                         filtrar();
