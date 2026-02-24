@@ -24,13 +24,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      - name: Prepare public directory
+        run: |
+          mkdir -p deploy
+          cp crm.html deploy/index.html
+          cp proposals.js deploy/proposals.js
+          cp logo.png deploy/logo.png
+          cp logo-preto.png deploy/logo-preto.png
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'deploy'
       
       - name: Deploy to GitHub Pages
         id: deployment

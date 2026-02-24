@@ -1,0 +1,67 @@
+# Logs e dados temporários
+*.log
+*.csv
+*.json
+!crm-sync-config.json
+!crm-heartbeat.json
+!package.json
+
+# Scripts de fix avulsos (não necessários no repo)
+fix_*.py
+check_*.py
+test_*.py
+clean_*.py
+copy_*.py
+fill_*.py
+update_*.py
+edit_manager.py
+save_edits.py
+extract_crm.py
+
+# Sync scripts (contém caminhos locais e credenciais)
+crm-sync.py
+crm-sync-v2.py
+sync_*.py
+auditoria_crm.py
+followup-report.py
+
+# Dados sensíveis
+propostas.csv
+propostas.json
+propostas_*.json
+propostas_*.js
+propostas_*.txt
+candidatos.json
+followup-report.json
+token.json
+
+# Backups e snapshots (não publicar)
+backups/
+snapshots/
+logs/
+
+# Deploy temporário
+deploy/
+public/
+
+# Arquivos antigos/duplicados
+crm_backup_*.html
+google-apps-script-CORRIGIDO.js
+
+# PowerShell scripts (contém caminhos locais)
+*.ps1
+
+# Automations (contém scripts com credenciais)
+automations/
+
+# Markdown de docs internos (não necessários online)
+dados.md
+leads.md
+lembretes.md
+melhorias-crm.md
+crm-analise.md
+dashboard.md
+followup-sistema.md
+ALERT.md
+DEPLOY-ONLINE.md
+DOCUMENTACAO.md

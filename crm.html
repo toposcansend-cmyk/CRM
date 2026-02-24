@@ -153,6 +153,34 @@
             color: #fff;
         }
 
+        .menu-toggle {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-toggle span:first-child {
+            font-size: 1.2em;
+        }
+
+        .tabs-menu {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabs-menu.collapsed {
+            display: none;
+        }
+
         .section {
             display: none;
         }
@@ -408,6 +436,19 @@
                 width: 100%;
             }
 
+            .menu-toggle {
+                display: flex !important;
+            }
+
+            .tabs-menu {
+                display: none;
+                flex-direction: column;
+            }
+
+            .tabs-menu.expanded {
+                display: flex;
+            }
+
             table {
                 display: none !important;
             }
@@ -512,9 +553,8 @@
             <option value="Marcelo">Marcelo</option>
             <option value="Allana">Allana</option>
         </select>
-        <button onclick="exportarEdits()"
-            style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Exportar
-            Edits</button>
+        <button onclick="syncToSheet()"
+            style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
     </div>
 
     <!-- Modal de Edicao -->
@@ -615,14 +655,20 @@
         </div>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
-        <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
-        <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
-        <button class="tab-btn" onclick="trocarTab('insights')">Insights</button>
-        <button class="tab-btn" onclick="trocarTab('kpi')">KPIs</button>
-        <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
-        <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
+    <div class="tabs" id="tabsContainer">
+        <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()" style="display:none;">
+            <span>☰</span>
+            <span class="menu-label">Menu</span>
+        </button>
+        <div class="tabs-menu" id="tabsMenu">
+            <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
+            <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
+            <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
+            <button class="tab-btn" onclick="trocarTab('insights')">Insights</button>
+            <button class="tab-btn" onclick="trocarTab('kpi')">KPIs</button>
+            <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
+            <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
+        </div>
     </div>
 
     <div id="oportunidades" class="section active">
@@ -734,7 +780,15 @@
     <script src="proposals.js"></script>
     <script>
         console.log('=== CRM SCRIPT STARTING ===');
-        const CACHE_VERSION = '2026-02-23-v5-sync';
+        const CACHE_VERSION = '2026-02-24-v6-security';
+
+        // XSS sanitizer
+        function esc(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
 
         // propostas is defined in proposals.js
         if (typeof propostas === 'undefined') {
@@ -793,7 +847,11 @@
                     matchesVendedor = p.vendedor === vendedor;
                 }
 
-                return matchesStatus && matchesBusca && matchesAno && matchesVendedor;
+                // Hide proposals with 0% probability unless status is Perdida
+                const probNum = parseInt(p.probabilidade) || 0;
+                const isZero = probNum === 0 && p.status !== 'Perdida' && p.status !== 'Fechada';
+
+                return matchesStatus && matchesBusca && matchesAno && matchesVendedor && !isZero;
             });
 
             const total = f.length;
@@ -824,13 +882,13 @@
                 cardsContainer.style.display = 'none';
                 tableContainer.innerHTML = f.map(p => `
                     <tr>
-                        <td style="cursor:pointer;color:var(--accent);font-weight:bold" onclick="abrirEdicao(${p.id})">${p.cliente || '-'}</td>
-                        <td>${p.contato || '-'}</td>
-                        <td>${p.servico || '-'}</td>
-                        <td>${p.dataProposta || '-'}</td>
-                        <td>${p.dataFechamento || '-'}</td>
+                        <td style="cursor:pointer;color:var(--accent);font-weight:bold" onclick="abrirEdicao(${p.id})">${esc(p.cliente || '-')}</td>
+                        <td>${esc(p.contato || '-')}</td>
+                        <td>${esc(p.servico || '-')}</td>
+                        <td>${esc(p.dataProposta || '-')}</td>
+                        <td>${esc(p.dataFechamento || '-')}</td>
                         <td style="color:var(--accent);font-weight:bold;">R$ ${(p.valor || 0).toLocaleString()}</td>
-                        <td><span class="status ${(p.status || 'lead').toLowerCase()}">${p.probabilidade || p.status || 'Lead'}</span></td>
+                        <td><span class="status ${(p.status || 'lead').toLowerCase()}">${esc(p.probabilidade || p.status || 'Lead')}</span></td>
                     </tr>
                 `).join('');
             } else {
@@ -877,9 +935,11 @@
             const meses = {};
             const primeiro = new Date(2025, 1, 1);
 
-            propostas.filter(function (p) { return p.status === 'Fechada' && p.data; }).forEach(function (p) {
+            propostas.filter(function (p) {
+                return p.status === 'Fechada' && (p.dataFechamento || p.dataProposta);
+            }).forEach(function (p) {
                 let d = null;
-                const data = p.data.trim();
+                const data = (p.dataFechamento || p.dataProposta || '').trim();
                 const parts = data.split('/');
 
                 if (parts.length === 3) {
@@ -939,15 +999,72 @@
             container.innerHTML = html;
         }
 
-        // Export edits button
-        function exportarEdits() {
+        // Save edits to local persistence server
+        async function saveEditsToServer() {
             const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-            const blob = new Blob([JSON.stringify(edits, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'crm_edits_' + new Date().toISOString().slice(0, 10) + '.json';
-            a.click();
+            if (Object.keys(edits).length === 0) return;
+
+            try {
+                const response = await fetch('http://127.0.0.1:18791/edits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(edits)
+                });
+
+                const result = await response.json();
+                console.log('Edits saved to server:', result);
+            } catch (e) {
+                console.log('Could not save to server (offline mode)');
+            }
+        }
+
+        // Load edits from persistence server
+        async function loadEditsFromServer() {
+            try {
+                const response = await fetch('http://127.0.0.1:18791/edits');
+                const edits = await response.json();
+
+                if (Object.keys(edits).length > 0) {
+                    localStorage.setItem('crm_edits', JSON.stringify(edits));
+                    console.log('Loaded', Object.keys(edits).length, 'edits from server');
+                    carregarEdits();
+                    filtrar();
+                }
+            } catch (e) {
+                console.log('Could not load from server');
+            }
+        }
+
+        // Sync edits to sheet via local persistence (webhook URL moved to server-side)
+        async function syncToSheet() {
+            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+            if (Object.keys(edits).length === 0) {
+                alert('Nenhuma edicao para sincronizar');
+                return;
+            }
+
+            try {
+                // Save edits to local server for processing
+                const response = await fetch('http://127.0.0.1:18791/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ edits: edits })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'ok') {
+                    localStorage.removeItem('crm_edits');
+                    localStorage.setItem('crm_last_sync', new Date().toISOString());
+                    alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
+                } else {
+                    alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
+                }
+            } catch (e) {
+                // Fallback: save edits locally for manual sync
+                alert('Servidor offline. Edicoes salvas localmente para sincronizar depois.');
+                await saveEditsToServer();
+            }
         }
 
         // Carregar edits do localStorage
@@ -961,7 +1078,7 @@
 
         // Renderizar follow-up
         function renderizarFollowup() {
-            const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead', 'Fechada'].includes(p.status));
+            const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
             const container = document.getElementById('followupList');
             if (!container) return;
 
@@ -1015,6 +1132,19 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             event.target.classList.add('active');
+
+            // Close menu on mobile after selection
+            const menu = document.getElementById('tabsMenu');
+            if (menu && window.innerWidth <= 768) {
+                menu.classList.remove('expanded');
+            }
+        }
+
+        function toggleMenu() {
+            const menu = document.getElementById('tabsMenu');
+            if (menu) {
+                menu.classList.toggle('expanded');
+            }
         }
 
         function calcularOrcamento() {
@@ -1045,7 +1175,10 @@
             }
         });
         console.log('CRM: Starting with', propostas.length, 'propostas');
-        carregarEdits();
+
+        // Load edits from server on startup
+        loadEditsFromServer();
+
         filtrar();
         renderizarFollowup();
         renderizarInsights();
@@ -1178,22 +1311,21 @@
 
             // Save to local edits (for sync back to sheet)
             const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+            editData._timestamp = Date.now();
+            editData.rowIndex = p.rowIndex;
             edits[id] = editData;
-            edits[id]._timestamp = Date.now();
             localStorage.setItem('crm_edits', JSON.stringify(edits));
 
-            // Save also to file
-            try {
-                localStorage.setItem('crm_edits_json', JSON.stringify(edits));
-            } catch (e) { }
+            // Save to persistence server
+            saveEditsToServer();
 
             filtrar();
             renderizarFollowup();
             fecharModal();
 
-            // Show sync status
-            console.log('Edit saved, pending sync:', editData);
+            console.log('Edit saved:', editData);
         }
+        // Note: syncToSheet() is defined above, no duplicate needed
 
         // Renderizar Insights
         function renderizarInsights() {
