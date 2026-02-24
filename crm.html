@@ -970,9 +970,9 @@
             }
 
             // propostas is defined in proposals.js
-            if (typeof propostas === 'undefined') {
-                console.warn('proposals.js not loaded! Initializing empty array.');
-                var propostas = [];
+            if (typeof window.propostas === 'undefined') {
+                console.warn('data_v9.js not loaded! Initializing empty array.');
+                window.propostas = [];
             }
 
             console.log('CRM: Loaded ' + propostas.length + ' proposals.');
