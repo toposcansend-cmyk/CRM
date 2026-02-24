@@ -598,7 +598,22 @@
         #crmContent.active {
             display: block;
         }
-    </style>
+    
+        .kanban-card.dragging {
+            opacity: 0.5;
+            transform: rotate(3deg);
+        }
+        
+        .kanban-column.drag-over {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px dashed var(--accent);
+        }
+        
+        .kanban-card {
+            cursor: move;
+        }
+        
+        </style>
 </head>
 
 <body>
@@ -1802,6 +1817,99 @@
             }, 300);
         });
     </script>
+
+    <script>
+        // DRAG AND DROP PARA KANBAN
+        let draggedCard = null;
+        
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.classList.contains('kanban-card')) {
+                draggedCard = e.target;
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', e.target.dataset.id);
+            }
+        });
+        
+        document.addEventListener('dragend', function(e) {
+            if (e.target.classList.contains('kanban-card')) {
+                e.target.classList.remove('dragging');
+                draggedCard = null;
+            }
+            document.querySelectorAll('.kanban-column').forEach(col => {
+                col.classList.remove('drag-over');
+            });
+        });
+        
+        document.addEventListener('dragover', function(e) {
+            if (e.target.classList.contains('kanban-column') || 
+                e.target.closest('.kanban-column')) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                
+                const column = e.target.classList.contains('kanban-column') ? 
+                    e.target : e.target.closest('.kanban-column');
+                column.classList.add('drag-over');
+            }
+        });
+        
+        document.addEventListener('dragleave', function(e) {
+            if (e.target.classList.contains('kanban-column')) {
+                e.target.classList.remove('drag-over');
+            }
+        });
+        
+        document.addEventListener('drop', function(e) {
+            const column = e.target.classList.contains('kanban-column') ? 
+                e.target : e.target.closest('.kanban-column');
+            
+            if (column && draggedCard) {
+                e.preventDefault();
+                column.classList.remove('drag-over');
+                
+                const newStatus = column.dataset.status;
+                const propId = parseInt(draggedCard.dataset.id);
+                
+                const p = propostas.find(x => x.id === propId);
+                if (p && p.status !== newStatus) {
+                    const oldStatus = p.status;
+                    p.status = newStatus;
+                    
+                    const statusProbMap = {
+                        'Lead': '20%',
+                        'Enviada': '40%',
+                        'Pendente': '60%',
+                        'Standby': '20%',
+                        'Fechada': '100%',
+                        'Perdida': '0%'
+                    };
+                    p.probabilidade = statusProbMap[newStatus] || p.probabilidade;
+                    
+                    const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                    edits[propId] = {...p, _timestamp: Date.now()};
+                    localStorage.setItem('crm_edits', JSON.stringify(edits));
+                    
+                    filtrar();
+                    renderizarKanban();
+                }
+            }
+        });
+        
+        function makeCardsDraggable() {
+            document.querySelectorAll('.kanban-card').forEach(card => {
+                card.setAttribute('draggable', 'true');
+            });
+        }
+        
+        const origRenderKanban = renderizarKanban;
+        renderizarKanban = function() {
+            origRenderKanban();
+            setTimeout(makeCardsDraggable, 100);
+        };
+        
+        setTimeout(makeCardsDraggable, 500);
+    </script>
+
 </body>
 
 </html>
