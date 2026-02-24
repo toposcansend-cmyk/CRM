@@ -52,10 +52,11 @@ function doPost(e) {
       : (e.parameter && e.parameter.data) ? e.parameter.data
         : null;
 
-    if (!raw) return respond({ status: 'error', message: 'Nenhum dado recebido' });
+    if (!raw) return respond({ status: 'error', message: 'Nenhum dado recebido' }, cb);
 
     const data = JSON.parse(raw);
-    if (data.token !== AUTH_TOKEN) return respond({ status: 'error', message: 'Token invalido' });
+    const cb = data.callback || (e.parameter && e.parameter.callback) || null;
+    if (data.token !== AUTH_TOKEN) return respond({ status: 'error', message: 'Token invalido' }, cb);
 
     const ss = SpreadsheetApp.openById(SHEET_ID);
     let sheet = ss.getSheetByName(SHEET_NAME);
@@ -110,7 +111,7 @@ function doPost(e) {
       updated: updated,
       added: added,
       timestamp: new Date().toISOString()
-    });
+    }, cb);
 
   } catch (error) {
     Logger.log('Erro: ' + error.message);
@@ -124,7 +125,7 @@ function doGet(e) {
     return doPost(e); // Reutiliza a logica do doPost lendo e.parameter.data
   }
   // Health check
-  return respond({ status: 'healthy', message: 'CRM Toposcan Webhook v4.0 - OK' });
+  return respond({ status: 'healthy', message: 'OK v5' }, e.parameter && e.parameter.callback);
 }
 
 // Formatar valor conforme o campo
@@ -144,9 +145,15 @@ function sanitizar(val) {
   return val.replace(/<script[^>]*>.*?<\/script>/gi, '').substring(0, 1000);
 }
 
-// Criar resposta JSON com CORS headers
-function respond(obj) {
+// Suporta JSONP: se callback presente, retorna JS; senao retorna JSON
+function respond(obj, callback) {
+  const json = JSON.stringify(obj);
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + json + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
-    .createTextOutput(JSON.stringify(obj))
+    .createTextOutput(json)
     .setMimeType(ContentService.MimeType.JSON);
 }

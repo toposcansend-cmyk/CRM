@@ -1229,35 +1229,52 @@
                 const btn = event ? event.target : null;
                 if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
 
-                try {
-                    // USA GET com parametros na URL — unico metodo confiavel com Apps Script cross-origin
-                    // (POST perde o body no redirect 302 do Apps Script)
-                    const payload = { token: AUTH_TOKEN, edits: edits, newLeads: newLeads };
-                    const dataEncoded = encodeURIComponent(JSON.stringify(payload));
-                    const url = WEBHOOK_URL + '?data=' + dataEncoded;
+                // JSONP: bypassa CORS e redirects do Apps Script via tag <script>
+                const callbackName = 'crmSync_' + Date.now();
+                const payload = { token: AUTH_TOKEN, edits: edits, newLeads: newLeads, callback: callbackName };
+                const url = WEBHOOK_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
 
-                    const response = await fetch(url, { method: 'GET' });
+                const totalEdits = Object.keys(edits).length;
+                const totalLeads = newLeads.length;
 
-                    let result = {};
-                    try { result = await response.json(); } catch (e2) { }
+                const timeout = setTimeout(function () {
+                    cleanup();
+                    if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
+                    alert('Timeout: Apps Script demorou muito. Tente novamente.');
+                }, 15000);
 
-                    if (response.ok && result.status === 'ok') {
+                function cleanup() {
+                    clearTimeout(timeout);
+                    delete window[callbackName];
+                    const s = document.getElementById('jsonp_sync_script');
+                    if (s) s.remove();
+                }
+
+                window[callbackName] = function (result) {
+                    cleanup();
+                    if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
+
+                    if (result && result.status === 'ok') {
                         localStorage.removeItem('crm_edits');
                         localStorage.removeItem('crm_new_leads');
                         localStorage.setItem('crm_last_sync', new Date().toISOString());
-                        const totalEdits = Object.keys(edits).length;
-                        const totalLeads = newLeads.length;
                         alert('Sincronizado com sucesso!\n' +
                             (totalEdits > 0 ? totalEdits + ' edicao(oes) atualizadas\n' : '') +
-                            (totalLeads > 0 ? totalLeads + ' novo(s) lead(s) adicionado(s)\n' : ''));
+                            (totalLeads > 0 ? totalLeads + ' novo(s) lead(s) adicionado(s)' : ''));
                     } else {
-                        alert('Erro: ' + (result.message || 'Verifique o Apps Script no Google'));
+                        alert('Erro no servidor: ' + (result ? result.message : 'sem resposta'));
                     }
-                } catch (e) {
-                    alert('Erro de rede: ' + e.message);
-                } finally {
+                };
+
+                const script = document.createElement('script');
+                script.id = 'jsonp_sync_script';
+                script.src = url;
+                script.onerror = function () {
+                    cleanup();
                     if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
-                }
+                    alert('Erro ao carregar o webhook. Verifique a URL do Apps Script.');
+                };
+                document.body.appendChild(script);
             }
 
             // Carregar edits e novos leads do localStorage
