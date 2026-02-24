@@ -1020,12 +1020,6 @@
                 console.log('Could not sync to sheet:', e.message);
             }
         }
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'crm_edits_' + new Date().toISOString().slice(0, 10) + '.json';
-            a.click();
-        }
 
         // Carregar edits do localStorage
         function carregarEdits() {
