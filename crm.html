@@ -1123,7 +1123,7 @@
                 board.innerHTML = statuses.map(s => {
                     const items = propostas.filter(p => p.status === s);
                     return `
-                    <div class="kanban-column">
+                    <div class="kanban-column" data-status="${s}">
                         <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
                         ${items.slice(0, 10).map(p => `
                             <div class="kanban-item">
