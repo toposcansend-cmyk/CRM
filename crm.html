@@ -986,16 +986,54 @@
             container.innerHTML = html;
         }
 
-        // Sync edits to sheet via Google Apps Script Web App
-        async function syncToSheet() {
+        // Save edits to local persistence server
+        async function saveEditsToServer() {
             const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
             if (Object.keys(edits).length === 0) return;
             
-            // Webhook URL - configure after deploying Google Apps Script
+            try {
+                const response = await fetch('http://127.0.0.1:18791/edits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(edits)
+                });
+                
+                const result = await response.json();
+                console.log('Edits saved to server:', result);
+            } catch (e) {
+                console.log('Could not save to server (offline mode)');
+            }
+        }
+        
+        // Load edits from persistence server
+        async function loadEditsFromServer() {
+            try {
+                const response = await fetch('http://127.0.0.1:18791/edits');
+                const edits = await response.json();
+                
+                if (Object.keys(edits).length > 0) {
+                    localStorage.setItem('crm_edits', JSON.stringify(edits));
+                    console.log('Loaded', Object.keys(edits).length, 'edits from server');
+                    carregarEdits();
+                    filtrar();
+                }
+            } catch (e) {
+                console.log('Could not load from server');
+            }
+        }
+        
+        // Sync edits to sheet via Google Apps Script Web App
+        async function syncToSheet() {
+            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+            if (Object.keys(edits).length === 0) {
+                alert('Nenhuma edicao para sincronizar');
+                return;
+            }
+            
             const WEBHOOK_URL = localStorage.getItem('crm_webhook_url') || '';
             
             if (!WEBHOOK_URL) {
-                console.log('No webhook URL configured. Edits saved locally.');
+                alert('Configure o webhook URL primeiro.\n\nUse: localStorage.setItem("crm_webhook_url", "SUA_URL")');
                 return;
             }
             
@@ -1009,15 +1047,15 @@
                 const result = await response.json();
                 
                 if (result.status === 'ok') {
-                    console.log(`Synced ${result.updated} cells to sheet`);
                     localStorage.removeItem('crm_edits');
+                    await fetch('http://127.0.0.1:18791/edits', { method: 'DELETE' });
                     localStorage.setItem('crm_last_sync', new Date().toISOString());
                     alert('Sincronizado com sucesso!');
                 } else {
-                    console.error('Sync failed:', result.message);
+                    alert('Erro na sincronizacao: ' + result.message);
                 }
             } catch (e) {
-                console.log('Could not sync to sheet:', e.message);
+                alert('Erro ao sincronizar: ' + e.message);
             }
         }
 
@@ -1129,7 +1167,10 @@
             }
         });
         console.log('CRM: Starting with', propostas.length, 'propostas');
-        carregarEdits();
+        
+        // Load edits from server on startup
+        loadEditsFromServer();
+        
         filtrar();
         renderizarFollowup();
         renderizarInsights();
@@ -1262,24 +1303,19 @@
 
             // Save to local edits (for sync back to sheet)
             const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+            editData._timestamp = Date.now();
+            editData.rowIndex = p.rowIndex;
             edits[id] = editData;
-            edits[id]._timestamp = Date.now();
             localStorage.setItem('crm_edits', JSON.stringify(edits));
 
-            // Save also to file
-            try {
-                localStorage.setItem('crm_edits_json', JSON.stringify(edits));
-            } catch (e) { }
+            // Save to persistence server
+            saveEditsToServer();
 
             filtrar();
             renderizarFollowup();
             fecharModal();
 
-            // Show sync status
-            console.log('Edit saved, pending sync:', editData);
-            
-            // Auto-sync to sheet
-            syncToSheet();
+            console.log('Edit saved:', editData);
         }
         
         // Sync edits to Google Sheet via local endpoint
