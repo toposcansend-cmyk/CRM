@@ -1197,37 +1197,47 @@
                 const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
 
                 if (Object.keys(edits).length === 0 && newLeads.length === 0) {
-                    alert('Nenhuma alteracao para sincronizar. Edite uma proposta ou crie um lead primeiro.');
+                    alert('Nenhuma alteracao para sincronizar.\nEdite uma proposta ou crie um lead primeiro.');
                     return;
                 }
 
                 if (!WEBHOOK_URL) {
-                    alert('Webhook nao configurado.\n\nSiga as instrucoes em COMO-PUBLICAR-WEBHOOK.md no repositorio para publicar o Google Apps Script e obter a URL.');
+                    alert('Webhook nao configurado. Cole a URL do Apps Script em WEBHOOK_URL no crm.html.');
                     return;
                 }
 
-                const btn = event.target;
-                btn.disabled = true;
-                btn.textContent = 'Sincronizando...';
+                const btn = event ? event.target : null;
+                if (btn) { btn.disabled = true; btn.textContent = 'Sincronizando...'; }
 
                 try {
+                    // Usa URLSearchParams para evitar preflight CORS no Apps Script
+                    const payload = JSON.stringify({ token: AUTH_TOKEN, edits: edits, newLeads: newLeads });
+                    const formData = new URLSearchParams();
+                    formData.append('data', payload);
+
                     const response = await fetch(WEBHOOK_URL, {
                         method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify({ token: AUTH_TOKEN, edits: edits, newLeads: newLeads })
+                        body: formData
                     });
 
-                    // no-cors nao retorna body — considera sucesso se nao houve erro
-                    localStorage.removeItem('crm_edits');
-                    localStorage.removeItem('crm_new_leads');
-                    localStorage.setItem('crm_last_sync', new Date().toISOString());
-                    alert('Dados enviados para a planilha com sucesso!');
+                    let result = {};
+                    try { result = await response.json(); } catch (e) { }
+
+                    if (response.ok || result.status === 'ok') {
+                        localStorage.removeItem('crm_edits');
+                        localStorage.removeItem('crm_new_leads');
+                        localStorage.setItem('crm_last_sync', new Date().toISOString());
+                        const msg = result.updated !== undefined
+                            ? result.updated + ' campos atualizados, ' + (result.added || 0) + ' leads novos.'
+                            : 'Dados enviados!';
+                        alert('Sincronizado com sucesso!\n' + msg);
+                    } else {
+                        alert('Erro do servidor: ' + (result.message || response.statusText));
+                    }
                 } catch (e) {
-                    alert('Erro ao sincronizar: ' + e.message + '\n\nVerifique se o webhook esta publicado corretamente.');
+                    alert('Erro de rede: ' + e.message);
                 } finally {
-                    btn.disabled = false;
-                    btn.textContent = '\u21bb Sincronizar';
+                    if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
                 }
             }
 

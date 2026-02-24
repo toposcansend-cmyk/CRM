@@ -24,21 +24,21 @@ const AUTH_TOKEN = 'toposcan-crm-2026-v2';
 // F=Email, G=Servico, H=FollowUp, I=(vazio), J=Localizacao,
 // K=DataProposta, L=DataFechamento, M=Valor, N=Probabilidade, O=Observacao
 const COLUMN_MAP = {
-  'vendedor':       1,
+  'vendedor': 1,
   'numeroProposta': 2,
-  'cliente':        3,
-  'contato':        4,
-  'telefoneEmail':  5,
-  'email':          6,
-  'servico':        7,
-  'dataFollowup':   8,
+  'cliente': 3,
+  'contato': 4,
+  'telefoneEmail': 5,
+  'email': 6,
+  'servico': 7,
+  'dataFollowup': 8,
   'ultimoFollowup': 8,
-  'localizacao':    10,
-  'dataProposta':   11,
+  'localizacao': 10,
+  'dataProposta': 11,
   'dataFechamento': 12,
-  'valor':          13,
-  'probabilidade':  14,
-  'observacao':     15
+  'valor': 13,
+  'probabilidade': 14,
+  'observacao': 15
 };
 
 // Campos internos que nao devem ser escritos na planilha
@@ -46,7 +46,20 @@ const CAMPOS_INTERNOS = ['id', 'rowIndex', 'empresa', '_timestamp', '_criadoEm',
 
 function doPost(e) {
   try {
-    const raw = e.postData ? e.postData.contents : '{}';
+    // Suporta dois formatos:
+    // 1. URLSearchParams: campo 'data' com JSON (enviado pelo CRM via fetch sem preflight)
+    // 2. Raw JSON no body (compatibilidade com outros clientes)
+    let raw = '';
+    if (e.parameter && e.parameter.data) {
+      raw = e.parameter.data;
+    } else if (e.postData && e.postData.contents) {
+      raw = e.postData.contents;
+    }
+
+    if (!raw) {
+      return respond({ status: 'error', message: 'Nenhum dado recebido' });
+    }
+
     const data = JSON.parse(raw);
 
     // Verificar autenticacao
