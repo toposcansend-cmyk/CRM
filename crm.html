@@ -922,9 +922,11 @@
             const meses = {};
             const primeiro = new Date(2025, 1, 1);
 
-            propostas.filter(function (p) { return p.status === 'Fechada' && p.data; }).forEach(function (p) {
+            propostas.filter(function (p) { 
+                return p.status === 'Fechada' && (p.dataFechamento || p.dataProposta); 
+            }).forEach(function (p) {
                 let d = null;
-                const data = p.data.trim();
+                const data = (p.dataFechamento || p.dataProposta || '').trim();
                 const parts = data.split('/');
 
                 if (parts.length === 3) {
