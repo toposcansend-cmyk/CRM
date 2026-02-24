@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -723,8 +723,10 @@
                 <option value="Marcelo">Marcelo</option>
                 <option value="Allana">Allana</option>
             </select>
+            <button onclick="abrirNovoLead()"
+                style="padding:10px;background:#8b5cf6;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold">+ Novo Lead</button>
             <button onclick="syncToSheet()"
-                style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
+                style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">&#x21bb; Sincronizar</button>
         </div>
 
         <!-- Modal de Edicao -->
@@ -821,6 +823,7 @@
 
                 <div class="modal-buttons">
                     <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                    <button class="btn btn-danger" id="btnExcluirLead" onclick="excluirLead()" style="display:none">Excluir</button>
                     <button class="btn btn-primary" onclick="salvarEdicao()">Salvar</button>
                 </div>
             </div>
@@ -854,7 +857,7 @@
                         <option value="Fechada">Fechada</option>
                         <option value="Perdida">Perdida</option>
                     </select>
-                    <input type="text" id="busca" placeholder="Buscar..." onkeyup="filtrar()"><button onclick="abrirNovoLead()" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:bold;white-space:nowrap">+ Novo Lead</button>
+                    <input type="text" id="busca" placeholder="Buscar..." onkeyup="filtrar()">
                 </div>
                 <table>
                     <thead>
@@ -950,7 +953,7 @@
         </div>
 
         <!-- Load proposals data from sync -->
-        <script src="data_v9.js"></script>
+        <script src="proposals.js"></script>
         <script>
             console.log('=== CRM SCRIPT STARTING ===');
             const CACHE_VERSION = '2026-02-24-v9-renamefix';
@@ -979,14 +982,20 @@
                 localStorage.setItem('tema', document.body.classList.contains('modo-claro') ? 'claro' : 'escuro');
             }
 
-            // Force clear cache on version change
+            // Force clear cache on version change — preserva leads e edições!
             const savedVersion = localStorage.getItem('crmVersion');
             console.log('Saved version:', savedVersion, 'Current:', CACHE_VERSION);
             if (savedVersion !== CACHE_VERSION) {
-                console.log('Clearing cache...');
+                console.log('Version changed — clearing cache but preserving edits/leads...');
+                const savedEdits = localStorage.getItem('crm_edits');
+                const savedNewLeads = localStorage.getItem('crm_new_leads');
+                const savedTema = localStorage.getItem('tema');
                 localStorage.clear();
+                if (savedEdits) localStorage.setItem('crm_edits', savedEdits);
+                if (savedNewLeads) localStorage.setItem('crm_new_leads', savedNewLeads);
+                if (savedTema) localStorage.setItem('tema', savedTema);
                 localStorage.setItem('crmVersion', CACHE_VERSION);
-                sessionStorage.clear();
+                // NÃO limpa sessionStorage — mantém o usuário logado
             }
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
@@ -1020,29 +1029,11 @@
                         matchesVendedor = p.vendedor === vendedor;
                     }
 
-                    // Hide Fechada and Perdida only when status is "todos"
-                    if (status === 'todos' && (p.status === 'Fechada' || p.status === 'Perdida')) {
-                        return false;
-                    }
+                    // Hide proposals with 0% probability unless status is Perdida
+                    const probNum = parseInt(p.probabilidade) || 0;
+                    const isZero = probNum === 0 && p.status !== 'Perdida' && p.status !== 'Fechada';
 
-                    return matchesStatus && matchesBusca && matchesAno && matchesVendedor;
-                });
-
-                // Sort by date (most recent first)
-                f.sort((a, b) => {
-                    const dataA = a.dataProposta || a.dataFechamento || '00/00/0000';
-                    const dataB = b.dataProposta || b.dataFechamento || '00/00/0000';
-                    
-                    // Convert DD/MM/YYYY to YYYYMMDD for comparison
-                    const parseDate = (d) => {
-                        const parts = d.split('/');
-                        if (parts.length === 3) {
-                            return `${parts[2]}${parts[1].padStart(2, '0')}${parts[0].padStart(2, '0')}`;
-                        }
-                        return '00000000';
-                    };
-                    
-                    return parseDate(dataB).localeCompare(parseDate(dataA));
+                    return matchesStatus && matchesBusca && matchesAno && matchesVendedor && !isZero;
                 });
 
                 const total = f.length;
@@ -1190,85 +1181,76 @@
                 container.innerHTML = html;
             }
 
-            // Save edits to local persistence server
-            async function saveEditsToServer() {
-                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-                if (Object.keys(edits).length === 0) return;
+            // ==========================================
+            // CONFIGURAÇÃO DO WEBHOOK (Google Apps Script)
+            // Após publicar o Apps Script, cole a URL aqui:
+            // ==========================================
+            const WEBHOOK_URL = '';
+            // Exemplo: 'https://script.google.com/macros/s/AKfycb.../exec'
+            const AUTH_TOKEN = 'toposcan-crm-2026-v2';
 
-                try {
-                    const response = await fetch('http://127.0.0.1:18791/edits', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(edits)
-                    });
-
-                    const result = await response.json();
-                    console.log('Edits saved to server:', result);
-                } catch (e) {
-                    console.log('Could not save to server (offline mode)');
-                }
-            }
-
-            // Load edits from persistence server
-            async function loadEditsFromServer() {
-                try {
-                    const response = await fetch('http://127.0.0.1:18791/edits');
-                    const edits = await response.json();
-
-                    if (Object.keys(edits).length > 0) {
-                        localStorage.setItem('crm_edits', JSON.stringify(edits));
-                        console.log('Loaded', Object.keys(edits).length, 'edits from server');
-                        carregarEdits();
-                        filtrar();
-                    }
-                } catch (e) {
-                    console.log('Could not load from server');
-                }
-            }
-
-            // Sync edits to sheet via local persistence (webhook URL moved to server-side)
+            // Sync edits to Google Sheets via Apps Script webhook
             async function syncToSheet() {
                 const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-                if (Object.keys(edits).length === 0) {
-                    alert('Nenhuma edicao para sincronizar');
+                const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
+
+                if (Object.keys(edits).length === 0 && newLeads.length === 0) {
+                    alert('Nenhuma alteracao para sincronizar. Edite uma proposta ou crie um lead primeiro.');
                     return;
                 }
 
+                if (!WEBHOOK_URL) {
+                    alert('Webhook nao configurado.\n\nSiga as instrucoes em COMO-PUBLICAR-WEBHOOK.md no repositorio para publicar o Google Apps Script e obter a URL.');
+                    return;
+                }
+
+                const btn = event.target;
+                btn.disabled = true;
+                btn.textContent = 'Sincronizando...';
+
                 try {
-                    // Save edits to local server for processing
-                    const response = await fetch('http://127.0.0.1:18791/sync', {
+                    const response = await fetch(WEBHOOK_URL, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ edits: edits })
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ token: AUTH_TOKEN, edits: edits, newLeads: newLeads })
                     });
 
-                    const result = await response.json();
-
-                    if (result.status === 'ok') {
-                        localStorage.removeItem('crm_edits');
-                        localStorage.setItem('crm_last_sync', new Date().toISOString());
-                        alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
-                    } else {
-                        alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
-                    }
+                    // no-cors nao retorna body — considera sucesso se nao houve erro
+                    localStorage.removeItem('crm_edits');
+                    localStorage.removeItem('crm_new_leads');
+                    localStorage.setItem('crm_last_sync', new Date().toISOString());
+                    alert('Dados enviados para a planilha com sucesso!');
                 } catch (e) {
-                    // Fallback: save edits locally for manual sync
-                    alert('Servidor offline. Edicoes salvas localmente para sincronizar depois.');
-                    await saveEditsToServer();
+                    alert('Erro ao sincronizar: ' + e.message + '\n\nVerifique se o webhook esta publicado corretamente.');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '\u21bb Sincronizar';
                 }
             }
 
-            // Carregar edits do localStorage
+            // Carregar edits e novos leads do localStorage
             function carregarEdits() {
+                // 1. Aplicar edições em propostas existentes
                 const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
                 Object.keys(edits).forEach(id => {
                     const p = propostas.find(x => x.id == id);
                     if (p) {
                         Object.assign(p, edits[id]);
-                    } else {
-                        propostas.push(edits[id]);
+                    }
+                    // Nota: novos leads agora ficam em crm_new_leads, não em crm_edits
+                });
+
+                // 2. Carregar novos leads criados localmente
+                const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
+                newLeads.forEach(lead => {
+                    const jaExiste = propostas.find(x => x.id === lead.id);
+                    if (!jaExiste) {
+                        propostas.push(lead);
                     }
                 });
+
+                console.log('carregarEdits: ' + Object.keys(edits).length + ' edits, ' + newLeads.length + ' novos leads carregados.');
             }
 
             // Renderizar follow-up
@@ -1369,10 +1351,9 @@
                     probSelect.addEventListener('change', atualizarStatusPreview);
                 }
             });
-            console.log('CRM: Starting with', propostas.length, 'propostas');
-
-            // Load edits from server on startup
-            loadEditsFromServer();
+            // Carregar edits ANTES de renderizar
+            carregarEdits();
+            console.log('CRM: Starting with', propostas.length, 'propostas (incluindo locais)');
 
             filtrar();
             renderizarFollowup();
@@ -1450,13 +1431,15 @@
 
             // Modal functions
             function abrirNovoLead() {
-                const novoId = Math.max(...propostas.map(p => p.id || 0)) + 1;
-                
-                document.getElementById('editId').value = novoId;
+                const modal = document.getElementById('editModal');
+                modal.dataset.isNew = 'true';
+                const tempId = Date.now(); // ID temporário único
+
+                document.getElementById('editId').value = tempId;
                 document.getElementById('editRowIndex').value = '';
                 document.getElementById('editNumeroProposta').value = '';
-                document.getElementById('editNumeroPropostaInput').value = 'Novo Lead';
-                document.getElementById('editVendedor').value = '';
+                document.getElementById('editNumeroPropostaInput').value = 'NOVO-' + tempId;
+                document.getElementById('editVendedor').value = sessionStorage.getItem('crm_auth') || '';
                 document.getElementById('editCliente').value = '';
                 document.getElementById('editContato').value = '';
                 document.getElementById('editTelefoneEmail').value = '';
@@ -1469,13 +1452,18 @@
                 document.getElementById('editUltimoFollowup').value = '';
                 document.getElementById('editObservacao').value = '';
 
+                document.querySelector('#editModal h2').textContent = 'Novo Lead';
+                document.getElementById('btnExcluirLead').style.display = 'none';
                 atualizarStatusPreview();
-                document.getElementById('editModal').classList.add('active');
+                modal.classList.add('active');
             }
 
             function abrirEdicao(id) {
                 const p = propostas.find(x => x.id === id);
                 if (!p) return;
+
+                const modal = document.getElementById('editModal');
+                modal.dataset.isNew = 'false';
 
                 document.getElementById('editId').value = id;
                 document.getElementById('editRowIndex').value = p.rowIndex || '';
@@ -1494,8 +1482,31 @@
                 document.getElementById('editUltimoFollowup').value = p.ultimoFollowup || '';
                 document.getElementById('editObservacao').value = p.observacao || '';
 
+                document.querySelector('#editModal h2').textContent = 'Editar Proposta';
+                // Mostrar botão excluir apenas para leads locais (sem rowIndex)
+                const btnExcluir = document.getElementById('btnExcluirLead');
+                btnExcluir.style.display = (p.isLocal) ? 'block' : 'none';
+
                 atualizarStatusPreview();
-                document.getElementById('editModal').classList.add('active');
+                modal.classList.add('active');
+            }
+
+            function excluirLead() {
+                const id = parseInt(document.getElementById('editId').value) || document.getElementById('editId').value;
+                if (!confirm('Excluir este lead? A acao nao pode ser desfeita.')) return;
+
+                // Remover do array
+                const idx = propostas.findIndex(x => x.id == id);
+                if (idx >= 0) propostas.splice(idx, 1);
+
+                // Remover do localStorage
+                const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
+                const filtrado = newLeads.filter(l => l.id != id);
+                localStorage.setItem('crm_new_leads', JSON.stringify(filtrado));
+
+                fecharModal();
+                filtrar();
+                renderizarFollowup();
             }
 
             function fecharModal() {
@@ -1503,19 +1514,16 @@
             }
 
             function salvarEdicao() {
-                const id = parseInt(document.getElementById('editId').value);
-                let p = propostas.find(x => x.id === id);
-                const isNew = !p;
+                const rawId = document.getElementById('editId').value;
+                const id = parseInt(rawId) || rawId;
+                const isNew = document.getElementById('editModal').dataset.isNew === 'true';
 
-                // Gather all fields
                 const editData = {
-                    id: id,
                     numeroProposta: document.getElementById('editNumeroPropostaInput').value,
                     vendedor: document.getElementById('editVendedor').value,
                     cliente: document.getElementById('editCliente').value,
                     contato: document.getElementById('editContato').value,
                     telefoneEmail: document.getElementById('editTelefoneEmail').value,
-                    email: '',
                     servico: document.getElementById('editServico').value,
                     localizacao: document.getElementById('editLocalizacao').value,
                     dataProposta: document.getElementById('editDataProposta').value,
@@ -1528,30 +1536,46 @@
                 };
 
                 if (isNew) {
-                    // New lead - add to array
-                    editData.rowIndex = propostas.length + 2;
-                    propostas.push(editData);
-                    p = propostas[propostas.length - 1];
+                    // === NOVO LEAD ===
+                    if (!editData.cliente) { alert('Informe o nome do cliente.'); return; }
+
+                    const novoLead = { ...editData, id: id, rowIndex: null, isLocal: true, _criadoEm: new Date().toISOString() };
+                    propostas.push(novoLead);
+
+                    // Salvar em crm_new_leads
+                    const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
+                    newLeads.push(novoLead);
+                    localStorage.setItem('crm_new_leads', JSON.stringify(newLeads));
+
+                    console.log('Novo lead criado:', novoLead);
                 } else {
-                    // Update existing proposal
+                    // === EDITAR PROPOSTA EXISTENTE ===
+                    const p = propostas.find(x => x.id == id);
+                    if (!p) { alert('Proposta nao encontrada.'); return; }
+
                     Object.assign(p, editData);
+
+                    // Se é lead local, atualizar em crm_new_leads
+                    if (p.isLocal) {
+                        const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
+                        const idx = newLeads.findIndex(l => l.id == id);
+                        if (idx >= 0) newLeads[idx] = { ...p, ...editData };
+                        localStorage.setItem('crm_new_leads', JSON.stringify(newLeads));
+                    } else {
+                        // Proposta da planilha — salvar edição
+                        const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                        editData._timestamp = Date.now();
+                        editData.rowIndex = p.rowIndex;
+                        edits[id] = editData;
+                        localStorage.setItem('crm_edits', JSON.stringify(edits));
+                    }
+
+                    console.log('Proposta editada:', editData);
                 }
-
-                // Save to local edits (for sync back to sheet)
-                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-                editData._timestamp = Date.now();
-                editData.rowIndex = p.rowIndex;
-                edits[id] = editData;
-                localStorage.setItem('crm_edits', JSON.stringify(edits));
-
-                // Save to persistence server
-                saveEditsToServer();
 
                 filtrar();
                 renderizarFollowup();
                 fecharModal();
-
-                console.log('Edit saved:', editData);
             }
             // Note: syncToSheet() is defined above, no duplicate needed
 
@@ -1755,15 +1779,16 @@
         </script>
     </div><!-- /crmContent -->
 <script>
+            // Backup: garantir que edits sejam carregados mesmo com race conditions
             window.addEventListener('load', function() {
                 setTimeout(function() {
-                    if (typeof carregarEdits === 'function') {
+                    if (typeof carregarEdits === 'function' && typeof propostas !== 'undefined') {
                         carregarEdits();
+                        if (typeof filtrar === 'function') filtrar();
+                        if (typeof renderizarFollowup === 'function') renderizarFollowup();
+                        console.log('Load event: edits/leads recarregados. Total:', propostas.length);
                     }
-                    if (typeof filtrar === 'function') {
-                        filtrar();
-                    }
-                }, 200);
+                }, 300);
             });
         </script>
     </body>

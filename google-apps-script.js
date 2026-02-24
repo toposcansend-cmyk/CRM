@@ -1,119 +1,145 @@
 /**
- * CRM Sync Web App - Google Apps Script
- * VERSÃO SEGURA COM AUTENTICAÇÃO
+ * CRM Toposcan - Google Apps Script Webhook
+ * Versao 3.0 - Suporta edicoes E novos leads
  *
- * DEPLOY:
- * 1. Abra https://script.google.com
- * 2. Selecione o projeto existente OU crie novo
- * 3. Substitua TODO o código por este
- * 4. Salve e faça nova implantação
- * 5. Executar como: Eu mesmo
- * 6. Quem pode acessar: Qualquer pessoa
+ * COMO PUBLICAR (leva ~3 minutos):
+ * 1. Acesse https://script.google.com
+ * 2. Clique em "Novo projeto"
+ * 3. Apague o codigo existente e cole TODO este arquivo
+ * 4. Salve: Ctrl+S -> nome "CRM Toposcan Sync"
+ * 5. Clique "Implantar" -> "Nova implantacao"
+ * 6. Tipo: "App da Web"
+ * 7. Executar como: "Eu mesmo"
+ * 8. Quem pode acessar: "Qualquer pessoa"
+ * 9. Clique "Implantar" -> copie a URL
+ * 10. Cole a URL em crm.html na variavel WEBHOOK_URL
  */
 
 const SHEET_ID = '1190S57Jmbb-eJcMHJYaOZ7qIqMCUpOTV-SDlWoSrMO4';
 const SHEET_NAME = 'Planilha1';
+const AUTH_TOKEN = 'toposcan-crm-2026-v2';
 
-// Token de autenticação - altere para um valor secreto seu!
-const AUTH_TOKEN = 'toposcan-crm-2026-ALTERE-ESTE-TOKEN';
-
-// Mapeamento de colunas (1-based, conforme planilha)
-// A=Vendedor, B=N°Proposta, C=Cliente, D=Contato, E=Telefone,
-// F=Email, G=Serviço, H=Follow-up, I=(vazio), J=Localização,
-// K=DataProposta, L=DataFechamento, M=Valor, N=Probabilidade, O=Observação
+// Mapeamento de colunas (1-base, conforme planilha real)
+// A=Vendedor, B=NumeroProposta, C=Cliente, D=Contato, E=Telefone,
+// F=Email, G=Servico, H=FollowUp, I=(vazio), J=Localizacao,
+// K=DataProposta, L=DataFechamento, M=Valor, N=Probabilidade, O=Observacao
 const COLUMN_MAP = {
-  'vendedor': 1,
+  'vendedor':       1,
   'numeroProposta': 2,
-  'cliente': 3,
-  'contato': 4,
-  'telefoneEmail': 5,
-  'email': 6,
-  'servico': 7,
-  'dataFollowup': 8,
-  'localizacao': 10,
-  'dataProposta': 11,
+  'cliente':        3,
+  'contato':        4,
+  'telefoneEmail':  5,
+  'email':          6,
+  'servico':        7,
+  'dataFollowup':   8,
+  'ultimoFollowup': 8,
+  'localizacao':    10,
+  'dataProposta':   11,
   'dataFechamento': 12,
-  'valor': 13,
-  'probabilidade': 14,
-  'observacao': 15
+  'valor':          13,
+  'probabilidade':  14,
+  'observacao':     15
 };
+
+// Campos internos que nao devem ser escritos na planilha
+const CAMPOS_INTERNOS = ['id', 'rowIndex', 'empresa', '_timestamp', '_criadoEm', 'isLocal', 'status'];
 
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    const raw = e.postData ? e.postData.contents : '{}';
+    const data = JSON.parse(raw);
 
-    // Verificar autenticação
+    // Verificar autenticacao
     if (data.token !== AUTH_TOKEN) {
-      return ContentService.createTextOutput(JSON.stringify({
-        status: 'error',
-        message: 'Token de autenticação inválido'
-      })).setMimeType(ContentService.MimeType.JSON);
+      return respond({ status: 'error', message: 'Token invalido' });
     }
 
-    const edits = data.edits || {};
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
-
     if (!sheet) {
-      return ContentService.createTextOutput(JSON.stringify({
-        status: 'error',
-        message: 'Sheet not found: ' + SHEET_NAME
-      })).setMimeType(ContentService.MimeType.JSON);
+      return respond({ status: 'error', message: 'Planilha nao encontrada: ' + SHEET_NAME });
     }
 
     let updated = 0;
+    let added = 0;
 
+    // 1. Processar edicoes de propostas existentes
+    const edits = data.edits || {};
     for (const [id, edit] of Object.entries(edits)) {
       const rowIndex = edit.rowIndex;
-      if (!rowIndex || rowIndex < 2) continue; // Proteger header
+      if (!rowIndex || rowIndex < 2) continue;
 
       for (const [field, value] of Object.entries(edit)) {
-        // Pular campos internos
-        if (['id', 'rowIndex', 'empresa', '_timestamp', 'status'].includes(field)) continue;
+        if (CAMPOS_INTERNOS.includes(field)) continue;
 
         const colNum = COLUMN_MAP[field];
         if (!colNum) continue;
 
-        let formattedValue = value;
-
-        // Formatar valor
-        if (field === 'valor' && typeof value === 'number') {
-          formattedValue = `R$${value.toLocaleString('pt-BR')}`;
-        } else if (field === 'probabilidade' && typeof value === 'string' && !value.includes('%')) {
-          formattedValue = `${value}%`;
-        }
-
-        // Sanitizar entrada (remover scripts e caracteres perigosos)
-        if (typeof formattedValue === 'string') {
-          formattedValue = formattedValue.replace(/<script[^>]*>.*?<\/script>/gi, '');
-          formattedValue = formattedValue.substring(0, 500); // Limitar tamanho
-        }
-
-        sheet.getRange(rowIndex, colNum).setValue(formattedValue);
+        const formatted = formatarValor(field, value);
+        sheet.getRange(rowIndex, colNum).setValue(sanitizar(formatted));
         updated++;
       }
     }
 
-    // Log da sincronização
-    Logger.log('CRM Sync: ' + updated + ' campos atualizados em ' + new Date().toISOString());
+    // 2. Processar novos leads (adicionar linha nova)
+    const newLeads = data.newLeads || [];
+    for (const lead of newLeads) {
+      const lastRow = sheet.getLastRow() + 1;
+      const row = new Array(15).fill('');
 
-    return ContentService.createTextOutput(JSON.stringify({
+      for (const [field, value] of Object.entries(lead)) {
+        if (CAMPOS_INTERNOS.includes(field)) continue;
+        const colNum = COLUMN_MAP[field];
+        if (!colNum) continue;
+        row[colNum - 1] = sanitizar(formatarValor(field, value));
+      }
+
+      sheet.getRange(lastRow, 1, 1, 15).setValues([row]);
+      added++;
+    }
+
+    Logger.log('CRM Sync: ' + updated + ' campos atualizados, ' + added + ' leads novos em ' + new Date().toISOString());
+
+    return respond({
       status: 'ok',
       updated: updated,
+      added: added,
       timestamp: new Date().toISOString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    });
 
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: 'error',
-      message: error.message
-    })).setMimeType(ContentService.MimeType.JSON);
+    Logger.log('Erro: ' + error.message);
+    return respond({ status: 'error', message: error.message });
   }
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({
+  return respond({
     status: 'healthy',
-    message: 'CRM Toposcan Sync - Autenticação ativa',
-    version: '2.0'
-  })).setMimeType(ContentService.MimeType.JSON);
+    message: 'CRM Toposcan Webhook v3.0 - OK',
+    sheet: SHEET_ID
+  });
+}
+
+// Formatar valor conforme o campo
+function formatarValor(field, value) {
+  if (field === 'valor' && typeof value === 'number') {
+    return 'R$' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  }
+  if (field === 'probabilidade' && typeof value === 'string' && !value.includes('%')) {
+    return value + '%';
+  }
+  return value !== null && value !== undefined ? String(value) : '';
+}
+
+// Sanitizar entrada (remover SQL injection / XSS)
+function sanitizar(val) {
+  if (typeof val !== 'string') return val;
+  return val.replace(/<script[^>]*>.*?<\/script>/gi, '').substring(0, 1000);
+}
+
+// Criar resposta JSON com CORS headers
+function respond(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
