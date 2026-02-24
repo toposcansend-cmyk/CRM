@@ -838,7 +838,11 @@
                     matchesVendedor = p.vendedor === vendedor;
                 }
 
-                return matchesStatus && matchesBusca && matchesAno && matchesVendedor;
+                // Hide proposals with 0% probability unless status is Perdida
+                const probNum = parseInt(p.probabilidade) || 0;
+                const isZero = probNum === 0 && p.status !== 'Perdida' && p.status !== 'Fechada';
+
+                return matchesStatus && matchesBusca && matchesAno && matchesVendedor && !isZero;
             });
 
             const total = f.length;
