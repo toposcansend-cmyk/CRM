@@ -1,0 +1,8 @@
+[build]
+  publish = "deploy"
+  command = "mkdir -p deploy && cp crm.html deploy/index.html && cp proposals.js deploy/proposals.js && cp logo.png deploy/logo.png && cp logo-preto.png deploy/logo-preto.png"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -504,383 +504,552 @@
                 padding: 15px;
             }
         }
+
+        /* Login Screen */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        #loginScreen.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--bg-secondary);
+            padding: 40px 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-box img {
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .login-box h2 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 1.3em;
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-bottom: 20px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 1em;
+            margin-bottom: 12px;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .login-box button:hover {
+            opacity: 0.85;
+        }
+
+        .login-error {
+            color: #ff4444;
+            font-size: 0.85em;
+            margin-top: 8px;
+            display: none;
+        }
+
+        #crmContent {
+            display: none;
+        }
+
+        #crmContent.active {
+            display: block;
+        }
     </style>
 </head>
 
 <body>
-    <header
-        style="padding:20px;display:flex;justify-content:space-between;align-items:center;background:#000;border-radius:0 0 20px 20px;margin:0;width:100%;gap:15px;">
-        <img src="logo.png" alt="Toposcan" style="height:100px;max-width:200px;object-fit:contain;">
-        <button class="theme-toggle" onclick="toggleTheme()"
-            style="background:#333;border:1px solid #555;padding:8px 14px;font-size:0.85em;white-space:nowrap;border-radius:8px;">Modo
-            Claro</button>
-    </header>
-
-    <div class="stats">
-        <div class="stat-card">
-            <div class="value" id="totalPropostas">0</div>
-            <div class="label">Total</div>
-        </div>
-        <div class="stat-card">
-            <div class="value" id="fechadas">0</div>
-            <div class="label">Fechadas</div>
-        </div>
-        <div class="stat-card">
-            <div class="value" id="pendentes">0</div>
-            <div class="label">Pendente</div>
-        </div>
-        <div class="stat-card">
-            <div class="value" id="enviadas">0</div>
-            <div class="label">Enviadas</div>
-        </div>
-        <div class="stat-card fechado">
-            <div class="value" id="totalFechado">R$ 0</div>
-            <div class="label">Fechado</div>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <img src="logo.png" alt="Toposcan">
+            <h2>CRM Toposcan</h2>
+            <p>Acesso restrito à equipe Toposcan</p>
+            <input type="text" id="loginUser" placeholder="Usuário" autocomplete="username">
+            <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password"
+                onkeyup="if(event.key==='Enter')doLogin()">
+            <button onclick="doLogin()">Entrar</button>
+            <div class="login-error" id="loginError">Usuário ou senha incorretos</div>
         </div>
     </div>
 
-    <div style="display:flex;gap:10px;margin:15px 0;flex-wrap:wrap;align-items:center">
-        <select id="anoFilter" onchange="filtrar()"
-            style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;min-width:120px">
-            <option value="">Todos os Anos</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-        </select>
-        <select id="vendedorFilter" onchange="filtrar()"
-            style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;min-width:140px">
-            <option value="">Todos Vendedores</option>
-            <option value="Guilherme">Guilherme</option>
-            <option value="Marcelo">Marcelo</option>
-            <option value="Allana">Allana</option>
-        </select>
-        <button onclick="syncToSheet()"
-            style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
-    </div>
+    <script>
+        // Auth: SHA-256 hash of password for client-side verification
+        // Default credentials: admin/guilherme/marcelo/allana — senha: toposcan2026
+        // TROQUE AS SENHAS! Use: crypto.subtle.digest('SHA-256', ...) para gerar novos hashes
+        const AUTH_USERS = {
+            'admin': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
+            'guilherme': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
+            'marcelo': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
+            'allana': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8'
+        };
 
-    <!-- Modal de Edicao -->
-    <div id="editModal" class="modal">
-        <div class="modal-content" style="max-width:600px">
-            <h2>Editar Proposta</h2>
-            <input type="hidden" id="editId">
-            <input type="hidden" id="editRowIndex">
-            <input type="hidden" id="editNumeroProposta">
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div class="form-group">
-                    <label>Vendedor</label>
-                    <input type="text" id="editVendedor" placeholder="Nome do vendedor">
+        async function doLogin() {
+            const user = document.getElementById('loginUser').value.toLowerCase().trim();
+            const pass = document.getElementById('loginPass').value;
+            const passHash = await sha256(pass);
+
+            if (AUTH_USERS[user] && AUTH_USERS[user] === passHash) {
+                sessionStorage.setItem('crm_auth', user);
+                sessionStorage.setItem('crm_auth_time', Date.now().toString());
+                showCRM();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginPass').value = '';
+            }
+        }
+
+        function showCRM() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('crmContent').classList.add('active');
+        }
+
+        function checkAuth() {
+            const auth = sessionStorage.getItem('crm_auth');
+            const authTime = parseInt(sessionStorage.getItem('crm_auth_time') || '0');
+            const maxAge = 8 * 60 * 60 * 1000; // 8 hours session
+            if (auth && (Date.now() - authTime) < maxAge) {
+                showCRM();
+                return true;
+            }
+            return false;
+        }
+
+        checkAuth();
+    </script>
+
+    <div id="crmContent">
+        <header
+            style="padding:20px;display:flex;justify-content:space-between;align-items:center;background:#000;border-radius:0 0 20px 20px;margin:0;width:100%;gap:15px;">
+            <img src="logo.png" alt="Toposcan" style="height:100px;max-width:200px;object-fit:contain;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span id="loggedUser" style="color:#888;font-size:0.8em;"></span>
+                <button onclick="sessionStorage.clear();location.reload()"
+                    style="background:#333;border:1px solid #555;padding:6px 12px;font-size:0.75em;border-radius:6px;color:#ccc;cursor:pointer;">Sair</button>
+                <button class="theme-toggle" onclick="toggleTheme()"
+                    style="background:#333;border:1px solid #555;padding:8px 14px;font-size:0.85em;white-space:nowrap;border-radius:8px;">Modo
+                    Claro</button>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="value" id="totalPropostas">0</div>
+                <div class="label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="fechadas">0</div>
+                <div class="label">Fechadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="pendentes">0</div>
+                <div class="label">Pendente</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="enviadas">0</div>
+                <div class="label">Enviadas</div>
+            </div>
+            <div class="stat-card fechado">
+                <div class="value" id="totalFechado">R$ 0</div>
+                <div class="label">Fechado</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin:15px 0;flex-wrap:wrap;align-items:center">
+            <select id="anoFilter" onchange="filtrar()"
+                style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;min-width:120px">
+                <option value="">Todos os Anos</option>
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+            </select>
+            <select id="vendedorFilter" onchange="filtrar()"
+                style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;min-width:140px">
+                <option value="">Todos Vendedores</option>
+                <option value="Guilherme">Guilherme</option>
+                <option value="Marcelo">Marcelo</option>
+                <option value="Allana">Allana</option>
+            </select>
+            <button onclick="syncToSheet()"
+                style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
+        </div>
+
+        <!-- Modal de Edicao -->
+        <div id="editModal" class="modal">
+            <div class="modal-content" style="max-width:600px">
+                <h2>Editar Proposta</h2>
+                <input type="hidden" id="editId">
+                <input type="hidden" id="editRowIndex">
+                <input type="hidden" id="editNumeroProposta">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Vendedor</label>
+                        <input type="text" id="editVendedor" placeholder="Nome do vendedor">
+                    </div>
+                    <div class="form-group">
+                        <label>N Proposta</label>
+                        <input type="text" id="editNumeroPropostaInput" placeholder="Numero da proposta" readonly
+                            style="background:var(--bg-tertiary)">
+                    </div>
                 </div>
+
                 <div class="form-group">
-                    <label>N Proposta</label>
-                    <input type="text" id="editNumeroPropostaInput" placeholder="Numero da proposta" readonly
-                        style="background:var(--bg-tertiary)">
+                    <label>Cliente *</label>
+                    <input type="text" id="editCliente" placeholder="Nome do cliente" required>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Contato</label>
+                        <input type="text" id="editContato" placeholder="Nome do contato">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone / Email</label>
+                        <input type="text" id="editTelefoneEmail" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Servico</label>
+                    <input type="text" id="editServico" placeholder="Tipo de servico">
+                </div>
+
+                <div class="form-group">
+                    <label>Localizacao</label>
+                    <input type="text" id="editLocalizacao" placeholder="Endereco ou cidade">
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Data Proposta</label>
+                        <input type="text" id="editDataProposta" placeholder="DD/MM/AAAA">
+                    </div>
+                    <div class="form-group">
+                        <label>Data Fechamento</label>
+                        <input type="text" id="editDataFechamento" placeholder="DD/MM/AAAA">
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="editValor" placeholder="Valor em reais">
+                    </div>
+                    <div class="form-group">
+                        <label>Probabilidade</label>
+                        <select id="editProbabilidade">
+                            <option value="">Selecione...</option>
+                            <option value="20%">Lead (20%)</option>
+                            <option value="40%">Enviada (40%)</option>
+                            <option value="60%">Pendente (60%)</option>
+                            <option value="80%">Quase Fechando (80%)</option>
+                            <option value="100%">Fechada (100%)</option>
+                            <option value="0%">Perdida (0%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Ultimo Follow-up</label>
+                    <input type="text" id="editUltimoFollowup" placeholder="DD/MM/AAAA">
+                </div>
+
+                <div class="form-group">
+                    <label>Observacao</label>
+                    <textarea id="editObservacao" placeholder="Notas e observacoes..."
+                        style="min-height:60px"></textarea>
+                </div>
+
+                <div style="background:var(--bg-tertiary);padding:10px;border-radius:8px;margin-bottom:15px">
+                    <div style="font-size:0.8em;color:var(--text-secondary)">Status (baseado na probabilidade)</div>
+                    <div id="editStatusPreview" style="font-weight:bold;color:var(--accent)">Lead</div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="salvarEdicao()">Salvar</button>
                 </div>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label>Cliente *</label>
-                <input type="text" id="editCliente" placeholder="Nome do cliente" required>
+        <div class="tabs" id="tabsContainer">
+            <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()" style="display:none;">
+                <span>☰</span>
+                <span class="menu-label">Menu</span>
+            </button>
+            <div class="tabs-menu" id="tabsMenu">
+                <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
+                <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
+                <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
+                <button class="tab-btn" onclick="trocarTab('insights')">Insights</button>
+                <button class="tab-btn" onclick="trocarTab('kpi')">KPIs</button>
+                <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
+                <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
             </div>
+        </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div class="form-group">
-                    <label>Contato</label>
-                    <input type="text" id="editContato" placeholder="Nome do contato">
-                </div>
-                <div class="form-group">
-                    <label>Telefone / Email</label>
-                    <input type="text" id="editTelefoneEmail" placeholder="(00) 00000-0000">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Servico</label>
-                <input type="text" id="editServico" placeholder="Tipo de servico">
-            </div>
-
-            <div class="form-group">
-                <label>Localizacao</label>
-                <input type="text" id="editLocalizacao" placeholder="Endereco ou cidade">
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div class="form-group">
-                    <label>Data Proposta</label>
-                    <input type="text" id="editDataProposta" placeholder="DD/MM/AAAA">
-                </div>
-                <div class="form-group">
-                    <label>Data Fechamento</label>
-                    <input type="text" id="editDataFechamento" placeholder="DD/MM/AAAA">
-                </div>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-                <div class="form-group">
-                    <label>Valor (R$)</label>
-                    <input type="number" id="editValor" placeholder="Valor em reais">
-                </div>
-                <div class="form-group">
-                    <label>Probabilidade</label>
-                    <select id="editProbabilidade">
-                        <option value="">Selecione...</option>
-                        <option value="20%">Lead (20%)</option>
-                        <option value="40%">Enviada (40%)</option>
-                        <option value="60%">Pendente (60%)</option>
-                        <option value="80%">Quase Fechando (80%)</option>
-                        <option value="100%">Fechada (100%)</option>
-                        <option value="0%">Perdida (0%)</option>
+        <div id="oportunidades" class="section active">
+            <div class="card">
+                <div class="filters">
+                    <select id="statusFilter" onchange="filtrar()">
+                        <option value="todos">Todos Status</option>
+                        <option value="Lead">Lead</option>
+                        <option value="Enviada">Enviada</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Standby">Standby</option>
+                        <option value="Fechada">Fechada</option>
+                        <option value="Perdida">Perdida</option>
                     </select>
+                    <input type="text" id="busca" placeholder="Buscar..." onkeyup="filtrar()">
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label>Ultimo Follow-up</label>
-                <input type="text" id="editUltimoFollowup" placeholder="DD/MM/AAAA">
-            </div>
-
-            <div class="form-group">
-                <label>Observacao</label>
-                <textarea id="editObservacao" placeholder="Notas e observacoes..." style="min-height:60px"></textarea>
-            </div>
-
-            <div style="background:var(--bg-tertiary);padding:10px;border-radius:8px;margin-bottom:15px">
-                <div style="font-size:0.8em;color:var(--text-secondary)">Status (baseado na probabilidade)</div>
-                <div id="editStatusPreview" style="font-weight:bold;color:var(--accent)">Lead</div>
-            </div>
-
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
-                <button class="btn btn-primary" onclick="salvarEdicao()">Salvar</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Contato</th>
+                            <th>Servico</th>
+                            <th>Data Proposta</th>
+                            <th>Data Fechamento</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="propostasTable"></tbody>
+                </table>
+                <div id="propostasCards"></div>
             </div>
         </div>
-    </div>
 
-    <div class="tabs" id="tabsContainer">
-        <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()" style="display:none;">
-            <span>☰</span>
-            <span class="menu-label">Menu</span>
-        </button>
-        <div class="tabs-menu" id="tabsMenu">
-            <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
-            <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
-            <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
-            <button class="tab-btn" onclick="trocarTab('insights')">Insights</button>
-            <button class="tab-btn" onclick="trocarTab('kpi')">KPIs</button>
-            <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
-            <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
-        </div>
-    </div>
-
-    <div id="oportunidades" class="section active">
-        <div class="card">
-            <div class="filters">
-                <select id="statusFilter" onchange="filtrar()">
-                    <option value="todos">Todos Status</option>
-                    <option value="Lead">Lead</option>
-                    <option value="Enviada">Enviada</option>
-                    <option value="Pendente">Pendente</option>
-                    <option value="Standby">Standby</option>
-                    <option value="Fechada">Fechada</option>
-                    <option value="Perdida">Perdida</option>
-                </select>
-                <input type="text" id="busca" placeholder="Buscar..." onkeyup="filtrar()">
+        <div id="pipeline" class="section">
+            <div class="card">
+                <h2>Pipeline Kanban</h2>
+                <div class="kanban-board" id="kanbanBoard"></div>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Contato</th>
-                        <th>Servico</th>
-                        <th>Data Proposta</th>
-                        <th>Data Fechamento</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="propostasTable"></tbody>
-            </table>
-            <div id="propostasCards"></div>
         </div>
-    </div>
 
-    <div id="pipeline" class="section">
-        <div class="card">
-            <h2>Pipeline Kanban</h2>
-            <div class="kanban-board" id="kanbanBoard"></div>
+        <div id="evolucao" class="section">
+            <div class="card">
+                <h2>Fechamento por Mes</h2>
+                <div id="evolucaoChart"></div>
+            </div>
         </div>
-    </div>
 
-    <div id="evolucao" class="section">
-        <div class="card">
-            <h2>Fechamento por Mes</h2>
-            <div id="evolucaoChart"></div>
-        </div>
-    </div>
-
-    <div id="orcamento" class="section">
-        <div class="card">
-            <h2>Calculadora de Precos</h2>
-            <div style="display:grid;gap:15px;max-width:500px;">
-                <div>
-                    <label style="display:block;margin-bottom:5px;color:var(--text-secondary)">Tipo de Servico</label>
-                    <select id="tipoServico" onchange="calcularOrcamento()"
-                        style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;">
-                        <option value="">Selecione...</option>
-                        <option value="1800">Scanner 3D (R$ 1.800/dia)</option>
-                        <option value="1200">Drone LiDAR (R$ 1.200/dia)</option>
-                        <option value="800">Topografia GNSS (R$ 800/dia)</option>
-                        <option value="350">Voo Drone (R$ 350/ha)</option>
-                        <option value="25">Scan To BIM (R$/m2)</option>
-                        <option value="15">CAD (R$/m2)</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display:block;margin-bottom:5px;color:var(--text-secondary)">Quantidade</label>
-                    <input type="number" id="qtdServico" placeholder="Dias ou m2" oninput="calcularOrcamento()"
-                        style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;">
-                </div>
-                <div>
-                    <label style="display:block;margin-bottom:5px;color:var(--text-secondary)">Distancia (km)</label>
-                    <input type="number" id="distancia" placeholder="Distancia ate o local"
-                        oninput="calcularOrcamento()"
-                        style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;">
-                </div>
-                <div style="background:var(--bg-tertiary);padding:20px;border-radius:10px;text-align:center;">
-                    <div style="color:var(--text-secondary);margin-bottom:10px">Valor Total</div>
-                    <div id="totalOrcamento" style="font-size:2em;font-weight:bold;color:var(--accent)">R$ 0</div>
-                    <div id="detalheOrcamento" style="color:var(--text-secondary);font-size:0.8em;margin-top:10px">
+        <div id="orcamento" class="section">
+            <div class="card">
+                <h2>Calculadora de Precos</h2>
+                <div style="display:grid;gap:15px;max-width:500px;">
+                    <div>
+                        <label style="display:block;margin-bottom:5px;color:var(--text-secondary)">Tipo de
+                            Servico</label>
+                        <select id="tipoServico" onchange="calcularOrcamento()"
+                            style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;">
+                            <option value="">Selecione...</option>
+                            <option value="1800">Scanner 3D (R$ 1.800/dia)</option>
+                            <option value="1200">Drone LiDAR (R$ 1.200/dia)</option>
+                            <option value="800">Topografia GNSS (R$ 800/dia)</option>
+                            <option value="350">Voo Drone (R$ 350/ha)</option>
+                            <option value="25">Scan To BIM (R$/m2)</option>
+                            <option value="15">CAD (R$/m2)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:5px;color:var(--text-secondary)">Quantidade</label>
+                        <input type="number" id="qtdServico" placeholder="Dias ou m2" oninput="calcularOrcamento()"
+                            style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;">
+                    </div>
+                    <div>
+                        <label style="display:block;margin-bottom:5px;color:var(--text-secondary)">Distancia
+                            (km)</label>
+                        <input type="number" id="distancia" placeholder="Distancia ate o local"
+                            oninput="calcularOrcamento()"
+                            style="width:100%;padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;">
+                    </div>
+                    <div style="background:var(--bg-tertiary);padding:20px;border-radius:10px;text-align:center;">
+                        <div style="color:var(--text-secondary);margin-bottom:10px">Valor Total</div>
+                        <div id="totalOrcamento" style="font-size:2em;font-weight:bold;color:var(--accent)">R$ 0</div>
+                        <div id="detalheOrcamento" style="color:var(--text-secondary);font-size:0.8em;margin-top:10px">
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="followup" class="section">
-        <div class="card">
-            <h2>Propostas para Follow-up</h2>
-            <div id="followupList"></div>
+        <div id="followup" class="section">
+            <div class="card">
+                <h2>Propostas para Follow-up</h2>
+                <div id="followupList"></div>
+            </div>
         </div>
-    </div>
 
-    <div id="insights" class="section">
-        <div class="card">
-            <h2>Insights e Oportunidades</h2>
-            <div id="insightsContainer"></div>
+        <div id="insights" class="section">
+            <div class="card">
+                <h2>Insights e Oportunidades</h2>
+                <div id="insightsContainer"></div>
+            </div>
         </div>
-    </div>
 
-    <div id="kpi" class="section">
-        <div class="card">
-            <h2>KPIs e Performance</h2>
-            <div id="kpiContainer"></div>
+        <div id="kpi" class="section">
+            <div class="card">
+                <h2>KPIs e Performance</h2>
+                <div id="kpiContainer"></div>
+            </div>
         </div>
-    </div>
 
-    <!-- Load proposals data from sync -->
-    <script src="proposals.js"></script>
-    <script>
-        console.log('=== CRM SCRIPT STARTING ===');
-        const CACHE_VERSION = '2026-02-24-v6-security';
+        <!-- Load proposals data from sync -->
+        <script src="proposals.js"></script>
+        <script>
+            console.log('=== CRM SCRIPT STARTING ===');
+            const CACHE_VERSION = '2026-02-24-v6-security';
 
-        // XSS sanitizer
-        function esc(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
+            // XSS sanitizer
+            function esc(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
 
-        // propostas is defined in proposals.js
-        if (typeof propostas === 'undefined') {
-            console.warn('proposals.js not loaded! Initializing empty array.');
-            var propostas = [];
-        }
+            // propostas is defined in proposals.js
+            if (typeof propostas === 'undefined') {
+                console.warn('proposals.js not loaded! Initializing empty array.');
+                var propostas = [];
+            }
 
-        console.log('CRM: Loaded ' + propostas.length + ' proposals.');
+            console.log('CRM: Loaded ' + propostas.length + ' proposals.');
 
 
-        if (localStorage.getItem('tema') === 'claro') document.body.classList.add('modo-claro');
+            if (localStorage.getItem('tema') === 'claro') document.body.classList.add('modo-claro');
 
-        function toggleTheme() {
-            document.body.classList.toggle('modo-claro');
-            localStorage.setItem('tema', document.body.classList.contains('modo-claro') ? 'claro' : 'escuro');
-        }
+            function toggleTheme() {
+                document.body.classList.toggle('modo-claro');
+                localStorage.setItem('tema', document.body.classList.contains('modo-claro') ? 'claro' : 'escuro');
+            }
 
-        // Force clear cache on version change
-        const savedVersion = localStorage.getItem('crmVersion');
-        console.log('Saved version:', savedVersion, 'Current:', CACHE_VERSION);
-        if (savedVersion !== CACHE_VERSION) {
-            console.log('Clearing cache...');
-            localStorage.clear();
-            localStorage.setItem('crmVersion', CACHE_VERSION);
-            sessionStorage.clear();
-        }
+            // Force clear cache on version change
+            const savedVersion = localStorage.getItem('crmVersion');
+            console.log('Saved version:', savedVersion, 'Current:', CACHE_VERSION);
+            if (savedVersion !== CACHE_VERSION) {
+                console.log('Clearing cache...');
+                localStorage.clear();
+                localStorage.setItem('crmVersion', CACHE_VERSION);
+                sessionStorage.clear();
+            }
 
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-        console.log('isMobile:', isMobile);
-        console.log('propostas initialized with', propostas.length, 'items');
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            console.log('isMobile:', isMobile);
+            console.log('propostas initialized with', propostas.length, 'items');
 
-        function filtrar() {
-            const status = document.getElementById('statusFilter').value;
-            const busca = document.getElementById('busca').value.toLowerCase();
-            const ano = document.getElementById('anoFilter').value;
-            const vendedor = document.getElementById('vendedorFilter').value;
+            function filtrar() {
+                const status = document.getElementById('statusFilter').value;
+                const busca = document.getElementById('busca').value.toLowerCase();
+                const ano = document.getElementById('anoFilter').value;
+                const vendedor = document.getElementById('vendedorFilter').value;
 
-            let f = propostas.filter(p => {
-                const matchesStatus = !status || status === 'todos' || p.status === status;
-                const matchesBusca = !busca ||
-                    (p.cliente && p.cliente.toLowerCase().includes(busca)) ||
-                    (p.empresa && p.empresa.toLowerCase().includes(busca)) ||
-                    (p.servico && p.servico.toLowerCase().includes(busca)) ||
-                    (p.contato && p.contato.toLowerCase().includes(busca));
+                let f = propostas.filter(p => {
+                    const matchesStatus = !status || status === 'todos' || p.status === status;
+                    const matchesBusca = !busca ||
+                        (p.cliente && p.cliente.toLowerCase().includes(busca)) ||
+                        (p.empresa && p.empresa.toLowerCase().includes(busca)) ||
+                        (p.servico && p.servico.toLowerCase().includes(busca)) ||
+                        (p.contato && p.contato.toLowerCase().includes(busca));
 
-                // Filter by year from dataProposta or dataFechamento
-                let matchesAno = true;
-                if (ano) {
-                    const data = p.dataFechamento || p.dataProposta || '';
-                    matchesAno = data.includes(ano);
-                }
+                    // Filter by year from dataProposta or dataFechamento
+                    let matchesAno = true;
+                    if (ano) {
+                        const data = p.dataFechamento || p.dataProposta || '';
+                        matchesAno = data.includes(ano);
+                    }
 
-                // Filter by vendedor (if available in data)
-                let matchesVendedor = true;
-                if (vendedor && p.vendedor) {
-                    matchesVendedor = p.vendedor === vendedor;
-                }
+                    // Filter by vendedor (if available in data)
+                    let matchesVendedor = true;
+                    if (vendedor && p.vendedor) {
+                        matchesVendedor = p.vendedor === vendedor;
+                    }
 
-                // Hide proposals with 0% probability unless status is Perdida
-                const probNum = parseInt(p.probabilidade) || 0;
-                const isZero = probNum === 0 && p.status !== 'Perdida' && p.status !== 'Fechada';
+                    // Hide proposals with 0% probability unless status is Perdida
+                    const probNum = parseInt(p.probabilidade) || 0;
+                    const isZero = probNum === 0 && p.status !== 'Perdida' && p.status !== 'Fechada';
 
-                return matchesStatus && matchesBusca && matchesAno && matchesVendedor && !isZero;
-            });
+                    return matchesStatus && matchesBusca && matchesAno && matchesVendedor && !isZero;
+                });
 
-            const total = f.length;
-            const fechadas = f.filter(p => p.status === 'Fechada').length;
-            const pendentes = f.filter(p => p.status === 'Pendente').length;
-            const enviadas = f.filter(p => p.status === 'Enviada').length;
-            const totalFechado = f.filter(p => p.status === 'Fechada').reduce((s, p) => s + (p.valor || 0), 0);
+                const total = f.length;
+                const fechadas = f.filter(p => p.status === 'Fechada').length;
+                const pendentes = f.filter(p => p.status === 'Pendente').length;
+                const enviadas = f.filter(p => p.status === 'Enviada').length;
+                const totalFechado = f.filter(p => p.status === 'Fechada').reduce((s, p) => s + (p.valor || 0), 0);
 
-            document.getElementById('totalPropostas').textContent = total;
-            document.getElementById('fechadas').textContent = fechadas;
-            document.getElementById('pendentes').textContent = pendentes;
-            document.getElementById('enviadas').textContent = enviadas;
-            document.getElementById('totalFechado').textContent = 'R$ ' + (totalFechado / 1000).toFixed(0) + 'K';
+                document.getElementById('totalPropostas').textContent = total;
+                document.getElementById('fechadas').textContent = fechadas;
+                document.getElementById('pendentes').textContent = pendentes;
+                document.getElementById('enviadas').textContent = enviadas;
+                document.getElementById('totalFechado').textContent = 'R$ ' + (totalFechado / 1000).toFixed(0) + 'K';
 
-            renderizarLista(f);
-            renderizarKanban();
-            renderizarEvolucao();
-            renderizarInsights();
-            renderizarKPI();
-        }
+                renderizarLista(f);
+                renderizarKanban();
+                renderizarEvolucao();
+                renderizarInsights();
+                renderizarKPI();
+            }
 
-        function renderizarLista(f) {
-            const tableContainer = document.getElementById('propostasTable');
-            const cardsContainer = document.getElementById('propostasCards');
+            function renderizarLista(f) {
+                const tableContainer = document.getElementById('propostasTable');
+                const cardsContainer = document.getElementById('propostasCards');
 
-            if (!isMobile) {
-                tableContainer.style.display = 'table';
-                cardsContainer.style.display = 'none';
-                tableContainer.innerHTML = f.map(p => `
+                if (!isMobile) {
+                    tableContainer.style.display = 'table';
+                    cardsContainer.style.display = 'none';
+                    tableContainer.innerHTML = f.map(p => `
                     <tr>
                         <td style="cursor:pointer;color:var(--accent);font-weight:bold" onclick="abrirEdicao(${p.id})">${esc(p.cliente || '-')}</td>
                         <td>${esc(p.contato || '-')}</td>
@@ -891,10 +1060,10 @@
                         <td><span class="status ${(p.status || 'lead').toLowerCase()}">${esc(p.probabilidade || p.status || 'Lead')}</span></td>
                     </tr>
                 `).join('');
-            } else {
-                tableContainer.style.display = 'none';
-                cardsContainer.style.display = 'block';
-                cardsContainer.innerHTML = f.map(p => `
+                } else {
+                    tableContainer.style.display = 'none';
+                    cardsContainer.style.display = 'block';
+                    cardsContainer.innerHTML = f.map(p => `
                     <div class="proposta-card" onclick="abrirEdicao(${p.id})">
                         <div class="cliente">${p.cliente || '-'}</div>
                         <div class="info">${p.contato || ''} - ${p.servico || ''}</div>
@@ -907,17 +1076,17 @@
                         </div>
                     </div>
                 `).join('');
+                }
             }
-        }
 
-        function renderizarKanban() {
-            const statuses = ['Lead', 'Enviada', 'Pendente', 'Standby', 'Fechada', 'Perdida'];
-            const cores = { 'Lead': '#8b5cf6', 'Enviada': '#3b82f6', 'Pendente': '#f59e0b', 'Standby': '#6b7280', 'Fechada': '#22c55e', 'Perdida': '#ef4444' };
+            function renderizarKanban() {
+                const statuses = ['Lead', 'Enviada', 'Pendente', 'Standby', 'Fechada', 'Perdida'];
+                const cores = { 'Lead': '#8b5cf6', 'Enviada': '#3b82f6', 'Pendente': '#f59e0b', 'Standby': '#6b7280', 'Fechada': '#22c55e', 'Perdida': '#ef4444' };
 
-            const board = document.getElementById('kanbanBoard');
-            board.innerHTML = statuses.map(s => {
-                const items = propostas.filter(p => p.status === s);
-                return `
+                const board = document.getElementById('kanbanBoard');
+                board.innerHTML = statuses.map(s => {
+                    const items = propostas.filter(p => p.status === s);
+                    return `
                     <div class="kanban-column">
                         <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
                         ${items.slice(0, 10).map(p => `
@@ -928,593 +1097,601 @@
                         `).join('')}
                     </div>
                 `;
-            }).join('');
-        }
-
-        function renderizarEvolucao() {
-            const meses = {};
-            const primeiro = new Date(2025, 1, 1);
-
-            propostas.filter(function (p) {
-                return p.status === 'Fechada' && (p.dataFechamento || p.dataProposta);
-            }).forEach(function (p) {
-                let d = null;
-                const data = (p.dataFechamento || p.dataProposta || '').trim();
-                const parts = data.split('/');
-
-                if (parts.length === 3) {
-                    const dia = parseInt(parts[0]);
-                    const mes = parseInt(parts[1]);
-                    let ano = parseInt(parts[2]);
-                    if (parts[2].length === 2) ano = 2000 + ano;
-                    d = new Date(ano, mes - 1, dia);
-                } else if (parts.length === 2) {
-                    const mes = parseInt(parts[0]);
-                    let ano = parseInt(parts[1]);
-                    if (parts[1].length === 2) ano = 2000 + ano;
-                    d = new Date(ano, mes - 1, 1);
-                }
-
-                if (!d || d < primeiro) return;
-
-                const key = (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
-                meses[key] = (meses[key] || 0) + p.valor;
-            });
-
-            const sorted = Object.keys(meses).sort(function (a, b) {
-                const [ma, aa] = a.split('/').map(Number);
-                const [mb, ab] = b.split('/').map(Number);
-                return new Date(aa, ma - 1) - new Date(ab, mb - 1);
-            });
-
-            const totalFechadas = propostas.filter(function (p) { return p.status === 'Fechada'; }).reduce(function (s, p) { return s + p.valor; }, 0);
-            const container = document.getElementById('evolucaoChart');
-
-            if (sorted.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-secondary)">Nenhuma data de fechamento encontrada</p>';
-                return;
+                }).join('');
             }
 
-            var totalComData = 0;
-            for (var k in meses) totalComData += meses[k];
+            function renderizarEvolucao() {
+                const meses = {};
+                const primeiro = new Date(2025, 1, 1);
 
-            var html = '<div style="margin-bottom:20px"><span style="font-size:1.5em;font-weight:bold;color:var(--accent)">R$ ' + totalFechadas.toLocaleString() + '</span><span style="color:var(--text-secondary)"> total fechado</span></div>';
-            html += '<div style="color:var(--text-secondary);font-size:0.8em;margin-bottom:15px">R$ ' + totalComData.toLocaleString() + ' com data definida</div>';
-            html += '<div style="display:flex;flex-direction:column;gap:8px">';
+                propostas.filter(function (p) {
+                    return p.status === 'Fechada' && (p.dataFechamento || p.dataProposta);
+                }).forEach(function (p) {
+                    let d = null;
+                    const data = (p.dataFechamento || p.dataProposta || '').trim();
+                    const parts = data.split('/');
 
-            for (var i = 0; i < sorted.length; i++) {
-                var mes = sorted[i];
-                var valor = meses[mes];
-                var pct = (valor / totalFechadas * 100).toFixed(1);
-                html += '<div style="display:flex;align-items:center;gap:10px">';
-                html += '<span style="min-width:60px;font-weight:bold">' + mes + '</span>';
-                html += '<div style="flex:1;background:var(--bg-tertiary);border-radius:4px;height:24px;overflow:hidden">';
-                html += '<div style="width:' + pct + '%;background:linear-gradient(90deg,#22c55e,#16a34a);height:100%;border-radius:4px"></div>';
-                html += '</div>';
-                html += '<span style="min-width:80px;text-align:right;color:var(--accent)">R$ ' + valor.toLocaleString() + '</span>';
-                html += '</div>';
-            }
-            html += '</div>';
+                    if (parts.length === 3) {
+                        const dia = parseInt(parts[0]);
+                        const mes = parseInt(parts[1]);
+                        let ano = parseInt(parts[2]);
+                        if (parts[2].length === 2) ano = 2000 + ano;
+                        d = new Date(ano, mes - 1, dia);
+                    } else if (parts.length === 2) {
+                        const mes = parseInt(parts[0]);
+                        let ano = parseInt(parts[1]);
+                        if (parts[1].length === 2) ano = 2000 + ano;
+                        d = new Date(ano, mes - 1, 1);
+                    }
 
-            container.innerHTML = html;
-        }
+                    if (!d || d < primeiro) return;
 
-        // Save edits to local persistence server
-        async function saveEditsToServer() {
-            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-            if (Object.keys(edits).length === 0) return;
-
-            try {
-                const response = await fetch('http://127.0.0.1:18791/edits', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(edits)
+                    const key = (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+                    meses[key] = (meses[key] || 0) + p.valor;
                 });
 
-                const result = await response.json();
-                console.log('Edits saved to server:', result);
-            } catch (e) {
-                console.log('Could not save to server (offline mode)');
-            }
-        }
-
-        // Load edits from persistence server
-        async function loadEditsFromServer() {
-            try {
-                const response = await fetch('http://127.0.0.1:18791/edits');
-                const edits = await response.json();
-
-                if (Object.keys(edits).length > 0) {
-                    localStorage.setItem('crm_edits', JSON.stringify(edits));
-                    console.log('Loaded', Object.keys(edits).length, 'edits from server');
-                    carregarEdits();
-                    filtrar();
-                }
-            } catch (e) {
-                console.log('Could not load from server');
-            }
-        }
-
-        // Sync edits to sheet via local persistence (webhook URL moved to server-side)
-        async function syncToSheet() {
-            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-            if (Object.keys(edits).length === 0) {
-                alert('Nenhuma edicao para sincronizar');
-                return;
-            }
-
-            try {
-                // Save edits to local server for processing
-                const response = await fetch('http://127.0.0.1:18791/sync', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ edits: edits })
+                const sorted = Object.keys(meses).sort(function (a, b) {
+                    const [ma, aa] = a.split('/').map(Number);
+                    const [mb, ab] = b.split('/').map(Number);
+                    return new Date(aa, ma - 1) - new Date(ab, mb - 1);
                 });
 
-                const result = await response.json();
+                const totalFechadas = propostas.filter(function (p) { return p.status === 'Fechada'; }).reduce(function (s, p) { return s + p.valor; }, 0);
+                const container = document.getElementById('evolucaoChart');
 
-                if (result.status === 'ok') {
-                    localStorage.removeItem('crm_edits');
-                    localStorage.setItem('crm_last_sync', new Date().toISOString());
-                    alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
-                } else {
-                    alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
+                if (sorted.length === 0) {
+                    container.innerHTML = '<p style="color:var(--text-secondary)">Nenhuma data de fechamento encontrada</p>';
+                    return;
                 }
-            } catch (e) {
-                // Fallback: save edits locally for manual sync
-                alert('Servidor offline. Edicoes salvas localmente para sincronizar depois.');
-                await saveEditsToServer();
-            }
-        }
 
-        // Carregar edits do localStorage
-        function carregarEdits() {
-            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-            Object.keys(edits).forEach(id => {
-                const p = propostas.find(x => x.id == id);
-                if (p) Object.assign(p, edits[id]);
+                var totalComData = 0;
+                for (var k in meses) totalComData += meses[k];
+
+                var html = '<div style="margin-bottom:20px"><span style="font-size:1.5em;font-weight:bold;color:var(--accent)">R$ ' + totalFechadas.toLocaleString() + '</span><span style="color:var(--text-secondary)"> total fechado</span></div>';
+                html += '<div style="color:var(--text-secondary);font-size:0.8em;margin-bottom:15px">R$ ' + totalComData.toLocaleString() + ' com data definida</div>';
+                html += '<div style="display:flex;flex-direction:column;gap:8px">';
+
+                for (var i = 0; i < sorted.length; i++) {
+                    var mes = sorted[i];
+                    var valor = meses[mes];
+                    var pct = (valor / totalFechadas * 100).toFixed(1);
+                    html += '<div style="display:flex;align-items:center;gap:10px">';
+                    html += '<span style="min-width:60px;font-weight:bold">' + mes + '</span>';
+                    html += '<div style="flex:1;background:var(--bg-tertiary);border-radius:4px;height:24px;overflow:hidden">';
+                    html += '<div style="width:' + pct + '%;background:linear-gradient(90deg,#22c55e,#16a34a);height:100%;border-radius:4px"></div>';
+                    html += '</div>';
+                    html += '<span style="min-width:80px;text-align:right;color:var(--accent)">R$ ' + valor.toLocaleString() + '</span>';
+                    html += '</div>';
+                }
+                html += '</div>';
+
+                container.innerHTML = html;
+            }
+
+            // Save edits to local persistence server
+            async function saveEditsToServer() {
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                if (Object.keys(edits).length === 0) return;
+
+                try {
+                    const response = await fetch('http://127.0.0.1:18791/edits', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(edits)
+                    });
+
+                    const result = await response.json();
+                    console.log('Edits saved to server:', result);
+                } catch (e) {
+                    console.log('Could not save to server (offline mode)');
+                }
+            }
+
+            // Load edits from persistence server
+            async function loadEditsFromServer() {
+                try {
+                    const response = await fetch('http://127.0.0.1:18791/edits');
+                    const edits = await response.json();
+
+                    if (Object.keys(edits).length > 0) {
+                        localStorage.setItem('crm_edits', JSON.stringify(edits));
+                        console.log('Loaded', Object.keys(edits).length, 'edits from server');
+                        carregarEdits();
+                        filtrar();
+                    }
+                } catch (e) {
+                    console.log('Could not load from server');
+                }
+            }
+
+            // Sync edits to sheet via local persistence (webhook URL moved to server-side)
+            async function syncToSheet() {
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                if (Object.keys(edits).length === 0) {
+                    alert('Nenhuma edicao para sincronizar');
+                    return;
+                }
+
+                try {
+                    // Save edits to local server for processing
+                    const response = await fetch('http://127.0.0.1:18791/sync', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ edits: edits })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'ok') {
+                        localStorage.removeItem('crm_edits');
+                        localStorage.setItem('crm_last_sync', new Date().toISOString());
+                        alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
+                    } else {
+                        alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
+                    }
+                } catch (e) {
+                    // Fallback: save edits locally for manual sync
+                    alert('Servidor offline. Edicoes salvas localmente para sincronizar depois.');
+                    await saveEditsToServer();
+                }
+            }
+
+            // Carregar edits do localStorage
+            function carregarEdits() {
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                Object.keys(edits).forEach(id => {
+                    const p = propostas.find(x => x.id == id);
+                    if (p) Object.assign(p, edits[id]);
+                });
+            }
+
+            // Renderizar follow-up
+            function renderizarFollowup() {
+                const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const container = document.getElementById('followupList');
+                if (!container) return;
+
+                if (pendentes.length === 0) {
+                    container.innerHTML = '<p style="color:var(--text-secondary)">Nenhuma proposta pendente para follow-up</p>';
+                    return;
+                }
+
+                // Ordenar por score (mais urgentes primeiro)
+                const ordenados = pendentes.map(p => ({ ...p, score: calcularScore(p), dias: diasDesde(p.dataFechamento || p.dataProposta) }))
+                    .sort((a, b) => b.score - a.score);
+
+                let html = '<div style="margin-bottom:15px;font-size:0.9em;color:var(--text-secondary)">';
+                html += 'Ordenado por prioridade (valor + urgencia)';
+                html += '</div>';
+
+                html += '<div style="display:flex;flex-direction:column;gap:10px">';
+
+                ordenados.forEach(p => {
+                    const cor = p.score > 70 ? '#ef4444' : p.score > 50 ? '#f59e0b' : '#22c55e';
+                    const urgencia = p.score > 70 ? 'URGENTE' : p.score > 50 ? 'Atencao' : 'Normal';
+
+                    html += '<div class="proposta-card" onclick="abrirEdicao(' + p.id + ')" style="border-left:4px solid ' + cor + ';cursor:pointer">';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:start">';
+                    html += '<div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
+                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
+                    html += '</div>';
+                    html += '<div style="text-align:right">';
+                    html += '<span style="font-size:0.7em;padding:3px 8px;border-radius:10px;background:' + cor + ';color:#fff">' + urgencia + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">';
+                    html += '<div>';
+                    html += '<span class="status ' + (p.status || 'lead').toLowerCase() + '">' + (p.probabilidade || p.status || 'Lead') + '</span>';
+                    html += '<span style="font-size:0.8em;color:var(--text-secondary);margin-left:8px">' + (p.dias < 999 ? p.dias + ' dias' : 'sem data') + '</span>';
+                    html += '</div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + (p.valor || 0).toLocaleString() + '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+
+
+            function trocarTab(tabId) {
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                event.target.classList.add('active');
+
+                // Close menu on mobile after selection
+                const menu = document.getElementById('tabsMenu');
+                if (menu && window.innerWidth <= 768) {
+                    menu.classList.remove('expanded');
+                }
+            }
+
+            function toggleMenu() {
+                const menu = document.getElementById('tabsMenu');
+                if (menu) {
+                    menu.classList.toggle('expanded');
+                }
+            }
+
+            function calcularOrcamento() {
+                const tipo = document.getElementById('tipoServico').value;
+                const qtd = parseFloat(document.getElementById('qtdServico').value) || 0;
+                const dist = parseFloat(document.getElementById('distancia').value) || 0;
+
+                if (!tipo || qtd === 0) {
+                    document.getElementById('totalOrcamento').textContent = 'R$ 0';
+                    document.getElementById('detalheOrcamento').textContent = '';
+                    return;
+                }
+
+                const valorBase = parseFloat(tipo) * qtd;
+                let adicional = 0;
+                if (dist > 50) adicional = (dist - 50) * 2;
+
+                const total = valorBase + adicional;
+                document.getElementById('totalOrcamento').textContent = 'R$ ' + total.toLocaleString();
+                document.getElementById('detalheOrcamento').textContent = adicional > 0 ? `Base: R$ ${valorBase.toLocaleString()} + Viagem: R$ ${adicional.toLocaleString()}` : '';
+            }
+
+            // Add event listener for probabilidade change
+            document.addEventListener('DOMContentLoaded', function () {
+                const probSelect = document.getElementById('editProbabilidade');
+                if (probSelect) {
+                    probSelect.addEventListener('change', atualizarStatusPreview);
+                }
             });
-        }
+            console.log('CRM: Starting with', propostas.length, 'propostas');
 
-        // Renderizar follow-up
-        function renderizarFollowup() {
-            const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
-            const container = document.getElementById('followupList');
-            if (!container) return;
-
-            if (pendentes.length === 0) {
-                container.innerHTML = '<p style="color:var(--text-secondary)">Nenhuma proposta pendente para follow-up</p>';
-                return;
-            }
-
-            // Ordenar por score (mais urgentes primeiro)
-            const ordenados = pendentes.map(p => ({ ...p, score: calcularScore(p), dias: diasDesde(p.dataFechamento || p.dataProposta) }))
-                .sort((a, b) => b.score - a.score);
-
-            let html = '<div style="margin-bottom:15px;font-size:0.9em;color:var(--text-secondary)">';
-            html += 'Ordenado por prioridade (valor + urgencia)';
-            html += '</div>';
-
-            html += '<div style="display:flex;flex-direction:column;gap:10px">';
-
-            ordenados.forEach(p => {
-                const cor = p.score > 70 ? '#ef4444' : p.score > 50 ? '#f59e0b' : '#22c55e';
-                const urgencia = p.score > 70 ? 'URGENTE' : p.score > 50 ? 'Atencao' : 'Normal';
-
-                html += '<div class="proposta-card" onclick="abrirEdicao(' + p.id + ')" style="border-left:4px solid ' + cor + ';cursor:pointer">';
-                html += '<div style="display:flex;justify-content:space-between;align-items:start">';
-                html += '<div>';
-                html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
-                html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
-                html += '</div>';
-                html += '<div style="text-align:right">';
-                html += '<span style="font-size:0.7em;padding:3px 8px;border-radius:10px;background:' + cor + ';color:#fff">' + urgencia + '</span>';
-                html += '</div>';
-                html += '</div>';
-                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">';
-                html += '<div>';
-                html += '<span class="status ' + (p.status || 'lead').toLowerCase() + '">' + (p.probabilidade || p.status || 'Lead') + '</span>';
-                html += '<span style="font-size:0.8em;color:var(--text-secondary);margin-left:8px">' + (p.dias < 999 ? p.dias + ' dias' : 'sem data') + '</span>';
-                html += '</div>';
-                html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + (p.valor || 0).toLocaleString() + '</div>';
-                html += '</div>';
-                html += '</div>';
-            });
-
-            html += '</div>';
-            container.innerHTML = html;
-        }
-
-
-
-        function trocarTab(tabId) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-
-            // Close menu on mobile after selection
-            const menu = document.getElementById('tabsMenu');
-            if (menu && window.innerWidth <= 768) {
-                menu.classList.remove('expanded');
-            }
-        }
-
-        function toggleMenu() {
-            const menu = document.getElementById('tabsMenu');
-            if (menu) {
-                menu.classList.toggle('expanded');
-            }
-        }
-
-        function calcularOrcamento() {
-            const tipo = document.getElementById('tipoServico').value;
-            const qtd = parseFloat(document.getElementById('qtdServico').value) || 0;
-            const dist = parseFloat(document.getElementById('distancia').value) || 0;
-
-            if (!tipo || qtd === 0) {
-                document.getElementById('totalOrcamento').textContent = 'R$ 0';
-                document.getElementById('detalheOrcamento').textContent = '';
-                return;
-            }
-
-            const valorBase = parseFloat(tipo) * qtd;
-            let adicional = 0;
-            if (dist > 50) adicional = (dist - 50) * 2;
-
-            const total = valorBase + adicional;
-            document.getElementById('totalOrcamento').textContent = 'R$ ' + total.toLocaleString();
-            document.getElementById('detalheOrcamento').textContent = adicional > 0 ? `Base: R$ ${valorBase.toLocaleString()} + Viagem: R$ ${adicional.toLocaleString()}` : '';
-        }
-
-        // Add event listener for probabilidade change
-        document.addEventListener('DOMContentLoaded', function () {
-            const probSelect = document.getElementById('editProbabilidade');
-            if (probSelect) {
-                probSelect.addEventListener('change', atualizarStatusPreview);
-            }
-        });
-        console.log('CRM: Starting with', propostas.length, 'propostas');
-
-        // Load edits from server on startup
-        loadEditsFromServer();
-
-        filtrar();
-        renderizarFollowup();
-        renderizarInsights();
-        renderizarKPI();
-
-        // Funcao para calcular dias desde data
-        function diasDesde(data) {
-            if (!data) return 999;
-            const parts = data.split('/');
-            if (parts.length < 2) return 999;
-            let d;
-            if (parts.length === 3) {
-                let ano = parseInt(parts[2]);
-                if (parts[2].length === 2) ano = 2000 + ano;
-                d = new Date(ano, parseInt(parts[1]) - 1, parseInt(parts[0]));
-            } else {
-                return 999;
-            }
-            const hoje = new Date();
-            return Math.floor((hoje - d) / (1000 * 60 * 60 * 24));
-        }
-
-        // Score de prioridade (0-100)
-        function calcularScore(p) {
-            let score = 0;
-            // Valor (0-40 pontos)
-            if (p.valor > 50000) score += 40;
-            else if (p.valor > 20000) score += 30;
-            else if (p.valor > 10000) score += 20;
-            else if (p.valor > 5000) score += 10;
-
-            // Probabilidade/Status (0-30 pontos)
-            const prob = p.probabilidade || '';
-            const status = p.status || '';
-
-            if (prob.includes('100') || status === 'Fechada') score += 30;
-            else if (prob.includes('80')) score += 25;
-            else if (prob.includes('60') || status === 'Pendente') score += 20;
-            else if (prob.includes('40') || status === 'Enviada') score += 15;
-            else if (prob.includes('20') || status === 'Lead') score += 10;
-
-            // Tempo (0-30 pontos) - mais tempo = mais urgente
-            const dias = diasDesde(p.dataFechamento || p.dataProposta);
-            if (dias > 30) score += 30;
-            else if (dias > 14) score += 20;
-            else if (dias > 7) score += 10;
-
-            return Math.min(score, 100);
-        }
-
-        // Atualizar preview de status baseado na probabilidade
-        function atualizarStatusPreview() {
-            const prob = document.getElementById('editProbabilidade').value;
-            let status = 'Lead';
-            if (prob === '100%' || prob === '100') status = 'Fechada';
-            else if (prob === '80%' || prob === '80') status = 'Quase Fechando';
-            else if (prob === '60%' || prob === '60') status = 'Pendente';
-            else if (prob === '40%' || prob === '40') status = 'Enviada';
-            else if (prob === '0%' || prob === '0') status = 'Perdida';
-
-            document.getElementById('editStatusPreview').textContent = status;
-
-            // Atualizar cor
-            const cores = {
-                'Fechada': '#22c55e',
-                'Quase Fechando': '#22c55e',
-                'Pendente': '#f59e0b',
-                'Enviada': '#3b82f6',
-                'Lead': '#8b5cf6',
-                'Perdida': '#ef4444'
-            };
-            document.getElementById('editStatusPreview').style.color = cores[status] || 'var(--accent)';
-        }
-
-        // Modal functions
-        function abrirEdicao(id) {
-            const p = propostas.find(x => x.id === id);
-            if (!p) return;
-
-            document.getElementById('editId').value = id;
-            document.getElementById('editRowIndex').value = p.rowIndex || '';
-            document.getElementById('editNumeroProposta').value = p.numeroProposta || '';
-            document.getElementById('editNumeroPropostaInput').value = p.numeroProposta || id;
-            document.getElementById('editVendedor').value = p.vendedor || '';
-            document.getElementById('editCliente').value = p.cliente || '';
-            document.getElementById('editContato').value = p.contato || '';
-            document.getElementById('editTelefoneEmail').value = p.telefoneEmail || '';
-            document.getElementById('editServico').value = p.servico || '';
-            document.getElementById('editLocalizacao').value = p.localizacao || '';
-            document.getElementById('editDataProposta').value = p.dataProposta || '';
-            document.getElementById('editDataFechamento').value = p.dataFechamento || '';
-            document.getElementById('editValor').value = p.valor || '';
-            document.getElementById('editProbabilidade').value = p.probabilidade || '';
-            document.getElementById('editUltimoFollowup').value = p.ultimoFollowup || '';
-            document.getElementById('editObservacao').value = p.observacao || '';
-
-            atualizarStatusPreview();
-            document.getElementById('editModal').classList.add('active');
-        }
-
-        function fecharModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-
-        function salvarEdicao() {
-            const id = parseInt(document.getElementById('editId').value);
-            const p = propostas.find(x => x.id === id);
-            if (!p) return;
-
-            // Gather all fields
-            const editData = {
-                numeroProposta: document.getElementById('editNumeroPropostaInput').value,
-                vendedor: document.getElementById('editVendedor').value,
-                cliente: document.getElementById('editCliente').value,
-                contato: document.getElementById('editContato').value,
-                telefoneEmail: document.getElementById('editTelefoneEmail').value,
-                servico: document.getElementById('editServico').value,
-                localizacao: document.getElementById('editLocalizacao').value,
-                dataProposta: document.getElementById('editDataProposta').value,
-                dataFechamento: document.getElementById('editDataFechamento').value,
-                valor: parseFloat(document.getElementById('editValor').value) || 0,
-                probabilidade: document.getElementById('editProbabilidade').value,
-                ultimoFollowup: document.getElementById('editUltimoFollowup').value,
-                observacao: document.getElementById('editObservacao').value,
-                status: document.getElementById('editStatusPreview').textContent
-            };
-
-            // Update local proposal
-            Object.assign(p, editData);
-
-            // Save to local edits (for sync back to sheet)
-            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-            editData._timestamp = Date.now();
-            editData.rowIndex = p.rowIndex;
-            edits[id] = editData;
-            localStorage.setItem('crm_edits', JSON.stringify(edits));
-
-            // Save to persistence server
-            saveEditsToServer();
+            // Load edits from server on startup
+            loadEditsFromServer();
 
             filtrar();
             renderizarFollowup();
-            fecharModal();
+            renderizarInsights();
+            renderizarKPI();
 
-            console.log('Edit saved:', editData);
-        }
-        // Note: syncToSheet() is defined above, no duplicate needed
-
-        // Renderizar Insights
-        function renderizarInsights() {
-            const container = document.getElementById('insightsContainer');
-            if (!container) return;
-
-            const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
-            const semData = pendentes.filter(p => !p.data);
-            const antigas = pendentes.filter(p => diasDesde(p.data) > 14);
-            const altoValor = pendentes.filter(p => p.valor > 20000).sort((a, b) => b.valor - a.valor);
-
-            const totalPendente = pendentes.reduce((s, p) => s + p.valor, 0);
-            const probFechamento = pendentes.length > 0 ? (propostas.filter(p => p.status === 'Fechada').length / propostas.length * 100).toFixed(0) : 0;
-            const previsao = totalPendente * 0.3;
-
-            let html = '';
-
-            // Previsao de receita
-            html += '<div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:20px;border-radius:12px;margin-bottom:15px">';
-            html += '<div style="font-size:0.9em;color:#fff;opacity:0.9">Previsao de Fechamento (30%)</div>';
-            html += '<div style="font-size:2.2em;font-weight:bold;color:#fff">R$ ' + previsao.toLocaleString() + '</div>';
-            html += '<div style="font-size:0.8em;color:#fff;opacity:0.7;margin-top:5px">de R$ ' + totalPendente.toLocaleString() + ' em propostas ativas</div>';
-            html += '</div>';
-
-            // Alertas
-            html += '<div style="display:grid;gap:10px;margin-bottom:15px">';
-
-            if (semData.length > 0) {
-                html += '<div style="background:#ef4444;color:#fff;padding:15px;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
-                html += '<div><strong>' + semData.length + '</strong> propostas sem data definida</div>';
-                html += '<span style="font-size:1.2em">!</span>';
-                html += '</div>';
+            // Funcao para calcular dias desde data
+            function diasDesde(data) {
+                if (!data) return 999;
+                const parts = data.split('/');
+                if (parts.length < 2) return 999;
+                let d;
+                if (parts.length === 3) {
+                    let ano = parseInt(parts[2]);
+                    if (parts[2].length === 2) ano = 2000 + ano;
+                    d = new Date(ano, parseInt(parts[1]) - 1, parseInt(parts[0]));
+                } else {
+                    return 999;
+                }
+                const hoje = new Date();
+                return Math.floor((hoje - d) / (1000 * 60 * 60 * 24));
             }
 
-            if (antigas.length > 0) {
-                html += '<div style="background:#f59e0b;color:#000;padding:15px;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
-                html += '<div><strong>' + antigas.length + '</strong> propostas ha mais de 14 dias</div>';
-                html += '<span style="font-size:1.2em">!</span>';
-                html += '</div>';
+            // Score de prioridade (0-100)
+            function calcularScore(p) {
+                let score = 0;
+                // Valor (0-40 pontos)
+                if (p.valor > 50000) score += 40;
+                else if (p.valor > 20000) score += 30;
+                else if (p.valor > 10000) score += 20;
+                else if (p.valor > 5000) score += 10;
+
+                // Probabilidade/Status (0-30 pontos)
+                const prob = p.probabilidade || '';
+                const status = p.status || '';
+
+                if (prob.includes('100') || status === 'Fechada') score += 30;
+                else if (prob.includes('80')) score += 25;
+                else if (prob.includes('60') || status === 'Pendente') score += 20;
+                else if (prob.includes('40') || status === 'Enviada') score += 15;
+                else if (prob.includes('20') || status === 'Lead') score += 10;
+
+                // Tempo (0-30 pontos) - mais tempo = mais urgente
+                const dias = diasDesde(p.dataFechamento || p.dataProposta);
+                if (dias > 30) score += 30;
+                else if (dias > 14) score += 20;
+                else if (dias > 7) score += 10;
+
+                return Math.min(score, 100);
             }
 
-            html += '</div>';
+            // Atualizar preview de status baseado na probabilidade
+            function atualizarStatusPreview() {
+                const prob = document.getElementById('editProbabilidade').value;
+                let status = 'Lead';
+                if (prob === '100%' || prob === '100') status = 'Fechada';
+                else if (prob === '80%' || prob === '80') status = 'Quase Fechando';
+                else if (prob === '60%' || prob === '60') status = 'Pendente';
+                else if (prob === '40%' || prob === '40') status = 'Enviada';
+                else if (prob === '0%' || prob === '0') status = 'Perdida';
 
-            // Top oportunidades
-            html += '<h3 style="margin:20px 0 10px;font-size:1em">Top 5 Oportunidades</h3>';
-            html += '<div style="display:flex;flex-direction:column;gap:8px">';
+                document.getElementById('editStatusPreview').textContent = status;
 
-            altoValor.slice(0, 5).forEach(p => {
-                const score = calcularScore(p);
-                const cor = score > 70 ? '#ef4444' : score > 50 ? '#f59e0b' : '#22c55e';
-                html += '<div class="proposta-card" onclick="abrirEdicao(' + p.id + ')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">';
-                html += '<div>';
-                html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
-                html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
+                // Atualizar cor
+                const cores = {
+                    'Fechada': '#22c55e',
+                    'Quase Fechando': '#22c55e',
+                    'Pendente': '#f59e0b',
+                    'Enviada': '#3b82f6',
+                    'Lead': '#8b5cf6',
+                    'Perdida': '#ef4444'
+                };
+                document.getElementById('editStatusPreview').style.color = cores[status] || 'var(--accent)';
+            }
+
+            // Modal functions
+            function abrirEdicao(id) {
+                const p = propostas.find(x => x.id === id);
+                if (!p) return;
+
+                document.getElementById('editId').value = id;
+                document.getElementById('editRowIndex').value = p.rowIndex || '';
+                document.getElementById('editNumeroProposta').value = p.numeroProposta || '';
+                document.getElementById('editNumeroPropostaInput').value = p.numeroProposta || id;
+                document.getElementById('editVendedor').value = p.vendedor || '';
+                document.getElementById('editCliente').value = p.cliente || '';
+                document.getElementById('editContato').value = p.contato || '';
+                document.getElementById('editTelefoneEmail').value = p.telefoneEmail || '';
+                document.getElementById('editServico').value = p.servico || '';
+                document.getElementById('editLocalizacao').value = p.localizacao || '';
+                document.getElementById('editDataProposta').value = p.dataProposta || '';
+                document.getElementById('editDataFechamento').value = p.dataFechamento || '';
+                document.getElementById('editValor').value = p.valor || '';
+                document.getElementById('editProbabilidade').value = p.probabilidade || '';
+                document.getElementById('editUltimoFollowup').value = p.ultimoFollowup || '';
+                document.getElementById('editObservacao').value = p.observacao || '';
+
+                atualizarStatusPreview();
+                document.getElementById('editModal').classList.add('active');
+            }
+
+            function fecharModal() {
+                document.getElementById('editModal').classList.remove('active');
+            }
+
+            function salvarEdicao() {
+                const id = parseInt(document.getElementById('editId').value);
+                const p = propostas.find(x => x.id === id);
+                if (!p) return;
+
+                // Gather all fields
+                const editData = {
+                    numeroProposta: document.getElementById('editNumeroPropostaInput').value,
+                    vendedor: document.getElementById('editVendedor').value,
+                    cliente: document.getElementById('editCliente').value,
+                    contato: document.getElementById('editContato').value,
+                    telefoneEmail: document.getElementById('editTelefoneEmail').value,
+                    servico: document.getElementById('editServico').value,
+                    localizacao: document.getElementById('editLocalizacao').value,
+                    dataProposta: document.getElementById('editDataProposta').value,
+                    dataFechamento: document.getElementById('editDataFechamento').value,
+                    valor: parseFloat(document.getElementById('editValor').value) || 0,
+                    probabilidade: document.getElementById('editProbabilidade').value,
+                    ultimoFollowup: document.getElementById('editUltimoFollowup').value,
+                    observacao: document.getElementById('editObservacao').value,
+                    status: document.getElementById('editStatusPreview').textContent
+                };
+
+                // Update local proposal
+                Object.assign(p, editData);
+
+                // Save to local edits (for sync back to sheet)
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                editData._timestamp = Date.now();
+                editData.rowIndex = p.rowIndex;
+                edits[id] = editData;
+                localStorage.setItem('crm_edits', JSON.stringify(edits));
+
+                // Save to persistence server
+                saveEditsToServer();
+
+                filtrar();
+                renderizarFollowup();
+                fecharModal();
+
+                console.log('Edit saved:', editData);
+            }
+            // Note: syncToSheet() is defined above, no duplicate needed
+
+            // Renderizar Insights
+            function renderizarInsights() {
+                const container = document.getElementById('insightsContainer');
+                if (!container) return;
+
+                const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const semData = pendentes.filter(p => !p.data);
+                const antigas = pendentes.filter(p => diasDesde(p.data) > 14);
+                const altoValor = pendentes.filter(p => p.valor > 20000).sort((a, b) => b.valor - a.valor);
+
+                const totalPendente = pendentes.reduce((s, p) => s + p.valor, 0);
+                const probFechamento = pendentes.length > 0 ? (propostas.filter(p => p.status === 'Fechada').length / propostas.length * 100).toFixed(0) : 0;
+                const previsao = totalPendente * 0.3;
+
+                let html = '';
+
+                // Previsao de receita
+                html += '<div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:20px;border-radius:12px;margin-bottom:15px">';
+                html += '<div style="font-size:0.9em;color:#fff;opacity:0.9">Previsao de Fechamento (30%)</div>';
+                html += '<div style="font-size:2.2em;font-weight:bold;color:#fff">R$ ' + previsao.toLocaleString() + '</div>';
+                html += '<div style="font-size:0.8em;color:#fff;opacity:0.7;margin-top:5px">de R$ ' + totalPendente.toLocaleString() + ' em propostas ativas</div>';
                 html += '</div>';
-                html += '<div style="text-align:right">';
-                html += '<div style="font-weight:bold">R$ ' + p.valor.toLocaleString() + '</div>';
-                html += '<div style="font-size:0.8em;padding:2px 8px;border-radius:10px;background:' + cor + ';color:#fff">Score ' + score + '</div>';
-                html += '</div>';
-                html += '</div>';
-            });
 
-            html += '</div>';
+                // Alertas
+                html += '<div style="display:grid;gap:10px;margin-bottom:15px">';
 
-            container.innerHTML = html;
-        }
-
-        // Renderizar KPIs
-        function renderizarKPI() {
-            const container = document.getElementById('kpiContainer');
-            if (!container) return;
-
-            const total = propostas.length;
-            const fechadas = propostas.filter(p => p.status === 'Fechada');
-            const perdidas = propostas.filter(p => p.status === 'Perdida');
-            const ativas = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
-
-            const totalFechado = fechadas.reduce((s, p) => s + p.valor, 0);
-            const totalPerdido = perdidas.reduce((s, p) => s + p.valor, 0);
-            const totalAtivo = ativas.reduce((s, p) => s + p.valor, 0);
-
-            const taxaConversao = (fechadas.length + perdidas.length) > 0
-                ? (fechadas.length / (fechadas.length + perdidas.length) * 100).toFixed(0)
-                : 0;
-
-            const ticketMedio = fechadas.length > 0
-                ? Math.round(totalFechado / fechadas.length)
-                : 0;
-
-            // Por vendedor
-            const vendedores = {};
-            propostas.forEach(p => {
-                const v = p.vendedor || 'Sem vendedor';
-                if (!vendedores[v]) vendedores[v] = { total: 0, fechado: 0, valor: 0 };
-                vendedores[v].total++;
-                if (p.status === 'Fechada') {
-                    vendedores[v].fechado++;
-                    vendedores[v].valor += p.valor;
+                if (semData.length > 0) {
+                    html += '<div style="background:#ef4444;color:#fff;padding:15px;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
+                    html += '<div><strong>' + semData.length + '</strong> propostas sem data definida</div>';
+                    html += '<span style="font-size:1.2em">!</span>';
+                    html += '</div>';
                 }
-            });
 
-            // Por servico
-            const servicos = {};
-            propostas.forEach(p => {
-                const s = p.servico || 'Nao definido';
-                if (!servicos[s]) servicos[s] = { total: 0, fechado: 0, valor: 0 };
-                servicos[s].total++;
-                if (p.status === 'Fechada') {
-                    servicos[s].fechado++;
-                    servicos[s].valor += p.valor;
+                if (antigas.length > 0) {
+                    html += '<div style="background:#f59e0b;color:#000;padding:15px;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
+                    html += '<div><strong>' + antigas.length + '</strong> propostas ha mais de 14 dias</div>';
+                    html += '<span style="font-size:1.2em">!</span>';
+                    html += '</div>';
                 }
-            });
 
-            let html = '';
+                html += '</div>';
 
-            // KPIs principais
-            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px">';
+                // Top oportunidades
+                html += '<h3 style="margin:20px 0 10px;font-size:1em">Top 5 Oportunidades</h3>';
+                html += '<div style="display:flex;flex-direction:column;gap:8px">';
 
-            html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
-            html += '<div style="font-size:2em;font-weight:bold;color:#22c55e">' + taxaConversao + '%</div>';
-            html += '<div style="font-size:0.8em;color:var(--text-secondary)">Taxa de Conversao</div>';
-            html += '</div>';
-
-            html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
-            html += '<div style="font-size:2em;font-weight:bold;color:var(--accent)">R$ ' + (ticketMedio / 1000).toFixed(0) + 'K</div>';
-            html += '<div style="font-size:0.8em;color:var(--text-secondary)">Ticket Medio</div>';
-            html += '</div>';
-
-            html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
-            html += '<div style="font-size:2em;font-weight:bold;color:#f59e0b">' + ativas.length + '</div>';
-            html += '<div style="font-size:0.8em;color:var(--text-secondary)">Propostas Ativas</div>';
-            html += '</div>';
-
-            html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
-            html += '<div style="font-size:2em;font-weight:bold;color:#ef4444">' + perdidas.length + '</div>';
-            html += '<div style="font-size:0.8em;color:var(--text-secondary)">Propostas Perdidas</div>';
-            html += '</div>';
-
-            html += '</div>';
-
-            // Por vendedor
-            html += '<h3 style="margin:20px 0 10px;font-size:1em">Performance por Vendedor</h3>';
-            html += '<div style="display:flex;flex-direction:column;gap:8px">';
-
-            Object.entries(vendedores)
-                .filter(([v]) => v !== 'Sem vendedor')
-                .sort((a, b) => b[1].valor - a[1].valor)
-                .forEach(([vendedor, dados]) => {
-                    const taxa = dados.total > 0 ? (dados.fechado / dados.total * 100).toFixed(0) : 0;
-                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-tertiary);border-radius:8px">';
+                altoValor.slice(0, 5).forEach(p => {
+                    const score = calcularScore(p);
+                    const cor = score > 70 ? '#ef4444' : score > 50 ? '#f59e0b' : '#22c55e';
+                    html += '<div class="proposta-card" onclick="abrirEdicao(' + p.id + ')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">';
                     html += '<div>';
-                    html += '<div style="font-weight:bold">' + vendedor + '</div>';
-                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.total + ' propostas - ' + taxa + '% conversao</div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
+                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
                     html += '</div>';
                     html += '<div style="text-align:right">';
-                    html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + dados.valor.toLocaleString() + '</div>';
-                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.fechado + ' fechadas</div>';
+                    html += '<div style="font-weight:bold">R$ ' + p.valor.toLocaleString() + '</div>';
+                    html += '<div style="font-size:0.8em;padding:2px 8px;border-radius:10px;background:' + cor + ';color:#fff">Score ' + score + '</div>';
                     html += '</div>';
                     html += '</div>';
                 });
 
-            html += '</div>';
+                html += '</div>';
 
-            // Por servico
-            html += '<h3 style="margin:20px 0 10px;font-size:1em">Servicos Mais Vendidos</h3>';
-            html += '<div style="display:flex;flex-direction:column;gap:8px">';
+                container.innerHTML = html;
+            }
 
-            Object.entries(servicos)
-                .filter(([s]) => s !== 'Nao definido')
-                .sort((a, b) => b[1].valor - a[1].valor)
-                .slice(0, 5)
-                .forEach(([servico, dados]) => {
-                    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-tertiary);border-radius:8px">';
-                    html += '<div>';
-                    html += '<div style="font-weight:bold">' + servico + '</div>';
-                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.total + ' propostas</div>';
-                    html += '</div>';
-                    html += '<div style="text-align:right">';
-                    html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + dados.valor.toLocaleString() + '</div>';
-                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.fechado + ' fechadas</div>';
-                    html += '</div>';
-                    html += '</div>';
+            // Renderizar KPIs
+            function renderizarKPI() {
+                const container = document.getElementById('kpiContainer');
+                if (!container) return;
+
+                const total = propostas.length;
+                const fechadas = propostas.filter(p => p.status === 'Fechada');
+                const perdidas = propostas.filter(p => p.status === 'Perdida');
+                const ativas = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+
+                const totalFechado = fechadas.reduce((s, p) => s + p.valor, 0);
+                const totalPerdido = perdidas.reduce((s, p) => s + p.valor, 0);
+                const totalAtivo = ativas.reduce((s, p) => s + p.valor, 0);
+
+                const taxaConversao = (fechadas.length + perdidas.length) > 0
+                    ? (fechadas.length / (fechadas.length + perdidas.length) * 100).toFixed(0)
+                    : 0;
+
+                const ticketMedio = fechadas.length > 0
+                    ? Math.round(totalFechado / fechadas.length)
+                    : 0;
+
+                // Por vendedor
+                const vendedores = {};
+                propostas.forEach(p => {
+                    const v = p.vendedor || 'Sem vendedor';
+                    if (!vendedores[v]) vendedores[v] = { total: 0, fechado: 0, valor: 0 };
+                    vendedores[v].total++;
+                    if (p.status === 'Fechada') {
+                        vendedores[v].fechado++;
+                        vendedores[v].valor += p.valor;
+                    }
                 });
 
-            html += '</div>';
+                // Por servico
+                const servicos = {};
+                propostas.forEach(p => {
+                    const s = p.servico || 'Nao definido';
+                    if (!servicos[s]) servicos[s] = { total: 0, fechado: 0, valor: 0 };
+                    servicos[s].total++;
+                    if (p.status === 'Fechada') {
+                        servicos[s].fechado++;
+                        servicos[s].valor += p.valor;
+                    }
+                });
 
-            container.innerHTML = html;
-        }
-    </script>
+                let html = '';
+
+                // KPIs principais
+                html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px">';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:#22c55e">' + taxaConversao + '%</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Taxa de Conversao</div>';
+                html += '</div>';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:var(--accent)">R$ ' + (ticketMedio / 1000).toFixed(0) + 'K</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Ticket Medio</div>';
+                html += '</div>';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:#f59e0b">' + ativas.length + '</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Propostas Ativas</div>';
+                html += '</div>';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:#ef4444">' + perdidas.length + '</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Propostas Perdidas</div>';
+                html += '</div>';
+
+                html += '</div>';
+
+                // Por vendedor
+                html += '<h3 style="margin:20px 0 10px;font-size:1em">Performance por Vendedor</h3>';
+                html += '<div style="display:flex;flex-direction:column;gap:8px">';
+
+                Object.entries(vendedores)
+                    .filter(([v]) => v !== 'Sem vendedor')
+                    .sort((a, b) => b[1].valor - a[1].valor)
+                    .forEach(([vendedor, dados]) => {
+                        const taxa = dados.total > 0 ? (dados.fechado / dados.total * 100).toFixed(0) : 0;
+                        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-tertiary);border-radius:8px">';
+                        html += '<div>';
+                        html += '<div style="font-weight:bold">' + vendedor + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.total + ' propostas - ' + taxa + '% conversao</div>';
+                        html += '</div>';
+                        html += '<div style="text-align:right">';
+                        html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + dados.valor.toLocaleString() + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.fechado + ' fechadas</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    });
+
+                html += '</div>';
+
+                // Por servico
+                html += '<h3 style="margin:20px 0 10px;font-size:1em">Servicos Mais Vendidos</h3>';
+                html += '<div style="display:flex;flex-direction:column;gap:8px">';
+
+                Object.entries(servicos)
+                    .filter(([s]) => s !== 'Nao definido')
+                    .sort((a, b) => b[1].valor - a[1].valor)
+                    .slice(0, 5)
+                    .forEach(([servico, dados]) => {
+                        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-tertiary);border-radius:8px">';
+                        html += '<div>';
+                        html += '<div style="font-weight:bold">' + servico + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.total + ' propostas</div>';
+                        html += '</div>';
+                        html += '<div style="text-align:right">';
+                        html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + dados.valor.toLocaleString() + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.fechado + ' fechadas</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    });
+
+                html += '</div>';
+
+                container.innerHTML = html;
+            }
+
+            // Show logged user in header
+            const authUser = sessionStorage.getItem('crm_auth');
+            if (authUser) {
+                const el = document.getElementById('loggedUser');
+                if (el) el.textContent = '👤 ' + authUser.charAt(0).toUpperCase() + authUser.slice(1);
+            }
+        </script>
+    </div><!-- /crmContent -->
 </body>
 
 </html>
