@@ -650,8 +650,10 @@
         }
 
         function showCRM() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('crmContent').classList.add('active');
+            const login = document.getElementById('loginScreen');
+            const crm = document.getElementById('crmContent');
+            if (login) login.classList.add('hidden');
+            if (crm) crm.classList.add('active');
         }
 
         function checkAuth() {
@@ -665,6 +667,8 @@
             return false;
         }
 
+        // Run check after initial script load, but showCRM will check if elements exist
+        // Also added a backup call at the bottom of the file
         checkAuth();
     </script>
 
@@ -1690,6 +1694,9 @@
                 const el = document.getElementById('loggedUser');
                 if (el) el.textContent = '👤 ' + authUser.charAt(0).toUpperCase() + authUser.slice(1);
             }
+
+            // Final check to catch any racing conditions
+            checkAuth();
         </script>
     </div><!-- /crmContent -->
 </body>
