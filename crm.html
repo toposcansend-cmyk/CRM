@@ -724,9 +724,11 @@
                 <option value="Allana">Allana</option>
             </select>
             <button onclick="abrirNovoLead()"
-                style="padding:10px;background:#8b5cf6;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold">+ Novo Lead</button>
+                style="padding:10px;background:#8b5cf6;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold">+
+                Novo Lead</button>
             <button onclick="syncToSheet()"
-                style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">&#x21bb; Sincronizar</button>
+                style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">&#x21bb;
+                Sincronizar</button>
         </div>
 
         <!-- Modal de Edicao -->
@@ -823,7 +825,8 @@
 
                 <div class="modal-buttons">
                     <button class="btn btn-secondary" onclick="fecharModal()">Cancelar</button>
-                    <button class="btn btn-danger" id="btnExcluirLead" onclick="excluirLead()" style="display:none">Excluir</button>
+                    <button class="btn btn-danger" id="btnExcluirLead" onclick="excluirLead()"
+                        style="display:none">Excluir</button>
                     <button class="btn btn-primary" onclick="salvarEdicao()">Salvar</button>
                 </div>
             </div>
@@ -1185,8 +1188,7 @@
             // CONFIGURAÇÃO DO WEBHOOK (Google Apps Script)
             // Após publicar o Apps Script, cole a URL aqui:
             // ==========================================
-            const WEBHOOK_URL = '';
-            // Exemplo: 'https://script.google.com/macros/s/AKfycb.../exec'
+            const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzHGtzQrlhR3kouDJwJYZITlAsJnElDCTQgHRf1DLMpLaXm3-WwH4pyAEpSfF3kx3NSuQ/exec';
             const AUTH_TOKEN = 'toposcan-crm-2026-v2';
 
             // Sync edits to Google Sheets via Apps Script webhook
@@ -1778,19 +1780,19 @@
             checkAuth();
         </script>
     </div><!-- /crmContent -->
-<script>
-            // Backup: garantir que edits sejam carregados mesmo com race conditions
-            window.addEventListener('load', function() {
-                setTimeout(function() {
-                    if (typeof carregarEdits === 'function' && typeof propostas !== 'undefined') {
-                        carregarEdits();
-                        if (typeof filtrar === 'function') filtrar();
-                        if (typeof renderizarFollowup === 'function') renderizarFollowup();
-                        console.log('Load event: edits/leads recarregados. Total:', propostas.length);
-                    }
-                }, 300);
-            });
-        </script>
-    </body>
+    <script>
+        // Backup: garantir que edits sejam carregados mesmo com race conditions
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                if (typeof carregarEdits === 'function' && typeof propostas !== 'undefined') {
+                    carregarEdits();
+                    if (typeof filtrar === 'function') filtrar();
+                    if (typeof renderizarFollowup === 'function') renderizarFollowup();
+                    console.log('Load event: edits/leads recarregados. Total:', propostas.length);
+                }
+            }, 300);
+        });
+    </script>
+</body>
 
 </html>
