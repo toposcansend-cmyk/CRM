@@ -953,7 +953,7 @@
         <script src="proposals.js"></script>
         <script>
             console.log('=== CRM SCRIPT STARTING ===');
-            const CACHE_VERSION = '2026-02-24-v6-security';
+            const CACHE_VERSION = '2026-02-24-v7-datafix';
 
             // XSS sanitizer
             function esc(str) {
@@ -1359,7 +1359,7 @@
 
             // Funcao para calcular dias desde data
             function diasDesde(data) {
-                if (!data) return 999;
+                if (!data || typeof data !== 'string') return 999;
                 const parts = data.split('/');
                 if (parts.length < 2) return 999;
                 let d;
@@ -1506,8 +1506,8 @@
                 if (!container) return;
 
                 const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
-                const semData = pendentes.filter(p => !p.data);
-                const antigas = pendentes.filter(p => diasDesde(p.data) > 14);
+                const semData = pendentes.filter(p => !(p.dataFechamento || p.dataProposta));
+                const antigas = pendentes.filter(p => diasDesde(p.dataFechamento || p.dataProposta) > 14);
                 const altoValor = pendentes.filter(p => p.valor > 20000).sort((a, b) => b.valor - a.valor);
 
                 const totalPendente = pendentes.reduce((s, p) => s + p.valor, 0);
