@@ -598,22 +598,7 @@
         #crmContent.active {
             display: block;
         }
-    
-        .kanban-card.dragging {
-            opacity: 0.5;
-            transform: rotate(3deg);
-        }
-        
-        .kanban-column.drag-over {
-            background: rgba(0, 212, 255, 0.1);
-            border: 2px dashed var(--accent);
-        }
-        
-        .kanban-card {
-            cursor: move;
-        }
-        
-        </style>
+    </style>
 </head>
 
 <body>
@@ -1027,11 +1012,6 @@
                 const vendedor = document.getElementById('vendedorFilter').value;
 
                 let f = propostas.filter(p => {
-                    // ESCONDER Fechada e Perdida da lista de oportunidades (quando status = 'todos')
-                    if (status === 'todos' && (p.status === 'Fechada' || p.status === 'Perdida')) {
-                        return false;
-                    }
-                    
                     const matchesStatus = !status || status === 'todos' || p.status === status;
                     const matchesBusca = !busca ||
                         (p.cliente && p.cliente.toLowerCase().includes(busca)) ||
@@ -1123,7 +1103,7 @@
                 board.innerHTML = statuses.map(s => {
                     const items = propostas.filter(p => p.status === s);
                     return `
-                    <div class="kanban-column" data-status="${s}">
+                    <div class="kanban-column">
                         <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
                         ${items.slice(0, 10).map(p => `
                             <div class="kanban-item">
@@ -1208,7 +1188,7 @@
             // CONFIGURAÇÃO DO WEBHOOK (Google Apps Script)
             // Após publicar o Apps Script, cole a URL aqui:
             // ==========================================
-            const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzHGtzQrlhR3kouDJwJYZITlAsJnElDCTQgHRf1DLMpLaXm3-WwH4pyAEpSfF3kx3NSuQ/exec';
+            const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwSh_XiGhIGGEvFdudsqksmn5luujiD2UMw8_gUFM0Q0CXd_aJi5naHU_QVMFpFfLDXGg/exec';
             const AUTH_TOKEN = 'toposcan-crm-2026-v2';
 
             // Sync edits to Google Sheets via Apps Script webhook
@@ -1839,99 +1819,6 @@
             }, 300);
         });
     </script>
-
-    <script>
-        // DRAG AND DROP PARA KANBAN
-        let draggedCard = null;
-        
-        document.addEventListener('dragstart', function(e) {
-            if (e.target.classList.contains('kanban-card')) {
-                draggedCard = e.target;
-                e.target.classList.add('dragging');
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', e.target.dataset.id);
-            }
-        });
-        
-        document.addEventListener('dragend', function(e) {
-            if (e.target.classList.contains('kanban-card')) {
-                e.target.classList.remove('dragging');
-                draggedCard = null;
-            }
-            document.querySelectorAll('.kanban-column').forEach(col => {
-                col.classList.remove('drag-over');
-            });
-        });
-        
-        document.addEventListener('dragover', function(e) {
-            if (e.target.classList.contains('kanban-column') || 
-                e.target.closest('.kanban-column')) {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                
-                const column = e.target.classList.contains('kanban-column') ? 
-                    e.target : e.target.closest('.kanban-column');
-                column.classList.add('drag-over');
-            }
-        });
-        
-        document.addEventListener('dragleave', function(e) {
-            if (e.target.classList.contains('kanban-column')) {
-                e.target.classList.remove('drag-over');
-            }
-        });
-        
-        document.addEventListener('drop', function(e) {
-            const column = e.target.classList.contains('kanban-column') ? 
-                e.target : e.target.closest('.kanban-column');
-            
-            if (column && draggedCard) {
-                e.preventDefault();
-                column.classList.remove('drag-over');
-                
-                const newStatus = column.dataset.status;
-                const propId = parseInt(draggedCard.dataset.id);
-                
-                const p = propostas.find(x => x.id === propId);
-                if (p && p.status !== newStatus) {
-                    const oldStatus = p.status;
-                    p.status = newStatus;
-                    
-                    const statusProbMap = {
-                        'Lead': '20%',
-                        'Enviada': '40%',
-                        'Pendente': '60%',
-                        'Standby': '20%',
-                        'Fechada': '100%',
-                        'Perdida': '0%'
-                    };
-                    p.probabilidade = statusProbMap[newStatus] || p.probabilidade;
-                    
-                    const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-                    edits[propId] = {...p, _timestamp: Date.now()};
-                    localStorage.setItem('crm_edits', JSON.stringify(edits));
-                    
-                    filtrar();
-                    renderizarKanban();
-                }
-            }
-        });
-        
-        function makeCardsDraggable() {
-            document.querySelectorAll('.kanban-card').forEach(card => {
-                card.setAttribute('draggable', 'true');
-            });
-        }
-        
-        const origRenderKanban = renderizarKanban;
-        renderizarKanban = function() {
-            origRenderKanban();
-            setTimeout(makeCardsDraggable, 100);
-        };
-        
-        setTimeout(makeCardsDraggable, 500);
-    </script>
-
 </body>
 
 </html>
