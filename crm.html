@@ -1210,30 +1210,31 @@
                 if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
 
                 try {
-                    // no-cors + text/plain: unico metodo que funciona com Apps Script cross-origin
-                    // O Apps Script recebe os dados em e.postData.contents
-                    const payload = JSON.stringify({ token: AUTH_TOKEN, edits: edits, newLeads: newLeads });
+                    // USA GET com parametros na URL — unico metodo confiavel com Apps Script cross-origin
+                    // (POST perde o body no redirect 302 do Apps Script)
+                    const payload = { token: AUTH_TOKEN, edits: edits, newLeads: newLeads };
+                    const dataEncoded = encodeURIComponent(JSON.stringify(payload));
+                    const url = WEBHOOK_URL + '?data=' + dataEncoded;
 
-                    await fetch(WEBHOOK_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain' },
-                        body: payload
-                    });
+                    const response = await fetch(url, { method: 'GET' });
 
-                    // Com no-cors nao podemos ler a resposta, mas os dados foram enviados
-                    localStorage.removeItem('crm_edits');
-                    localStorage.removeItem('crm_new_leads');
-                    localStorage.setItem('crm_last_sync', new Date().toISOString());
+                    let result = {};
+                    try { result = await response.json(); } catch (e2) { }
 
-                    const totalEdits = Object.keys(edits).length;
-                    const totalLeads = newLeads.length;
-                    alert('Dados enviados para a planilha!\n' +
-                        (totalEdits > 0 ? totalEdits + ' edicao(oes)\n' : '') +
-                        (totalLeads > 0 ? totalLeads + ' novo(s) lead(s)\n' : '') +
-                        '\nVerifique a planilha em alguns segundos.');
+                    if (response.ok && result.status === 'ok') {
+                        localStorage.removeItem('crm_edits');
+                        localStorage.removeItem('crm_new_leads');
+                        localStorage.setItem('crm_last_sync', new Date().toISOString());
+                        const totalEdits = Object.keys(edits).length;
+                        const totalLeads = newLeads.length;
+                        alert('Sincronizado com sucesso!\n' +
+                            (totalEdits > 0 ? totalEdits + ' edicao(oes) atualizadas\n' : '') +
+                            (totalLeads > 0 ? totalLeads + ' novo(s) lead(s) adicionado(s)\n' : ''));
+                    } else {
+                        alert('Erro: ' + (result.message || 'Verifique o Apps Script no Google'));
+                    }
                 } catch (e) {
-                    alert('Erro ao enviar: ' + e.message);
+                    alert('Erro de rede: ' + e.message);
                 } finally {
                     if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
                 }

@@ -119,11 +119,12 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  return respond({
-    status: 'healthy',
-    message: 'CRM Toposcan Webhook v3.0 - OK',
-    sheet: SHEET_ID
-  });
+  // Se receber parametro 'data', processa a sincronizacao (chamado pelo CRM via GET)
+  if (e.parameter && e.parameter.data) {
+    return doPost(e); // Reutiliza a logica do doPost lendo e.parameter.data
+  }
+  // Health check
+  return respond({ status: 'healthy', message: 'CRM Toposcan Webhook v4.0 - OK' });
 }
 
 // Formatar valor conforme o campo
