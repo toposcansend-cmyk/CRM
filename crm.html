@@ -608,7 +608,7 @@
             <img src="logo-branca.png" alt="Toposcan" style="height:50px;">
             <h2>CRM Toposcan</h2>
             <p>Acesso restrito à equipe Toposcan</p>
-            <input type="text" id="loginUser" placeholder="Usuário" autocomplete="username">
+            <input type="email" id="loginUser" placeholder="Email" autocomplete="username">
             <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password"
                 onkeyup="if(event.key==='Enter')doLogin()">
             <button onclick="doLogin()">Entrar</button>
@@ -618,13 +618,13 @@
 
     <script>
         // Auth: SHA-256 hash of password for client-side verification
-        // Default credentials: admin/guilherme/marcelo/allana — senha: toposcan2026
+        // Default credentials: email@toposcan.com.br — senha: toposcan2026
         // TROQUE AS SENHAS! Use: crypto.subtle.digest('SHA-256', ...) para gerar novos hashes
         const AUTH_USERS = {
-            'admin': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
-            'guilherme': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
-            'marcelo': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
-            'allana': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8'
+            'admin@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
+            'guilherme@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
+            'marcelo@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8',
+            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd79692766dd4c2b3a8'
         };
 
         async function sha256(message) {
