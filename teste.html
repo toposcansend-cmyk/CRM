@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Teste CRM</title>
+</head>
+<body>
+    <h1>Teste CRM</h1>
+    <div id="output"></div>
+    
+    <script src="data_v9.js"></script>
+    <script>
+        console.log('Testando data_v9.js...');
+        console.log('propostas:', typeof propostas);
+        console.log('Total:', propostas ? propostas.length : 'undefined');
+        
+        if (typeof propostas === 'undefined') {
+            document.getElementById('output').innerHTML = '<p style="color:red">ERRO: propostas não definido!</p>';
+        } else {
+            document.getElementById('output').innerHTML = 
+                '<p style="color:green">OK: ' + propostas.length + ' propostas carregadas</p>' +
+                '<p>Primeira: ' + propostas[0].cliente + '</p>';
+        }
+    </script>
+</body>
+</html>
