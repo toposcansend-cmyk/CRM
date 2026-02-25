@@ -619,7 +619,7 @@
 function getPropostasFiltradas() {
     const vendedor = document.getElementById('vendedorFilter')?.value || '';
     return vendedor 
-        ? propostas.filter(p => p.vendedor === vendedor)
+        ? propostasFiltradas.filter(p => p.vendedor === vendedor)
         : propostas;
 }
 
@@ -1002,7 +1002,7 @@ function getFiltroVendedor() {
                 window.propostas = [];
             }
 
-            console.log('CRM: Loaded ' + propostas.length + ' proposals.');
+            console.log('CRM: Loaded ' + propostasFiltradas.length + ' proposals.');
 
 
             if (localStorage.getItem('tema') === 'claro') document.body.classList.add('modo-claro');
@@ -1030,7 +1030,7 @@ function getFiltroVendedor() {
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
             console.log('isMobile:', isMobile);
-            console.log('propostas initialized with', propostas.length, 'items');
+            console.log('propostas initialized with', propostasFiltradas.length, 'items');
 
             function filtrar() {
                 const status = document.getElementById('statusFilter').value;
@@ -1038,7 +1038,7 @@ function getFiltroVendedor() {
                 const ano = document.getElementById('anoFilter').value;
                 const vendedor = document.getElementById('vendedorFilter').value;
 
-                let f = propostas.filter(p => {
+                let f = propostasFiltradas.filter(p => {
                     const matchesStatus = !status || status === 'todos' || p.status === status;
                     const matchesBusca = !busca ||
                         (p.cliente && p.cliente.toLowerCase().includes(busca)) ||
@@ -1174,7 +1174,7 @@ function getFiltroVendedor() {
                 const meses = {};
                 const primeiro = new Date(2025, 1, 1);
 
-                propostas.filter(function (p) {
+                propostasFiltradas.filter(function (p) {
                     return p.status === 'Fechada' && (p.dataFechamento || p.dataProposta);
                 }).forEach(function (p) {
                     let d = null;
@@ -1206,7 +1206,7 @@ function getFiltroVendedor() {
                     return new Date(aa, ma - 1) - new Date(ab, mb - 1);
                 });
 
-                const totalFechadas = propostas.filter(function (p) { return p.status === 'Fechada'; }).reduce(function (s, p) { return s + p.valor; }, 0);
+                const totalFechadas = propostasFiltradas.filter(function (p) { return p.status === 'Fechada'; }).reduce(function (s, p) { return s + p.valor; }, 0);
                 const container = document.getElementById('evolucaoChart');
 
                 if (sorted.length === 0) {
@@ -1309,7 +1309,7 @@ function getFiltroVendedor() {
 
             // Renderizar follow-up
             function renderizarFollowup() {
-                const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const pendentes = propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
                 const container = document.getElementById('followupList');
                 if (!container) return;
 
@@ -1407,7 +1407,7 @@ function getFiltroVendedor() {
             });
             // Carregar edits ANTES de renderizar
             carregarEdits();
-            console.log('CRM: Starting with', propostas.length, 'propostas (incluindo locais)');
+            console.log('CRM: Starting with', propostasFiltradas.length, 'propostas (incluindo locais)');
 
             filtrar();
             renderizarFollowup();
@@ -1638,13 +1638,13 @@ function getFiltroVendedor() {
                 const container = document.getElementById('insightsContainer');
                 if (!container) return;
 
-                const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const pendentes = propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
                 const semData = pendentes.filter(p => !(p.dataFechamento || p.dataProposta));
                 const antigas = pendentes.filter(p => diasDesde(p.dataFechamento || p.dataProposta) > 14);
                 const altoValor = pendentes.filter(p => p.valor > 20000).sort((a, b) => b.valor - a.valor);
 
                 const totalPendente = pendentes.reduce((s, p) => s + p.valor, 0);
-                const probFechamento = pendentes.length > 0 ? (propostas.filter(p => p.status === 'Fechada').length / propostas.length * 100).toFixed(0) : 0;
+                const probFechamento = pendentes.length > 0 ? (propostasFiltradas.filter(p => p.status === 'Fechada').length / propostasFiltradas.length * 100).toFixed(0) : 0;
                 const previsao = totalPendente * 0.3;
 
                 let html = '';
