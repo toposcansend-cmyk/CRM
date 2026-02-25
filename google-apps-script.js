@@ -120,12 +120,20 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  const cb = e.parameter && e.parameter.callback;
+
+  // Acao: Buscar dados (para gerar o data.js)
+  if (e.parameter && e.parameter.action === 'getdata') {
+    return respond({ status: 'ok', propostas: readData() }, cb);
+  }
+
   // Se receber parametro 'data', processa a sincronizacao (chamado pelo CRM via GET)
   if (e.parameter && e.parameter.data) {
-    return doPost(e); // Reutiliza a logica do doPost lendo e.parameter.data
+    return doPost(e);
   }
+
   // Health check
-  return respond({ status: 'healthy', message: 'OK v5' }, e.parameter && e.parameter.callback);
+  return respond({ status: 'healthy', message: 'OK v5' }, cb);
 }
 
 // Formatar valor conforme o campo
@@ -137,6 +145,54 @@ function formatarValor(field, value) {
     return value + '%';
   }
   return value !== null && value !== undefined ? String(value) : '';
+}
+
+/**
+ * Le todos os dados da planilha e retorna no formato esperado pelo CRM
+ * Inclui o rowIndex para cada proposta para permitir edicoes futuras.
+ */
+function readData() {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const headers = data[0];
+  const propostas = [];
+
+  // Mapeamento reverso do COLUMN_MAP para facilitar a montagem do objeto
+  const REVERSE_MAP = {};
+  for (const [key, col] of Object.entries(COLUMN_MAP)) {
+    REVERSE_MAP[col] = key;
+  }
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const item = {
+      id: i, // ID sequencial para uso interno no CRM
+      rowIndex: i + 1, // Indice real da linha (1-base + header)
+      isLocal: false
+    };
+
+    for (let j = 0; j < row.length; j++) {
+      const field = REVERSE_MAP[j + 1];
+      if (field) {
+        let val = row[j];
+        // Tratamento basico de tipos
+        if (field === 'valor' && typeof val === 'string') {
+          val = parseFloat(val.replace(/[R$. ]/g, '').replace(',', '.')) || 0;
+        }
+        item[field] = val;
+      }
+    }
+    // Determinar status baseado na probabilidade se vazio
+    if (!item.status) {
+      const prob = parseInt(item.probabilidade) || 0;
+      item.status = prob === 100 ? 'Fechada' : prob === 0 ? 'Perdida' : 'Pendente';
+    }
+    propostas.push(item);
+  }
+  return propostas;
 }
 
 // Sanitizar entrada (remover SQL injection / XSS)
