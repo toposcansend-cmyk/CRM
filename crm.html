@@ -1147,7 +1147,7 @@ function getFiltroVendedor() {
             function renderizarKanban() {
             const vendedorFiltro = document.getElementById('vendedorFilter').value;
             const propostasFiltradas = vendedorFiltro 
-                ? propostas.filter(p => p.vendedor === vendedorFiltro)
+                ? propostasFiltradas.filter(p => p.vendedor === vendedorFiltro)
                 : propostas;
             
                 const statuses = ['Lead', 'Enviada', 'Pendente', 'Standby', 'Fechada', 'Perdida'];
@@ -1155,7 +1155,7 @@ function getFiltroVendedor() {
 
                 const board = document.getElementById('kanbanBoard');
                 board.innerHTML = statuses.map(s => {
-                    const items = propostas.filter(p => p.status === s);
+                    const items = propostasFiltradas.filter(p => p.status === s);
                     return `
                     <div class="kanban-column" data-status="${s}">
                         <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
@@ -1701,13 +1701,14 @@ function getFiltroVendedor() {
 
             // Renderizar KPIs
             function renderizarKPI() {
+                const propostasFiltradas = typeof getPropostasFiltradas === 'function' ? getPropostasFiltradas() : propostas;
                 const container = document.getElementById('kpiContainer');
                 if (!container) return;
 
-                const total = propostas.length;
-                const fechadas = propostas.filter(p => p.status === 'Fechada');
-                const perdidas = propostas.filter(p => p.status === 'Perdida');
-                const ativas = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const total = propostasFiltradas.length;
+                const fechadas = propostasFiltradas.filter(p => p.status === 'Fechada');
+                const perdidas = propostasFiltradas.filter(p => p.status === 'Perdida');
+                const ativas = propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
 
                 const totalFechado = fechadas.reduce((s, p) => s + p.valor, 0);
                 const totalPerdido = perdidas.reduce((s, p) => s + p.valor, 0);
@@ -1723,7 +1724,7 @@ function getFiltroVendedor() {
 
                 // Por vendedor
                 const vendedores = {};
-                propostas.forEach(p => {
+                propostasFiltradas.forEach(p => {
                     const v = p.vendedor || 'Sem vendedor';
                     if (!vendedores[v]) vendedores[v] = { total: 0, fechado: 0, valor: 0 };
                     vendedores[v].total++;
@@ -1735,7 +1736,7 @@ function getFiltroVendedor() {
 
                 // Por servico
                 const servicos = {};
-                propostas.forEach(p => {
+                propostasFiltradas.forEach(p => {
                     const s = p.servico || 'Nao definido';
                     if (!servicos[s]) servicos[s] = { total: 0, fechado: 0, valor: 0 };
                     servicos[s].total++;
@@ -1840,7 +1841,7 @@ function getFiltroVendedor() {
                     carregarEdits();
                     if (typeof filtrar === 'function') filtrar();
                     if (typeof renderizarFollowup === 'function') renderizarFollowup();
-                    console.log('Load event: edits/leads recarregados. Total:', propostas.length);
+                    console.log('Load event: edits/leads recarregados. Total:', propostasFiltradas.length);
                 }
             }, 300);
         });
@@ -1874,7 +1875,7 @@ function getFiltroVendedor() {
             const id = e.dataTransfer.getData('text/plain');
             
             // Atualizar status
-            const p = propostas.find(x => x.id == id);
+            const p = propostasFiltradas.find(x => x.id == id);
             if (p && p.status !== newStatus) {
                 p.status = newStatus;
                 
@@ -1897,7 +1898,7 @@ function getFiltroVendedor() {
 
     <script>
         function atualizarFollowup(id) {
-            const p = propostas.find(x => x.id === id);
+            const p = propostasFiltradas.find(x => x.id === id);
             if (!p) return;
             
             const hoje = new Date().toLocaleDateString('pt-BR');
@@ -1917,7 +1918,7 @@ function getFiltroVendedor() {
         }
         
         function agendarFollowup(id) {
-            const p = propostas.find(x => x.id === id);
+            const p = propostasFiltradas.find(x => x.id === id);
             if (!p) return;
             
             const data = prompt('Agendar para (DD/MM/AAAA):', '');
