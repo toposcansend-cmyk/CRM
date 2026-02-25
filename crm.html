@@ -1407,7 +1407,11 @@ function getFiltroVendedor() {
                 }
             });
             // Carregar edits ANTES de renderizar
-            carregarEdits();
+            
+            // DEFINIR propostasFiltradas GLOBALMENTE
+            window.propostasFiltradas = window.propostas || [];
+            console.log('propostasFiltradas definido:', window.propostasFiltradas.length, 'propostas');
+carregarEdits();
             console.log('CRM: Starting with', propostasFiltradas.length, 'propostas (incluindo locais)');
 
             filtrar();
