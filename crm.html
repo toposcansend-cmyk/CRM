@@ -1038,6 +1038,24 @@
 
                     return matchesStatus && matchesBusca && matchesAno && matchesVendedor && !isZero;
                 });
+                
+                // ORDENAR POR DATA (mais recente primeiro)
+                f.sort((a, b) => {
+                    const dataA = a.dataProposta || a.dataFechamento || '00/00/0000';
+                    const dataB = b.dataProposta || b.dataFechamento || '00/00/0000';
+                    
+                    // Converter DD/MM/YYYY para YYYYMMDD
+                    const parseDate = (d) => {
+                        const parts = d.split('/');
+                        if (parts.length === 3) {
+                            return `${parts[2]}${parts[1].padStart(2, '0')}${parts[0].padStart(2, '0')}`;
+                        }
+                        return '00000000';
+                    };
+                    
+                    // Decrescente (mais recente primeiro)
+                    return parseDate(dataB).localeCompare(parseDate(dataA));
+                });
 
                 const total = f.length;
                 const fechadas = f.filter(p => p.status === 'Fechada').length;
