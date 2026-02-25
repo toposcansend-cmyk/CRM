@@ -1002,7 +1002,7 @@ function getFiltroVendedor() {
                 // window.propostas definido em data_v10.js
             }
 
-            console.log('CRM: Loaded ' + propostasFiltradas.length + ' proposals.');
+            console.log('CRM: Loaded ' + window.propostasFiltradas.length + ' proposals.');
 
 
             if (localStorage.getItem('tema') === 'claro') document.body.classList.add('modo-claro');
@@ -1030,7 +1030,7 @@ function getFiltroVendedor() {
 
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
             console.log('isMobile:', isMobile);
-            console.log('propostas initialized with', propostasFiltradas.length, 'items');
+            console.log('propostas initialized with', window.propostasFiltradas.length, 'items');
 
             function filtrar() {
                 const status = document.getElementById('statusFilter').value;
@@ -1038,7 +1038,7 @@ function getFiltroVendedor() {
                 const ano = document.getElementById('anoFilter').value;
                 const vendedor = document.getElementById('vendedorFilter').value;
 
-                let f = propostasFiltradas.filter(p => {
+                let f = window.propostasFiltradas.filter(p => {
                     const matchesStatus = !status || status === 'todos' || p.status === status;
                     const matchesBusca = !busca ||
                         (p.cliente && p.cliente.toLowerCase().includes(busca)) ||
@@ -1147,7 +1147,7 @@ function getFiltroVendedor() {
             function renderizarKanban() {
             const vendedorFiltro = document.getElementById('vendedorFilter').value;
             const propostasFiltradas = vendedorFiltro 
-                ? propostasFiltradas.filter(p => p.vendedor === vendedorFiltro)
+                ? window.propostasFiltradas.filter(p => p.vendedor === vendedorFiltro)
                 : propostas;
             
                 const statuses = ['Lead', 'Enviada', 'Pendente', 'Standby', 'Fechada', 'Perdida'];
@@ -1155,7 +1155,7 @@ function getFiltroVendedor() {
 
                 const board = document.getElementById('kanbanBoard');
                 board.innerHTML = statuses.map(s => {
-                    const items = propostasFiltradas.filter(p => p.status === s);
+                    const items = window.propostasFiltradas.filter(p => p.status === s);
                     return `
                     <div class="kanban-column" data-status="${s}">
                         <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
@@ -1174,7 +1174,7 @@ function getFiltroVendedor() {
                 const meses = {};
                 const primeiro = new Date(2025, 1, 1);
 
-                propostasFiltradas.filter(function (p) {
+                window.propostasFiltradas.filter(function (p) {
                     return p.status === 'Fechada' && (p.dataFechamento || p.dataProposta);
                 }).forEach(function (p) {
                     let d = null;
@@ -1206,7 +1206,7 @@ function getFiltroVendedor() {
                     return new Date(aa, ma - 1) - new Date(ab, mb - 1);
                 });
 
-                const totalFechadas = propostasFiltradas.filter(function (p) { return p.status === 'Fechada'; }).reduce(function (s, p) { return s + p.valor; }, 0);
+                const totalFechadas = window.propostasFiltradas.filter(function (p) { return p.status === 'Fechada'; }).reduce(function (s, p) { return s + p.valor; }, 0);
                 const container = document.getElementById('evolucaoChart');
 
                 if (sorted.length === 0) {
@@ -1309,7 +1309,7 @@ function getFiltroVendedor() {
 
             // Renderizar follow-up
             function renderizarFollowup() {
-                const pendentes = propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const pendentes = window.propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
                 const container = document.getElementById('followupList');
                 if (!container) return;
 
@@ -1407,11 +1407,11 @@ function getFiltroVendedor() {
             });
             // Carregar edits ANTES de renderizar
             
-            // DEFINIR propostasFiltradas GLOBALMENTE
+            // DEFINIR window.propostasFiltradas GLOBALMENTE
             window.propostasFiltradas = window.propostas || [];
-            console.log('propostasFiltradas definido:', window.propostasFiltradas.length, 'propostas');
+            console.log('window.propostasFiltradas definido:', window.window.propostasFiltradas.length, 'propostas');
 carregarEdits();
-            console.log('CRM: Starting with', propostasFiltradas.length, 'propostas (incluindo locais)');
+            console.log('CRM: Starting with', window.propostasFiltradas.length, 'propostas (incluindo locais)');
 
             filtrar();
             renderizarFollowup();
@@ -1642,13 +1642,13 @@ carregarEdits();
                 const container = document.getElementById('insightsContainer');
                 if (!container) return;
 
-                const pendentes = propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const pendentes = window.propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
                 const semData = pendentes.filter(p => !(p.dataFechamento || p.dataProposta));
                 const antigas = pendentes.filter(p => diasDesde(p.dataFechamento || p.dataProposta) > 14);
                 const altoValor = pendentes.filter(p => p.valor > 20000).sort((a, b) => b.valor - a.valor);
 
                 const totalPendente = pendentes.reduce((s, p) => s + p.valor, 0);
-                const probFechamento = pendentes.length > 0 ? (propostasFiltradas.filter(p => p.status === 'Fechada').length / propostasFiltradas.length * 100).toFixed(0) : 0;
+                const probFechamento = pendentes.length > 0 ? (window.propostasFiltradas.filter(p => p.status === 'Fechada').length / window.propostasFiltradas.length * 100).toFixed(0) : 0;
                 const previsao = totalPendente * 0.3;
 
                 let html = '';
@@ -1709,10 +1709,10 @@ carregarEdits();
                 const container = document.getElementById('kpiContainer');
                 if (!container) return;
 
-                const total = propostasFiltradas.length;
-                const fechadas = propostasFiltradas.filter(p => p.status === 'Fechada');
-                const perdidas = propostasFiltradas.filter(p => p.status === 'Perdida');
-                const ativas = propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const total = window.propostasFiltradas.length;
+                const fechadas = window.propostasFiltradas.filter(p => p.status === 'Fechada');
+                const perdidas = window.propostasFiltradas.filter(p => p.status === 'Perdida');
+                const ativas = window.propostasFiltradas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
 
                 const totalFechado = fechadas.reduce((s, p) => s + p.valor, 0);
                 const totalPerdido = perdidas.reduce((s, p) => s + p.valor, 0);
@@ -1728,7 +1728,7 @@ carregarEdits();
 
                 // Por vendedor
                 const vendedores = {};
-                propostasFiltradas.forEach(p => {
+                window.propostasFiltradas.forEach(p => {
                     const v = p.vendedor || 'Sem vendedor';
                     if (!vendedores[v]) vendedores[v] = { total: 0, fechado: 0, valor: 0 };
                     vendedores[v].total++;
@@ -1740,7 +1740,7 @@ carregarEdits();
 
                 // Por servico
                 const servicos = {};
-                propostasFiltradas.forEach(p => {
+                window.propostasFiltradas.forEach(p => {
                     const s = p.servico || 'Nao definido';
                     if (!servicos[s]) servicos[s] = { total: 0, fechado: 0, valor: 0 };
                     servicos[s].total++;
@@ -1845,7 +1845,7 @@ carregarEdits();
                     carregarEdits();
                     if (typeof filtrar === 'function') filtrar();
                     if (typeof renderizarFollowup === 'function') renderizarFollowup();
-                    console.log('Load event: edits/leads recarregados. Total:', propostasFiltradas.length);
+                    console.log('Load event: edits/leads recarregados. Total:', window.propostasFiltradas.length);
                 }
             }, 300);
         });
@@ -1879,7 +1879,7 @@ carregarEdits();
             const id = e.dataTransfer.getData('text/plain');
             
             // Atualizar status
-            const p = propostasFiltradas.find(x => x.id == id);
+            const p = window.propostasFiltradas.find(x => x.id == id);
             if (p && p.status !== newStatus) {
                 p.status = newStatus;
                 
@@ -1902,7 +1902,7 @@ carregarEdits();
 
     <script>
         function atualizarFollowup(id) {
-            const p = propostasFiltradas.find(x => x.id === id);
+            const p = window.propostasFiltradas.find(x => x.id === id);
             if (!p) return;
             
             const hoje = new Date().toLocaleDateString('pt-BR');
@@ -1922,7 +1922,7 @@ carregarEdits();
         }
         
         function agendarFollowup(id) {
-            const p = propostasFiltradas.find(x => x.id === id);
+            const p = window.propostasFiltradas.find(x => x.id === id);
             if (!p) return;
             
             const data = prompt('Agendar para (DD/MM/AAAA):', '');
@@ -1944,9 +1944,9 @@ carregarEdits();
     
 
         <script>
-            // DEFINIR propostasFiltradas GLOBALMENTE
+            // DEFINIR window.propostasFiltradas GLOBALMENTE
             window.propostasFiltradas = [];
-            console.log('Global propostasFiltradas inicializado');
+            console.log('Global window.propostasFiltradas inicializado');
         </script>
 </body>
 
