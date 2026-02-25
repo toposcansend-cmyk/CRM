@@ -1,6 +1,5 @@
-﻿// Dados do CRM - Sincronizado em 2026-02-24 23:12:11
-const CACHE_VERSION = '2026-02-24-v10-rowindex';
-const propostas = [
+﻿// Dados do CRM - Restaurado v10.1
+window.propostas = [
     {
         "id":  1,
         "rowIndex":  2,
