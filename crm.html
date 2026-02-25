@@ -628,6 +628,7 @@ function getFiltroVendedor() {
     return document.getElementById('vendedorFilter')?.value || '';
 }
 </script>
+    <script src="data_v9.js"></script>
 </head>
 
 <body>
@@ -996,7 +997,7 @@ function getFiltroVendedor() {
                 return div.innerHTML;
             }
 
-            // propostas is defined in proposals.js
+            // propostas is defined in data_v9.js
             if (typeof window.propostas === 'undefined') {
                 console.warn('data_v10.js not loaded! Initializing empty array.');
                 window.propostas = [];
