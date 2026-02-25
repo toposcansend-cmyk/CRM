@@ -617,11 +617,10 @@
 <script>
 // FUNCAO GLOBAL: Obter propostas filtradas por vendedor
 function getPropostasFiltradas() {
-    const vendedor = document.getElementById('vendedorFilter')?.value || '';
-    return vendedor 
-        ? propostasFiltradas.filter(p => p.vendedor === vendedor)
-        : propostas;
-}
+        const vendedor = document.getElementById('vendedorFilter')?.value || '';
+        const todas = window.propostas || [];
+        return vendedor ? todas.filter(p => p.vendedor === vendedor) : todas;
+    }
 
 // FUNCAO GLOBAL: Obter nome do filtro atual
 function getFiltroVendedor() {
@@ -1943,6 +1942,12 @@ carregarEdits();
         }
     </script>
     
+
+        <script>
+            // DEFINIR propostasFiltradas GLOBALMENTE
+            window.propostasFiltradas = [];
+            console.log('Global propostasFiltradas inicializado');
+        </script>
 </body>
 
 </html>
