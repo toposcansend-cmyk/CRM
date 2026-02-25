@@ -1223,69 +1223,41 @@
 
             // Sync edits to Google Sheets via Apps Script webhook
             async function syncToSheet() {
-                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-                const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
-
-                if (Object.keys(edits).length === 0 && newLeads.length === 0) {
-                    alert('Nenhuma alteracao para sincronizar.\nEdite uma proposta ou crie um lead primeiro.');
-                    return;
-                }
-
-                if (!WEBHOOK_URL) {
-                    alert('Webhook nao configurado. Cole a URL do Apps Script em WEBHOOK_URL no crm.html.');
-                    return;
-                }
-
-                const btn = event ? event.target : null;
-                if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
-
-                // JSONP: bypassa CORS e redirects do Apps Script via tag <script>
-                const callbackName = 'crmSync_' + Date.now();
-                const payload = { token: AUTH_TOKEN, edits: edits, newLeads: newLeads, callback: callbackName };
-                const url = WEBHOOK_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
-
-                const totalEdits = Object.keys(edits).length;
-                const totalLeads = newLeads.length;
-
-                const timeout = setTimeout(function () {
-                    cleanup();
-                    if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
-                    alert('Timeout: Apps Script demorou muito. Tente novamente.');
-                }, 15000);
-
-                function cleanup() {
-                    clearTimeout(timeout);
-                    delete window[callbackName];
-                    const s = document.getElementById('jsonp_sync_script');
-                    if (s) s.remove();
-                }
-
-                window[callbackName] = function (result) {
-                    cleanup();
-                    if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
-
-                    if (result && result.status === 'ok') {
-                        localStorage.removeItem('crm_edits');
-                        localStorage.removeItem('crm_new_leads');
-                        localStorage.setItem('crm_last_sync', new Date().toISOString());
-                        alert('Sincronizado com sucesso!\n' +
-                            (totalEdits > 0 ? totalEdits + ' edicao(oes) atualizadas\n' : '') +
-                            (totalLeads > 0 ? totalLeads + ' novo(s) lead(s) adicionado(s)' : ''));
-                    } else {
-                        alert('Erro no servidor: ' + (result ? result.message : 'sem resposta'));
-                    }
-                };
-
-                const script = document.createElement('script');
-                script.id = 'jsonp_sync_script';
-                script.src = url;
-                script.onerror = function () {
-                    cleanup();
-                    if (btn) { btn.disabled = false; btn.textContent = '\u21bb Sincronizar'; }
-                    alert('Erro ao carregar o webhook. Verifique a URL do Apps Script.');
-                };
-                document.body.appendChild(script);
+            const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+            const newLeads = JSON.parse(localStorage.getItem('crm_new_leads') || '[]');
+            
+            if (Object.keys(edits).length === 0 && newLeads.length === 0) {
+                alert('Nenhuma alteracao para sincronizar.');
+                return;
             }
+
+            const payload = {
+                auth: AUTH_TOKEN,
+                edits: edits,
+                newLeads: newLeads
+            };
+
+            // JSONP para evitar CORS
+            const callback = 'syncCallback_' + Date.now();
+            const json = JSON.stringify(payload);
+            
+            window[callback] = function(response) {
+                if (response.status === 'ok') {
+                    localStorage.removeItem('crm_edits');
+                    localStorage.removeItem('crm_new_leads');
+                    localStorage.setItem('crm_last_sync', new Date().toISOString());
+                    alert('Sincronizado com sucesso! ' + response.updated + ' campos atualizados.');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert('Erro: ' + (response.message || 'Erro desconhecido'));
+                }
+                delete window[callback];
+            };
+
+            const script = document.createElement('script');
+            script.src = `${WEBHOOK_URL}?callback=${callback}&data=${encodeURIComponent(json)}`;
+            document.body.appendChild(script);
+        }
 
             // Carregar edits e novos leads do localStorage
             function carregarEdits() {
