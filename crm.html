@@ -48,6 +48,20 @@
             background: var(--bg-secondary);
             border-radius: 12px;
             margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            header .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
 
         h1 {
