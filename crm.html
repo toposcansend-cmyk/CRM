@@ -613,6 +613,21 @@
             display: block;
         }
     </style>
+
+<script>
+// FUNCAO GLOBAL: Obter propostas filtradas por vendedor
+function getPropostasFiltradas() {
+    const vendedor = document.getElementById('vendedorFilter')?.value || '';
+    return vendedor 
+        ? propostas.filter(p => p.vendedor === vendedor)
+        : propostas;
+}
+
+// FUNCAO GLOBAL: Obter nome do filtro atual
+function getFiltroVendedor() {
+    return document.getElementById('vendedorFilter')?.value || '';
+}
+</script>
 </head>
 
 <body>
@@ -1130,6 +1145,11 @@
             }
 
             function renderizarKanban() {
+            const vendedorFiltro = document.getElementById('vendedorFilter').value;
+            const propostasFiltradas = vendedorFiltro 
+                ? propostas.filter(p => p.vendedor === vendedorFiltro)
+                : propostas;
+            
                 const statuses = ['Lead', 'Enviada', 'Pendente', 'Standby', 'Fechada', 'Perdida'];
                 const cores = { 'Lead': '#8b5cf6', 'Enviada': '#3b82f6', 'Pendente': '#f59e0b', 'Standby': '#6b7280', 'Fechada': '#22c55e', 'Perdida': '#ef4444' };
 
