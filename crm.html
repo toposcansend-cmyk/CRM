@@ -1133,10 +1133,10 @@
                 board.innerHTML = statuses.map(s => {
                     const items = propostas.filter(p => p.status === s);
                     return `
-                    <div class="kanban-column">
+                    <div class="kanban-column" data-status="${s}">
                         <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
                         ${items.slice(0, 10).map(p => `
-                            <div class="kanban-item">
+                            <div class="kanban-item" draggable="true">
                                 <div>${p.cliente}</div>
                                 <div class="valor">R$ ${p.valor.toLocaleString()}</div>
                             </div>
@@ -1849,6 +1849,98 @@
             }, 300);
         });
     </script>
+
+    <script>
+        // DRAG AND DROP HORIZONTAL
+        document.addEventListener('dragstart', function(e) {
+            if (e.target.classList.contains('kanban-item')) {
+                e.dataTransfer.setData('text/plain', e.target.dataset.id);
+                e.target.style.opacity = '0.5';
+            }
+        });
+        
+        document.addEventListener('dragend', function(e) {
+            if (e.target.classList.contains('kanban-item')) {
+                e.target.style.opacity = '1';
+            }
+        });
+        
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const target = e.target.closest('.kanban-column');
+            if (!target) return;
+            
+            const newStatus = target.dataset.status;
+            const id = e.dataTransfer.getData('text/plain');
+            
+            // Atualizar status
+            const p = propostas.find(x => x.id == id);
+            if (p && p.status !== newStatus) {
+                p.status = newStatus;
+                
+                // Mapear status para probabilidade
+                const map = {'Lead':'20%','Enviada':'40%','Pendente':'60%','Standby':'20%','Fechada':'100%','Perdida':'0%'};
+                p.probabilidade = map[newStatus] || '20%';
+                
+                // Salvar no localStorage
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                edits[id] = p;
+                localStorage.setItem('crm_edits', JSON.stringify(edits));
+                
+                // Re-renderizar
+                if (typeof filtrar === 'function') filtrar();
+                if (typeof renderizarKanban === 'function') renderizarKanban();
+            }
+        });
+    </script>
+    
+
+    <script>
+        function atualizarFollowup(id) {
+            const p = propostas.find(x => x.id === id);
+            if (!p) return;
+            
+            const hoje = new Date().toLocaleDateString('pt-BR');
+            const obs = prompt('Nova observação:', p.observacao || '');
+            
+            if (obs !== null) {
+                p.followUp = hoje;
+                p.observacao = obs;
+                
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                edits[id] = p;
+                localStorage.setItem('crm_edits', JSON.stringify(edits));
+                
+                if (typeof filtrar === 'function') filtrar();
+                alert('Follow-up atualizado!');
+            }
+        }
+        
+        function agendarFollowup(id) {
+            const p = propostas.find(x => x.id === id);
+            if (!p) return;
+            
+            const data = prompt('Agendar para (DD/MM/AAAA):', '');
+            const obs = prompt('Observação:', p.observacao || '');
+            
+            if (data) {
+                p.followUp = data;
+                if (obs) p.observacao = obs;
+                
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                edits[id] = p;
+                localStorage.setItem('crm_edits', JSON.stringify(edits));
+                
+                if (typeof filtrar === 'function') filtrar();
+                alert('Follow-up agendado para ' + data);
+            }
+        }
+    </script>
+    
 </body>
 
 </html>
