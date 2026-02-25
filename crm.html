@@ -1038,8 +1038,12 @@
                         matchesAno = data.includes(ano);
                     }
 
-                    // Filter by vendedor (if available in data)
+                    // Filter by vendedor
                     let matchesVendedor = true;
+                    if (vendedor) {
+                        // Se filtro ativo, MOSTRAR APENAS propostas desse vendedor
+                        matchesVendedor = p.vendedor === vendedor;
+                    }
                     if (vendedor && p.vendedor) {
                         matchesVendedor = p.vendedor === vendedor;
                     }
