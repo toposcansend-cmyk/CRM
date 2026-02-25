@@ -687,16 +687,14 @@
     </script>
 
     <div id="crmContent">
-        <header
-            style="padding:20px;display:flex;justify-content:space-between;align-items:center;background:#000;border-radius:0 0 20px 20px;margin:0;width:100%;gap:15px;">
-            <img src="logo.png" alt="Toposcan" style="height:100px;max-width:200px;object-fit:contain;">
-            <div style="display:flex;align-items:center;gap:10px;">
+        <header style="padding:20px;background:#000;border-radius:0 0 20px 20px;margin:0;width:100%;">
+            <img src="logo.png" alt="Toposcan" style="height:100px;max-width:200px;object-fit:contain;display:block;margin:0 auto 15px auto;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;">
                 <span id="loggedUser" style="color:#888;font-size:0.8em;"></span>
                 <button onclick="sessionStorage.clear();location.reload()"
                     style="background:#333;border:1px solid #555;padding:6px 12px;font-size:0.75em;border-radius:6px;color:#ccc;cursor:pointer;">Sair</button>
                 <button class="theme-toggle" onclick="toggleTheme()"
-                    style="background:#333;border:1px solid #555;padding:8px 14px;font-size:0.85em;white-space:nowrap;border-radius:8px;">Modo
-                    Claro</button>
+                    style="background:#333;border:1px solid #555;padding:8px 14px;font-size:0.85em;white-space:nowrap;border-radius:8px;">Modo Claro</button>
             </div>
         </header>
 
