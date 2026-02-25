@@ -1,6 +1,5 @@
-// Dados do CRM - Sincronizado em 2026-02-24 18:49:31
-// Total: 95 propostas
-// Coluna Status: baseada na Probabilidade (100%=Fechada, 0%=Perdida, 60%+=Pendente, 40%+=Enviada, Lead)
+// Dados do CRM - Sincronizado em 2026-02-24 22:28:36
+// Total: 96 propostas
 
 const propostas = [
     {
@@ -19,7 +18,7 @@ const propostas = [
         "valor": 3500.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Firts One"
     },
     {
         "id": 2,
@@ -55,7 +54,7 @@ const propostas = [
         "valor": 19980.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Ghost"
     },
     {
         "id": 4,
@@ -73,7 +72,7 @@ const propostas = [
         "valor": 15980.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Achou caro e vai ver outro método"
     },
     {
         "id": 5,
@@ -91,7 +90,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Contrato 2 semanas"
     },
     {
         "id": 6,
@@ -105,11 +104,11 @@ const propostas = [
         "followUp": "",
         "localizacao": " Irati-PR",
         "dataProposta": "",
-        "dataFechamento": "",
+        "dataFechamento": "29/08/2025",
         "valor": 38000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Fechado 26/08"
     },
     {
         "id": 7,
@@ -127,7 +126,7 @@ const propostas = [
         "valor": 4800.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Fechou por 2.250"
     },
     {
         "id": 8,
@@ -145,7 +144,7 @@ const propostas = [
         "valor": 23000.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Ghost"
     },
     {
         "id": 9,
@@ -235,7 +234,7 @@ const propostas = [
         "valor": 3200.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Perdemos por não continuidade"
     },
     {
         "id": 14,
@@ -253,7 +252,7 @@ const propostas = [
         "valor": 135000.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Perdemos por preço"
     },
     {
         "id": 15,
@@ -325,7 +324,7 @@ const propostas = [
         "valor": 13800.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Alisson saiu da empresa"
     },
     {
         "id": 19,
@@ -343,7 +342,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "2º Aditivo"
     },
     {
         "id": 20,
@@ -433,7 +432,7 @@ const propostas = [
         "valor": 25000.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Perdida, preço fecharam por 20 mil"
     },
     {
         "id": 25,
@@ -469,7 +468,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "3º Aditivo"
     },
     {
         "id": 27,
@@ -541,7 +540,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "4º Aditivo"
     },
     {
         "id": 31,
@@ -613,7 +612,7 @@ const propostas = [
         "valor": 15129.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Perdida"
     },
     {
         "id": 35,
@@ -647,7 +646,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 36200.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -665,7 +664,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 15600.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -701,7 +700,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 11500.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -721,7 +720,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "5º Aditivo"
     },
     {
         "id": 41,
@@ -737,7 +736,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 9800.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -757,7 +756,7 @@ const propostas = [
         "valor": 2300.0,
         "probabilidade": "0%",
         "status": "Perdida",
-        "observacao": ""
+        "observacao": "Perdida"
     },
     {
         "id": 43,
@@ -773,7 +772,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 10400.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -791,7 +790,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 9800.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -809,7 +808,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 9800.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -829,7 +828,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "6º Aditivo"
     },
     {
         "id": 47,
@@ -845,7 +844,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 9800.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -863,7 +862,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 14980.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -881,13 +880,13 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 14980.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
     {
         "id": 50,
-        "vendedor": "",
+        "vendedor": "Guilherme",
         "numeroProposta": "10202578.0",
         "cliente": "Olimpo Arquitetura",
         "contato": "",
@@ -917,7 +916,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 129960.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -935,7 +934,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -955,7 +954,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "7º Aditivo"
     },
     {
         "id": 54,
@@ -971,7 +970,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1027,7 +1026,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "8º Aditivo"
     },
     {
         "id": 58,
@@ -1043,7 +1042,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1061,7 +1060,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1081,7 +1080,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "9º Aditivo"
     },
     {
         "id": 61,
@@ -1099,7 +1098,7 @@ const propostas = [
         "valor": 6800.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Basílica Imaculada Conceicao"
     },
     {
         "id": 62,
@@ -1117,7 +1116,7 @@ const propostas = [
         "valor": 3800.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Carrefour Cabral - Curitiba-PR"
     },
     {
         "id": 63,
@@ -1135,7 +1134,7 @@ const propostas = [
         "valor": 12000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "10º Aditivo"
     },
     {
         "id": 64,
@@ -1151,7 +1150,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1171,7 +1170,7 @@ const propostas = [
         "valor": 28600.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Rio Barigui"
     },
     {
         "id": 66,
@@ -1187,7 +1186,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1205,7 +1204,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1225,7 +1224,7 @@ const propostas = [
         "valor": 6500.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Igreja Nossa Senhora da Consolação e Correia"
     },
     {
         "id": 69,
@@ -1241,7 +1240,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 25000.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1279,7 +1278,7 @@ const propostas = [
         "valor": 5200.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Paróquia Imaculado Coração de Maria"
     },
     {
         "id": 72,
@@ -1295,7 +1294,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 350000.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1313,7 +1312,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 164990.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1331,7 +1330,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 19946.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1349,7 +1348,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 17200.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1367,7 +1366,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 7100.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1387,7 +1386,7 @@ const propostas = [
         "valor": 5000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "Clinica Estética"
     },
     {
         "id": 78,
@@ -1403,7 +1402,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 9600.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1421,7 +1420,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 10600.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1439,7 +1438,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 7800.0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1457,7 +1456,7 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
         "observacao": ""
     },
@@ -1477,7 +1476,7 @@ const propostas = [
         "valor": 4000.0,
         "probabilidade": "100%",
         "status": "Fechada",
-        "observacao": ""
+        "observacao": "2 diárias"
     },
     {
         "id": 83,
@@ -1495,25 +1494,25 @@ const propostas = [
         "valor": 11800.0,
         "probabilidade": "80%",
         "status": "Pendente",
-        "observacao": ""
+        "observacao": "Levantamento com drone para 4 hectares"
     },
     {
         "id": 84,
-        "vendedor": "Allana",
-        "numeroProposta": "Lead",
-        "cliente": "HTB",
-        "contato": "Malio",
-        "telefone": "(11)91211-4702",
+        "vendedor": "Guilherme",
+        "numeroProposta": "Novo Lead",
+        "cliente": "Porto belo ",
+        "contato": "Elissa",
+        "telefone": "",
         "email": "",
-        "servico": "Levantamento ",
-        "followUp": "02/2026",
-        "localizacao": "",
-        "dataProposta": "",
-        "dataFechamento": "",
-        "valor": 0,
-        "probabilidade": "50%",
-        "status": "Enviada",
-        "observacao": ""
+        "servico": "Topografia ",
+        "followUp": "",
+        "localizacao": "Porto belo",
+        "dataProposta": "24/02/2026",
+        "dataFechamento": "24/03/2025",
+        "valor": 8500.0,
+        "probabilidade": "20%",
+        "status": "Enviar proposta ",
+        "observacao": "Encaminhado docs para cadastrar emoresa como prestadora de serviços "
     },
     {
         "id": 85,
@@ -1529,9 +1528,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Material enviado , conversei com ele sobre os trabalhos que podemos auxiliar junto ao escritório de engenharia dele."
     },
     {
         "id": 86,
@@ -1547,9 +1546,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Material enviado, apresentando a empresa, esperando tempo para followup 3x conversamos por whatsapp e telefone."
     },
     {
         "id": 87,
@@ -1565,9 +1564,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Material encaminhado, usa muito trabalho de topografia e aerolevantamento,"
     },
     {
         "id": 88,
@@ -1583,9 +1582,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Material enviado,  usa traba,no de topografia e retrofit, ligar novamente proxima semana "
     },
     {
         "id": 89,
@@ -1601,9 +1600,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Conversei diretamente com a diretora da Convexa, pediu para enviar email com dados  da toposcan para cadastro fornecedor, aguardando retorno, para confirmação cadastral."
     },
     {
         "id": 90,
@@ -1619,9 +1618,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Conversei com setor de compras e me pediram material para apresentação da empresa e os servicos prestados. Entrar em contato novamente "
     },
     {
         "id": 91,
@@ -1637,9 +1636,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Conversei  com setor de suprimentos  e 3ncaminhei material de apresentação  da toposcan, "
     },
     {
         "id": 92,
@@ -1655,9 +1654,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "Falei por ligacao, ele ainda ezta fora de curitiba, 1a quinzena de março vamos agendar uma visita tecnica, para ver alguns trabalhos topográficos."
     },
     {
         "id": 93,
@@ -1673,9 +1672,9 @@ const propostas = [
         "dataProposta": "",
         "dataFechamento": "",
         "valor": 0,
-        "probabilidade": "",
+        "probabilidade": "20%",
         "status": "Lead",
-        "observacao": ""
+        "observacao": "1a contato via LinkedIn, faz trabalho de operações em áreas florestais, ideal para trabalho de mapeamento e topografia de nivel de curva. Liguei e conversamos por telefone, fique de retornar em final de fevereiro pós Carnaval."
     },
     {
         "id": 94,
@@ -1693,7 +1692,7 @@ const propostas = [
         "valor": 0,
         "probabilidade": "70%",
         "status": "Pendente",
-        "observacao": ""
+        "observacao": "Contato via WhatsApp e LinkedIn, trabalha co. Vistoria, perícia e planejamento, ideal as built, retrofit e topografia."
     },
     {
         "id": 97,
@@ -1711,12 +1710,31 @@ const propostas = [
         "valor": 1000.0,
         "probabilidade": "20%",
         "status": "Lead",
+        "observacao": "Teste automático - pode apagar"
+    },
+    {
+        "id": 98,
+        "vendedor": "guilherme",
+        "numeroProposta": "NOVO-1771962548742",
+        "cliente": "Porto Belo",
+        "contato": "Elissa",
+        "telefone": "",
+        "email": "",
+        "servico": "Diaria topografia e escaner",
+        "followUp": "24/02/2026",
+        "localizacao": "Porto Belo",
+        "dataProposta": "24/02/2026",
+        "dataFechamento": "24/03/2026",
+        "valor": 8500.0,
+        "probabilidade": "20%",
+        "status": "Lead",
         "observacao": ""
     }
 ];
 
 const stats = {
-    total: 95,
-    status: {"Fechada": 25, "Pendente": 5, "Perdida": 11, "Enviada": 14, "Lead": 42},
-    ultimaAtualizacao: '2026-02-24T18:49:31.621423'
+    total: 96,
+    vendedores: {"Guilherme": 9, "Marcelo": 6, "": 64, "Allana ": 3, "Allana": 12, "Rafaela": 1, "guilherme": 1},
+    status: {"Fechada": 25, "Pendente": 5, "Perdida": 11, "Enviada": 13, "Lead": 41, "Enviar proposta ": 1},
+    ultimaAtualizacao: '2026-02-24T22:28:36.767018'
 };
