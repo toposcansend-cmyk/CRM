@@ -1,4 +1,4 @@
-﻿// Dados do CRM - Restaurado v10.1
+﻿// Dados do CRM - v10.2
 window.propostas = [
     {
         "id":  1,
