@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Proposta Comercial - Toposcan</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Montserrat', 'Arial', sans-serif;
+            background: #FFFFFF;
+            color: #000000;
+            width: 180mm;
+            min-height: 267mm;
+            margin: 0 auto;
+            padding: 15mm;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        
+        /* Page breaks */
+        .page {
+            page-break-after: always;
+            min-height: 267mm;
+        }
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* Cover page */
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 30mm;
+        }
+        .logo {
+            margin-bottom: 15mm;
+        }
+        .logo-text {
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+        .logo-icon {
+            display: inline-block;
+            margin-left: 15px;
+            vertical-align: middle;
+        }
+        .logo-icon svg {
+            width: 35px;
+            height: 30px;
+        }
+        .cover-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10mm;
+            text-transform: uppercase;
+        }
+        .cover-client {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8mm;
+        }
+        .cover-ac {
+            align-self: flex-start;
+            font-size: 12px;
+            margin-bottom: 25mm;
+        }
+        .cover-illustration {
+            width: 140mm;
+            height: 90mm;
+            margin-bottom: 25mm;
+        }
+        .cover-illustration svg {
+            width: 100%;
+            height: 100%;
+        }
+        .cover-proposal-id {
+            font-size: 13px;
+            margin-bottom: 3mm;
+        }
+        .cover-divider {
+            width: 70mm;
+            height: 1px;
+            background: #000;
+            margin: 3mm auto;
+        }
+        .cover-proposal-desc {
+            font-size: 12px;
+        }
+        .cover-date {
+            position: absolute;
+            bottom: 15mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 11px;
+        }
+        
+        /* Content pages */
+        .header {
+            text-align: center;
+            font-size: 9px;
+            color: #666;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 8px;
+            margin-bottom: 15mm;
+        }
+        
+        .section {
+            margin-bottom: 12mm;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #000;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 3px;
+            margin-bottom: 8px;
+        }
+        .section-subtitle {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        
+        p {
+            margin-bottom: 6px;
+            text-align: justify;
+        }
+        
+        ul {
+            margin: 5px 0;
+            padding-left: 15px;
+        }
+        li {
+            margin-bottom: 3px;
+        }
+        
+        /* Services list */
+        .service-list {
+            margin: 8px 0;
+        }
+        .service-item {
+            margin-bottom: 8px;
+        }
+        .service-name {
+            font-weight: bold;
+        }
+        .service-desc {
+            margin-left: 10px;
+            font-size: 10px;
+        }
+        
+        /* Differentials */
+        .differential-list {
+            margin-top: 8px;
+        }
+        
+        /* Table */
+        .price-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 10px;
+        }
+        .price-table th {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: center;
+        }
+        .price-table td {
+            border: 1px solid #ccc;
+            padding: 5px;
+            text-align: center;
+        }
+        .price-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        /* Conditions */
+        .conditions-list {
+            background: #f9f9f9;
+            padding: 10px;
+            border-left: 3px solid #0066cc;
+        }
+        .conditions-list li {
+            margin-bottom: 4px;
+        }
+        
+        /* Observations */
+        .observations {
+            background: #fffde7;
+            padding: 10px;
+            border-left: 3px solid #ffc107;
+            font-size: 10px;
+        }
+        
+        /* Signatures */
+        .signatures {
+            margin-top: 25mm;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-block {
+            width: 45%;
+            text-align: center;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 30px;
+            padding-top: 5px;
+            font-size: 10px;
+        }
+        
+        /* Cover page specific */
+        .cover-page {
+            position: relative;
+            height: 267mm;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<!-- CAPA -->
+<body>
+    <div class="page cover-page">
+        <div class="cover">
+            <div class="logo">
+                <span class="logo-text">TOPOSCAN</span>
+                <span class="logo-icon">
+                    <svg viewBox="0 0 30 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="10" width="6" height="14" stroke="#000" stroke-width="2"/>
+                        <rect x="10" y="5" width="6" height="19" stroke="#000" stroke-width="2"/>
+                        <rect x="19" y="1" width="6" height="23" stroke="#000" stroke-width="2"/>
+                        <rect x="0" y="0" width="28" height="25" rx="2" stroke="#000" stroke-width="2" stroke-dasharray="4 2"/>
+                    </svg>
+                </span>
+            </div>
+            
+            <div class="cover-title">Proposta Comercial</div>
+            <div class="cover-client">Strinso - Natal/RN</div>
+            <div class="cover-ac">A/C: Gabriela Santana</div>
+            
+            <div class="cover-illustration">
+                <svg viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Airport runway wireframe -->
+                    <rect x="50" y="100" width="300" height="60" stroke="#999" stroke-width="1" fill="none"/>
+                    <line x1="50" y1="130" x2="350" y2="130" stroke="#BBB" stroke-width="0.5" stroke-dasharray="5 5"/>
+                    <line x1="100" y1="100" x2="80" y2="80" stroke="#999" stroke-width="1"/>
+                    <line x1="300" y1="100" x2="320" y2="80" stroke="#999" stroke-width="1"/>
+                    
+                    <!-- Terminal building -->
+                    <rect x="150" y="50" width="100" height="50" stroke="#7F7F7F" stroke-width="1" fill="none"/>
+                    <line x1="150" y1="75" x2="250" y2="75" stroke="#AAA" stroke-width="0.5"/>
+                    <line x1="150" y1="100" x2="250" y2="100" stroke="#AAA" stroke-width="0.5"/>
+                    
+                    <!-- Control tower -->
+                    <rect x="320" y="30" width="15" height="70" stroke="#7F7F7F" stroke-width="1" fill="none"/>
+                    <rect x="315" y="20" width="25" height="15" stroke="#7F7F7F" stroke-width="1" fill="none"/>
+                    
+                    <!-- Grid -->
+                    <line x1="20" y1="180" x2="380" y2="180" stroke="#666" stroke-width="1"/>
+                    <line x1="20" y1="160" x2="380" y2="160" stroke="#DDD" stroke-width="0.5"/>
+                    <line x1="20" y1="140" x2="380" y2="140" stroke="#DDD" stroke-width="0.5"/>
+                </svg>
+            </div>
+            
+            <div class="cover-proposal-id">Proposta 03/2026.27.0</div>
+            <div class="cover-divider"></div>
+            <div class="cover-proposal-desc">Estudo Topográfico - Entorno PPD Natal/RN</div>
+        </div>
+        
+        <div class="cover-date">04 de março de 2026</div>
+    </div>
+</body>
+</html>
+
+<!-- PAGINA 2 - APRESENTAÇÃO -->
+<html>
+<head></head>
+<body>
+    <div class="page">
+        <div class="header">Toposcan Serviços de Engenharia www.toposcan.com.br</div>
+        
+        <div class="section">
+            <div class="section-title">APRESENTAÇÃO</div>
+            <p>A Toposcan é uma empresa especializada em serviços de topografia e captura de realidade (escaneamento 3D entre outros), comprometida em oferecer soluções precisas e inovadoras para atender às necessidades de seus clientes nos setores de construção civil, engenharia, arquitetura e mineração. Com a utilização de tecnologia de ponta e uma equipe altamente qualificada, a TopoScan utiliza a metodologia de captura de realidade combinada com a topografia de precisão, tendo resultados fidedignos com a condição real e sendo a base perfeita para projetos.</p>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">OBJETIVO</div>
+            <p>O objetivo desta proposta é apresentar os serviços da Toposcan, destacando nossos métodos, tecnologias e vantagens competitivas, além de oferecer condições comerciais atrativas para a contratação de nossos serviços.</p>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">SERVIÇOS OFERECIDOS</div>
+            
+            <div class="service-item">
+                <div class="service-name">1. Levantamento Topográfico</div>
+                <div class="service-desc">• Levantamento Planialtimétrico Cadastral: Mapeamento detalhado do terreno para projetos de infraestrutura.</div>
+                <div class="service-desc">• Georreferenciamento de Imóveis Rurais: Adequação às normas do INCRA, garantindo precisão e conformidade legal.</div>
+            </div>
+            
+            <div class="service-item" style="margin-top: 10px;">
+                <div class="service-name">2. Escaneamento 3D</div>
+                <div class="service-desc">• Escaneamento de Infraestruturas: Captura de dados tridimensionais de edificações, plantas industriais e monumentos.</div>
+                <div class="service-desc">• Modelagem BIM: Criação de modelos digitais que otimizam a gestão de obras e manutenção de edificações.</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">DIFERENCIAIS COMPETITIVOS</div>
+            <div class="differential-list">
+                <div>• <strong>Tecnologia Avançada:</strong> Utilização de equipamentos modernos e softwares especializados para garantir dados precisos e confiáveis, utilizando tecnologia Leica (Marca Suíça).</div>
+                <div>• <strong>Equipe Especializada:</strong> Profissionais capacitados e experientes em diversas áreas da topografia e escaneamento, com mais de 10 anos de experiência na área.</div>
+                <div>• <strong>Soluções Personalizadas:</strong> Adaptação dos serviços às necessidades específicas de cada cliente.</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- PAGINA 3 - PROPOSTA COMERCIAL -->
+<html>
+<head></head>
+<body>
+    <div class="page">
+        <div class="header">Toposcan Serviços de Engenharia www.toposcan.com.br</div>
+        
+        <div class="section">
+            <div class="section-title">PROPOSTA COMERCIAL</div>
+            
+            <div class="section-subtitle">Objetivo</div>
+            <p>Executar levantamento topográfico planialtimétrico do entorno do Aeródromo de Natal/RN (PPD), com extensão aproximada de 3.500 metros, incluindo planimetria, altimetria e georreferenciamento conforme solicitação da contratante.</p>
+            
+            <div class="section-subtitle">Área</div>
+            <p>Entorno do Aeródromo de Natal/RN (PPD) - Extensão: ~3.500 metros</p>
+            
+            <div class="section-subtitle">Serviços</div>
+            
+            <div class="service-item">
+                <div class="service-name">1. Planimetria - Cadastro de Feições</div>
+                <div class="service-desc">• Limites do terreno</div>
+                <div class="service-desc">• Limites das edificações e fundações existentes</div>
+                <div class="service-desc">• Vias do entorno com seus respectivos nomes, fluxos e sentidos</div>
+                <div class="service-desc">• Meio-fio, sarjetas, vagas de estacionamento e calçadas (ambos os lados)</div>
+                <div class="service-desc">• Postes de alta e baixa tensão, luminárias e semáforos</div>
+                <div class="service-desc">• Caixas de drenagem e esgoto (com cotas de topo e fundo quando necessário)</div>
+                <div class="service-desc">• Bueiros, bocas de lobo e poços de visita</div>
+                <div class="service-desc">• Córregos naturais ou canalizados, drenos, rios e sistemas hídricos</div>
+            </div>
+            
+            <div class="service-item" style="margin-top: 10px;">
+                <div class="service-name">2. Altimetria</div>
+                <div class="service-desc">• Levantamento altimétrico para geração de curvas de nível</div>
+                <div class="service-desc">• Equidistância adequada para representação real do relevo</div>
+                <div class="service-desc">• Implantação de RN (Referência de Nível) com altitude ortométrica</div>
+            </div>
+            
+            <div class="service-item" style="margin-top: 10px;">
+                <div class="service-name">3. Georreferenciamento</div>
+                <div class="service-desc">• Implantação de 2 (dois) pontos fixos georreferenciados para partida do estudo</div>
+                <div class="service-desc">• Sistema de coordenadas: SIRGAS2000</div>
+                <div class="service-desc">• Altitude ortométrica referenciada ao datum vertical brasileiro (Marégrafo de Imbituba)</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- PAGINA 4 - PRODUTOS E CONDIÇÕES -->
+<html>
+<head></head>
+<body>
+    <div class="page">
+        <div class="header">Toposcan Serviços de Engenharia www.toposcan.com.br</div>
+        
+        <div class="section">
+            <div class="section-title">PRODUTOS ENTREGÁVEIS</div>
+            
+            <table class="price-table">
+                <tr>
+                    <th>Produto</th>
+                    <th>Formato</th>
+                </tr>
+                <tr>
+                    <td>Planta Planialtimétrica</td>
+                    <td>DWG / PDF</td>
+                </tr>
+                <tr>
+                    <td>Modelo Digital de Terreno (MDT)</td>
+                    <td>DWG / Raster</td>
+                </tr>
+                <tr>
+                    <td>Pontos Cotados</td>
+                    <td>DWG / TXT</td>
+                </tr>
+                <tr>
+                    <td>Pontos de Controle (GCPs)</td>
+                    <td>KML / Shapefile</td>
+                </tr>
+                <tr>
+                    <td>Relatório Técnico</td>
+                    <td>PDF</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">CONDIÇÕES COMERCIAIS</div>
+            <ul class="conditions-list">
+                <li><strong>Valor Total:</strong> R$ 18.900,00</li>
+                <li><strong>Pagamento:</strong> 50% entrada + 50% saldo a negociar</li>
+                <li><strong>Prazo de Entrega:</strong> 45 dias após aprovação da proposta</li>
+                <li><strong>Validade da Proposta:</strong> 30 dias</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">OBSERVAÇÕES</div>
+            <div class="observations">
+                <div>• Preço não inclui deslocamento e hospedagem (se necessário)</div>
+                <div>• Cliente deve garantir acesso às áreas de levantamento</div>
+                <div>• Eventuais serviços adicionais serão cobrados à parte</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">CONCLUSÃO</div>
+            <p>A Toposcan está empregada em ser a parceira ideal para seus projetos, oferecendo soluções que aliam precisão técnica e inovação tecnológica. Estamos à disposição para discutir esta proposta e ajustar conforme as suas necessidades específicas. Aguardamos a oportunidade de trabalhar juntos e contribuir para o sucesso dos seus empreendimentos.</p>
+        </div>
+        
+        <div class="signatures">
+            <div class="signature-block">
+                <div class="signature-line">Cliente</div>
+                <div>Strinso Consultoria em Infraestrutura Ltda</div>
+                <div>Gabriela Santana</div>
+            </div>
+            <div class="signature-block">
+                <div class="signature-line">Toposcan</div>
+                <div>Marcelo Ramos</div>
+                <div>Guilherme Becker</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1307,6 +1307,8 @@
                 <option value="Allana">Allana</option>
                 <option value="Sem nome">Sem nome</option>
             </select>
+            <button onclick="novaOportunidade()"
+                style="padding:10px;background:#22c55e;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold">+ Nova Oportunidade</button>
             <button onclick="syncToSheet()"
                 style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
             <div id="mobileSortContainer" style="width:100%;margin-top:10px">
@@ -2271,8 +2273,8 @@
                     return;
                 }
 
-                // Try Local Sync API first
                 try {
+                    // Save edits to local server for processing
                     const response = await fetch('http://127.0.0.1:18791/sync', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -2284,29 +2286,13 @@
                     if (result.status === 'ok') {
                         localStorage.removeItem('crm_edits');
                         localStorage.setItem('crm_last_sync', new Date().toISOString());
-                        alert('Sincronizado via Local Bridge! ' + (result.updated || 0) + ' campos atualizados.');
-                        return;
+                        alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
+                    } else {
+                        alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
                     }
                 } catch (e) {
-                    console.log('Local Bridge offline, trying Cloud Bridge...');
-                }
-
-                // Fallback to Cloud Bridge (Google Apps Script)
-                try {
-                    const cloudUrl = 'https://script.google.com/macros/s/AKfycbSh_XiGhIGGEvFdudsqksmn5luujiD2UMw8_gUFM0Q0CXd_aJi5naHU_QVMFpFfLDXGg/exec';
-                    const response = await fetch(cloudUrl, {
-                        method: 'POST',
-                        mode: 'no-cors', // Apps Script requires no-cors for simple POST or handles CORS specifically
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ edits: edits })
-                    });
-
-                    // With no-cors we can't see the response body, but we assume success if no error
-                    localStorage.removeItem('crm_edits');
-                    localStorage.setItem('crm_last_sync', new Date().toISOString());
-                    alert('Sincronizado via Cloud Bridge com sucesso!');
-                } catch (e) {
-                    alert('Falha total na sincronizacao. Verifique sua conexao.');
+                    // Fallback: save edits locally for manual sync
+                    alert('Servidor offline. Edicoes salvas localmente para sincronizar depois.');
                     await saveEditsToServer();
                 }
             }
@@ -2439,7 +2425,7 @@
 
             // Try to load latest data from Cloud Bridge
             async function puxarDadosDaNuvem() {
-                const cloudUrl = 'https://script.google.com/macros/s/AKfycbSh_XiGhIGGEvFdudsqksmn5luujiD2UMw8_gUFM0Q0CXd_aJi5naHU_QVMFpFfLDXGg/exec';
+                const cloudUrl = 'https://script.google.com/macros/s/AKfycbzlxWzx97kSloAPM5sPf367q3cf9xVfFxORAhI4b69j8ehzL6OSfpLpBTOfRSHLBGpr/exec';
                 try {
                     const response = await fetch(cloudUrl);
                     const data = await response.json();
@@ -2751,13 +2737,48 @@
                 document.getElementById('editModal').classList.remove('active');
             }
 
+            function novaOportunidade() {
+                // Gerar um ID único temporário
+                const id = Date.now();
+                
+                // Limpar campos do modal
+                document.getElementById('editId').value = id;
+                document.getElementById('editRowIndex').value = ''; // Indica que é novo
+                document.getElementById('editNumeroProposta').value = '';
+                document.getElementById('editNumeroPropostaInput').value = 'NOVA-' + id.toString().slice(-4);
+                document.getElementById('editVendedor').value = (sessionStorage.getItem('crm_auth') || '').split('@')[0];
+                document.getElementById('editCliente').value = '';
+                document.getElementById('editContato').value = '';
+                document.getElementById('editTelefoneEmail').value = '';
+                document.getElementById('editServico').value = '';
+                document.getElementById('editLocalizacao').value = '';
+                document.getElementById('editDataProposta').value = new Date().toLocaleDateString('pt-BR');
+                document.getElementById('editFechamentoPrevisto').value = '';
+                document.getElementById('editValor').value = '';
+                document.getElementById('editProbabilidade').value = '20%';
+                document.getElementById('editUltimoFollowup').value = '';
+                document.getElementById('editObservacao').value = '';
+
+                atualizarStatusPreview();
+                document.getElementById('editModal').classList.add('active');
+            }
+
             function salvarEdicao() {
-                const id = parseInt(document.getElementById('editId').value);
-                const p = propostas.find(x => x.id === id);
-                if (!p) return;
+                const idStr = document.getElementById('editId').value;
+                const rowIndex = document.getElementById('editRowIndex').value;
+                
+                let p = propostas.find(x => x.id == idStr);
+                let isNew = false;
+                
+                if (!p) {
+                    isNew = true;
+                    p = { id: idStr };
+                }
 
                 // Gather all fields
                 const editData = {
+                    id: idStr,
+                    rowIndex: rowIndex,
                     numeroProposta: document.getElementById('editNumeroPropostaInput').value,
                     vendedor: document.getElementById('editVendedor').value,
                     cliente: document.getElementById('editCliente').value,
@@ -2777,11 +2798,14 @@
                 // Update local proposal
                 Object.assign(p, editData);
 
+                if (isNew) {
+                    propostas.push(p);
+                }
+
                 // Save to local edits (for sync back to sheet)
                 const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
                 editData._timestamp = Date.now();
-                editData.rowIndex = p.rowIndex;
-                edits[id] = editData;
+                edits[idStr] = editData;
                 localStorage.setItem('crm_edits', JSON.stringify(edits));
 
                 // Save to persistence server

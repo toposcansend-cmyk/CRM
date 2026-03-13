@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Proposta Comercial - Toposcan</title>
+    <style>
+        @page { size: A4; margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #FFFFFF; width: 210mm; min-height: 297mm; margin: 0 auto; }
+        .page { page-break-after: always; min-height: 297mm; padding: 15mm; }
+        .page:last-child { page-break-after: avoid; }
+        .header { text-align: center; font-size: 10px; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 8px; margin-bottom: 15mm; }
+        .cover-page { display: flex; flex-direction: column; padding: 20mm; min-height: 297mm; }
+        .cover-header { text-align: center; font-size: 10px; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 8px; margin-bottom: 10mm; }
+        .cover-title { text-align: center; font-size: 28px; font-weight: bold; color: #0066cc; margin-bottom: 5mm; text-transform: uppercase; letter-spacing: 2px; }
+        .cover-subtitle { text-align: center; font-size: 14px; color: #666; margin-bottom: 15mm; }
+        .client-box { background: #f5f5f5; padding: 0; margin-bottom: 15mm; display: flex; }
+        .client-box-accent { width: 8px; background: #0066cc; }
+        .client-box-content { padding: 12mm; flex: 1; }
+        .client-box-row { margin-bottom: 8px; font-size: 12px; }
+        .client-box-label { font-weight: bold; color: #0066cc; }
+        .section { margin-bottom: 12mm; }
+        .section-title { font-size: 14px; font-weight: bold; color: #0066cc; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; text-transform: uppercase; }
+        .section-subtitle { font-size: 12px; font-weight: bold; color: #000; margin-top: 10px; margin-bottom: 5px; }
+        p { font-size: 11px; line-height: 1.5; color: #333; margin-bottom: 6px; text-align: justify; }
+        ul { margin: 5px 0; padding-left: 15px; }
+        li { font-size: 11px; margin-bottom: 4px; color: #333; }
+        .service-item { margin-bottom: 10px; }
+        .service-name { font-weight: bold; color: #000; }
+        .service-desc { margin-left: 12px; font-size: 10px; }
+        .price-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
+        .price-table th { background: #f0f0f0; border: 1px solid #ccc; padding: 6px; text-align: center; color: #0066cc; }
+        .price-table td { border: 1px solid #ccc; padding: 5px; text-align: center; font-size: 10px; }
+        .conditions-box { background: #f9f9f9; padding: 10px; border-left: 4px solid #0066cc; }
+        .conditions-box li { margin-bottom: 5px; }
+        .observations-box { background: #fffde7; padding: 10px; border-left: 4px solid #ffc107; font-size: 10px; }
+        .signatures { margin-top: 25mm; display: flex; justify-content: space-between; }
+        .signature-block { width: 45%; text-align: center; }
+        .signature-line { border-top: 1px solid #333; margin-top: 35px; padding-top: 5px; font-size: 10px; }
+    </style>
+</head>
+
+<!-- CAPA -->
+<body>
+    <div class="page cover-page">
+        <div class="cover-header">Toposcan Serviços de Engenharia www.toposcan.com.br</div>
+        <div class="cover-title">PROPOSTA COMERCIAL</div>
+        <div class="cover-subtitle">Proposta de Levantamento Topográfico e Serviços de Engenharia</div>
+        
+        <div class="client-box">
+            <div class="client-box-accent"></div>
+            <div class="client-box-content">
+                <div class="client-box-row"><span class="client-box-label">Cliente:</span> {{cliente.nome}}</div>
+                <div class="client-box-row"><span class="client-box-label">A/C:</span> {{cliente.contato}}{{#if cliente.cargo}} - {{cliente.cargo}}{{/if}}</div>
+                <div class="client-box-row"><span class="client-box-label">Proposta Nº:</span> {{numero}}</div>
+                <div class="client-box-row"><span class="client-box-label">Data:</span> {{data}}</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">OBJETO</div>
+            <p><strong>{{proposta.titulo}}</strong></p>
+            <p>{{proposta.objeto}}</p>
+            <p style="margin-top: 10px;"><strong>Área:</strong> {{proposta.area}}</p>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- PAGINA 2 -->
+<html>
+<head><meta charset="UTF-8"><style>
+body { font-family: Arial, Helvetica, sans-serif; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm; }
+.header { text-align: center; font-size: 10px; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 8px; margin-bottom: 15mm; }
+.section { margin-bottom: 12mm; }
+.section-title { font-size: 14px; font-weight: bold; color: #0066cc; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; text-transform: uppercase; }
+p { font-size: 11px; line-height: 1.5; color: #333; margin-bottom: 6px; text-align: justify; }
+ul { margin: 5px 0; padding-left: 15px; }
+li { font-size: 11px; margin-bottom: 4px; color: #333; }
+.service-item { margin-bottom: 10px; }
+.service-name { font-weight: bold; color: #000; }
+.service-desc { margin-left: 12px; font-size: 10px; }
+</style></head>
+<body>
+    <div class="page">
+        <div class="header">Toposcan Serviços de Engenharia www.toposcan.com.br</div>
+        
+        <div class="section">
+            <div class="section-title">APRESENTAÇÃO</div>
+            <p>A Toposcan é uma empresa especializada em serviços de topografia e captura de realidade (escaneamento 3D entre outros), comprometida em oferecer soluções precisas e inovadoras para atender às necessidades de seus clientes nos setores de construção civil, engenharia, arquitetura e mineração. Com a utilização de tecnologia de ponta e uma equipe altamente qualificada, a TopoScan utiliza a metodologia de captura de realidade combinada com a topografia de precisão, tendo resultados fidedignos com a condição real e sendo a base perfeita para projetos.</p>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">OBJETIVO</div>
+            <p>O objetivo desta proposta é apresentar os serviços da Toposcan, destacando nossos métodos, tecnologias e vantagens competitivas, além de oferecer condições comerciais atrativas para a contratação de nossos serviços.</p>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">SERVIÇOS OFERECIDOS</div>
+            
+            <div class="service-item">
+                <div class="service-name">1. Levantamento Topográfico</div>
+                <ul>
+                    <li>Levantamento Planialtimétrico Cadastral: Mapeamento detalhado do terreno para projetos de infraestrutura.</li>
+                    <li>Georreferenciamento de Imóveis Rurais: Adequação às normas do INCRA, garantindo precisão e conformidade legal.</li>
+                </ul>
+            </div>
+            
+            <div class="service-item">
+                <div class="service-name">2. Escaneamento 3D</div>
+                <ul>
+                    <li>Escaneamento de Infraestruturas: Captura de dados tridimensionais de edificações, plantas industriais e monumentos.</li>
+                    <li>Modelagem BIM: Criação de modelos digitais que otimizam a gestão de obras e manutenção de edificações.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">DIFERENCIAIS COMPETITIVOS</div>
+            <ul>
+                <li><strong>Tecnologia Avançada:</strong> Utilização de equipamentos modernos e softwares especializados para garantir dados precisos e confiáveis, utilizando tecnologia Leica (Marca Suiza).</li>
+                <li><strong>Equipe Especializada:</strong> Profissionais capacitados e experientes em diversas áreas da topografia e escaneamento, com mais de 10 anos de experiência na área.</li>
+                <li><strong>Soluções Personalizadas:</strong> Adaptação dos serviços às necessidades específicas de cada cliente.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- PAGINA 3 - SERVIÇOS -->
+<html>
+<head><meta charset="UTF-8"><style>
+body { font-family: Arial, Helvetica, sans-serif; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm; }
+.header { text-align: center; font-size: 10px; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 8px; margin-bottom: 15mm; }
+.section { margin-bottom: 12mm; }
+.section-title { font-size: 14px; font-weight: bold; color: #0066cc; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; text-transform: uppercase; }
+.service-item { margin-bottom: 10px; }
+.service-name { font-weight: bold; color: #000; }
+.service-desc { margin-left: 12px; font-size: 10px; }
+</style></head>
+<body>
+    <div class="page">
+        <div class="header">Toposcan Serviços de Engenharia www.toposcan.com.br</div>
+        
+        <div class="section">
+            <div class="section-title">PROPOSTA COMERCIAL</div>
+            
+            {{#each servicos}}
+            <div class="service-item">
+                <div class="service-name">{{nome}}</div>
+                <ul class="service-desc">
+                    {{#each itens}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+</body>
+</html>
+
+<!-- PAGINA 4 - PRODUTOS E CONDIÇÕES -->
+<html>
+<head><meta charset="UTF-8"><style>
+body { font-family: Arial, Helvetica, sans-serif; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm; }
+.header { text-align: center; font-size: 10px; color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 8px; margin-bottom: 15mm; }
+.section { margin-bottom: 12mm; }
+.section-title { font-size: 14px; font-weight: bold; color: #0066cc; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 8px; text-transform: uppercase; }
+p { font-size: 11px; line-height: 1.5; color: #333; margin-bottom: 6px; text-align: justify; }
+ul { margin: 5px 0; padding-left: 15px; }
+li { font-size: 11px; margin-bottom: 4px; color: #333; }
+.price-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 10px; }
+.price-table th { background: #f0f0f0; border: 1px solid #ccc; padding: 6px; text-align: center; color: #0066cc; }
+.price-table td { border: 1px solid #ccc; padding: 5px; text-align: center; font-size: 10px; }
+.conditions-box { background: #f9f9f9; padding: 10px; border-left: 4px solid #0066cc; }
+.conditions-box li { margin-bottom: 5px; }
+.observations-box { background: #fffde7; padding: 10px; border-left: 4px solid #ffc107; font-size: 10px; }
+.signatures { margin-top: 25mm; display: flex; justify-content: space-between; }
+.signature-block { width: 45%; text-align: center; }
+.signature-line { border-top: 1px solid #333; margin-top: 35px; padding-top: 5px; font-size: 10px; }
+</style></head>
+<body>
+    <div class="page">
+        <div class="header">Toposcan Serviços de Engenharia www.toposcan.com.br</div>
+        
+        <div class="section">
+            <div class="section-title">PRODUTOS ENTREGÁVEIS</div>
+            
+            <table class="price-table">
+                <tr>
+                    <th>Produto</th>
+                    <th>Formato</th>
+                </tr>
+                {{#each produtos}}
+                <tr>
+                    <td>{{nome}}</td>
+                    <td>{{formato}}</td>
+                </tr>
+                {{/each}}
+            </table>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">CONDIÇÕES COMERCIAIS</div>
+            <ul class="conditions-box">
+                <li><strong>Valor Total:</strong> {{condicoes.valor}}</li>
+                <li><strong>Pagamento:</strong> {{condicoes.pagamento}}</li>
+                <li><strong>Prazo de Entrega:</strong> {{condicoes.prazo}}</li>
+                <li><strong>Validade da Proposta:</strong> {{condicoes.validade}}</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">OBSERVAÇÕES</div>
+            <ul class="observations-box">
+                {{#each observacoes}}
+                <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">CONCLUSÃO</div>
+            <p>A Toposcan está empregada em ser a parceira ideal para seus projetos, oferecendo soluções que aliam precisão técnica e inovação tecnológica. Estamos à disposição para discutir esta proposta e ajustar conforme as suas necessidades específicas. Aguardamos a oportunidade de trabalhar juntos e contribuir para o sucesso dos seus empreendimentos.</p>
+        </div>
+        
+        <div class="signatures">
+            <div class="signature-block">
+                <div class="signature-line">Cliente</div>
+                <div>{{cliente.nome}}</div>
+                <div>{{cliente.contato}}</div>
+            </div>
+            <div class="signature-block">
+                <div class="signature-line">Toposcan</div>
+                <div>Marcelo Ramos</div>
+                <div>Guilherme Becker</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

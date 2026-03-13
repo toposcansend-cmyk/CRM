@@ -1,130 +1,3465 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CRM Toposcan</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1419; color: #eee; padding: 20px; }
-        .header { background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-        .header h1 { font-size: 1.5em; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat { background: #1a1a2e; padding: 20px; border-radius: 10px; text-align: center; }
-        .stat .value { font-size: 2em; font-weight: bold; color: #00d4ff; }
-        .stat .label { color: #888; margin-top: 5px; }
-        table { width: 100%; border-collapse: collapse; background: #1a1a2e; border-radius: 10px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-        th { background: #252540; font-weight: 600; }
-        tr:hover { background: #252540; }
-        .status-fechada { color: #4ade80; }
-        .status-pendente { color: #fbbf24; }
-        .status-perdida { color: #f87171; }
-        .login { max-width: 400px; margin: 100px auto; background: #1a1a2e; padding: 40px; border-radius: 12px; }
-        .login input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #333; border-radius: 6px; background: #252540; color: #eee; }
-        .login button { width: 100%; padding: 12px; background: #00d4ff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #000; }
-        .login button:hover { background: #00b8e6; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #0f1419;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #252540;
+            --text-primary: #eee;
+            --text-secondary: #888;
+            --accent: #00d4ff;
+            --border: #333;
+            --bg-header: #000;
+        }
+
+        .modo-claro {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e8e8e8;
+            --text-primary: #111;
+            --text-secondary: #555;
+            --accent: #0077ff;
+            --border: #ddd;
+            --bg-header: #f0f0f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 15px;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 1.4em;
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* --- NOTIFICATION BELL CSS --- */
+        .notification-btn {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            transition: opacity 0.2s;
+        }
+
+        .notification-btn:hover {
+            opacity: 0.8;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: none;
+            z-index: 2;
+        }
+
+        .notification-badge.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 45px;
+            right: 0;
+            width: 320px;
+            max-height: 400px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            padding: 10px;
+        }
+
+        .notification-dropdown.active {
+            display: block;
+        }
+
+        .notif-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .notif-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .notif-item:last-child {
+            border-bottom: none;
+        }
+
+        .notif-title {
+            font-weight: bold;
+            font-size: 0.9em;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .notif-desc {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .notif-empty {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* ----------------------------- */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-card .label {
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .stat-card.fechado {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .stat-card.fechado .value,
+        .stat-card.fechado .label {
+            color: #fff;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .card h2 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filters select,
+        .filters input {
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        #mobileSortContainer {
+            display: none;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            #mobileSortContainer {
+                display: block;
+            }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 15px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .menu-toggle {
+            width: 100%;
+            padding: 12px 15px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-toggle span:first-child {
+            font-size: 1.2em;
+        }
+
+        .tabs-menu {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabs-menu.collapsed {
+            display: none;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+            display: table !important;
+            table-layout: fixed;
+        }
+
+        table thead {
+            display: table-header-group !important;
+        }
+
+        table tbody {
+            display: table-row-group !important;
+        }
+
+        table tr {
+            display: table-row !important;
+        }
+
+        table th,
+        table td {
+            display: table-cell !important;
+            width: auto;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-tertiary);
+            cursor: pointer;
+        }
+
+        .status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+
+        .status.lead {
+            background: #8b5cf6;
+            color: #fff;
+        }
+
+        .status.enviada {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .status.pendente {
+            background: #f59e0b;
+            color: #fff;
+        }
+
+        .status.standby {
+            background: #6b7280;
+            color: #fff;
+        }
+
+        .status.fechada {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .status.perdida {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .kanban-board {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .kanban-column {
+            min-width: 200px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 12px;
+            flex-shrink: 0;
+        }
+
+        .kanban-column h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .kanban-item {
+            background: var(--bg-secondary);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 0.75em;
+        }
+
+        .kanban-item .valor {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        #comandoKael {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+
+        /* Modal de Edicao */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 25px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .modal .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+
+        .modal input,
+        .modal select,
+        .modal textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .modal textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .modal .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .modal .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .modal .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-card {
+                padding: 10px;
+            }
+
+            .stat-card .value {
+                font-size: 1.1em;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filters select,
+            .filters input {
+                width: 100%;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+
+            .menu-toggle {
+                display: flex !important;
+            }
+
+            .tabs-menu {
+                display: none;
+                flex-direction: column;
+            }
+
+            .tabs-menu.expanded {
+                display: flex;
+            }
+
+            table {
+                display: none !important;
+            }
+
+            .proposta-card {
+                background: var(--bg-tertiary);
+                padding: 14px;
+                border-radius: 10px;
+                margin-bottom: 12px;
+            }
+
+            .proposta-card .cliente {
+                font-weight: bold;
+                color: var(--accent);
+                margin-bottom: 6px;
+            }
+
+            .proposta-card .info {
+                font-size: 0.8em;
+                color: var(--text-secondary);
+                margin-bottom: 4px;
+            }
+
+            .proposta-card .valor {
+                font-weight: bold;
+                font-size: 1.1em;
+                color: var(--accent);
+                margin: 8px 0;
+            }
+
+            .proposta-card .footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 10px;
+            }
+
+            .kanban-board {
+                flex-direction: column;
+            }
+
+            .kanban-column {
+                min-width: 100%;
+            }
+
+            .card {
+                padding: 12px;
+            }
+
+            /* Modal */
+            .modal-content {
+                max-width: 95%;
+                padding: 15px;
+            }
+        }
+
+        /* Login Screen */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        #loginScreen.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--bg-secondary);
+            padding: 40px 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            text-align: center;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-box img {
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .login-box h2 {
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-size: 1.3em;
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            font-size: 0.85em;
+            margin-bottom: 20px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 1em;
+            margin-bottom: 12px;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .login-box button:hover {
+            opacity: 0.85;
+        }
+
+        .login-error {
+            color: #ff4444;
+            font-size: 0.85em;
+            margin-top: 8px;
+            display: none;
+        }
+
+        #crmContent {
+            display: none;
+        }
+
+        #crmContent.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            #mainHeader {
+                flex-direction: column !important;
+                height: auto !important;
+                text-align: center;
+                gap: 10px !important;
+                padding: 15px !important;
+            }
+
+            #mainHeader .header-right {
+                align-items: center !important;
+                width: 100%;
+            }
+
+            #mainLogo {
+                height: 60px !important;
+            }
+        }
+
+        /* PRECIFICAÇÃO DASHBOARD CSS */
+
+        #orcamento * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #orcamento {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+
+        #orcamento .header {
+            background: #000000;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        #orcamento .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #orcamento .logo {
+            height: 50px;
+            filter: brightness(0) invert(1);
+        }
+
+        #orcamento .logo-text {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        #orcamento .subtitle {
+            color: #888;
+            font-size: 12px;
+        }
+
+        #orcamento .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        #orcamento .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        #orcamento .card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+        }
+
+        #orcamento .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #000;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000;
+        }
+
+        #orcamento .form-group {
+            margin-bottom: 18px;
+        }
+
+        #orcamento label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        #orcamento input[type="text"],
+        #orcamento input[type="number"],
+        #orcamento select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        #orcamento input:focus,
+        #orcamento select:focus {
+            outline: none;
+            border-color: #000;
+        }
+
+        #orcamento .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        #orcamento .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #orcamento .checkbox-item:hover {
+            border-color: #000;
+        }
+
+        #orcamento .checkbox-item.checked {
+            background: #000;
+            border-color: #000;
+            color: #fff;
+        }
+
+        #orcamento .checkbox-item input {
+            display: none;
+        }
+
+        #orcamento .checkbox-item .checkmark {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        #orcamento .checkbox-item.checked .checkmark {
+            background: #fff;
+            border-color: #fff;
+            color: #000;
+        }
+
+        #orcamento .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        #orcamento .btn-calcular {
+            width: 100%;
+            padding: 16px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        #orcamento .btn-calcular:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+
+        #orcamento .resultado-card {
+            background: #000;
+            color: #fff;
+        }
+
+        #orcamento .resultado-card .card-title {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+
+        #orcamento .resultado-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        #orcamento .resultado-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        #orcamento .resultado-item:last-child {
+            border-bottom: none;
+        }
+
+        #orcamento .resultado-label {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        #orcamento .resultado-valor {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        #orcamento .total-destaque {
+            background: #fff;
+            color: #000;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        #orcamento .total-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        #orcamento .total-valor {
+            font-size: 36px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        #orcamento .detalhes-table {
+            width: 100%;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        .detalhes-table th,
+        #orcamento .detalhes-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        #orcamento .detalhes-table th {
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        #orcamento .historico {
+            margin-top: 30px;
+        }
+
+        #orcamento .historico-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #000;
+        }
+
+        #orcamento .historico-table {
+            width: 100%;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .historico-table th,
+        #orcamento .historico-table td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        #orcamento .historico-table th {
+            background: #000;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        #orcamento .historico-table tr:nth-child(even) {
+            background: #f0f0f0;
+        }
+
+        #orcamento .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        #orcamento .badge-scanner {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        #orcamento .badge-topografia {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        #orcamento .badge-lidar {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        #orcamento .badge-bim {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        #orcamento .config-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 8px;
+        }
+
+        #orcamento .config-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        #orcamento .config-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        #orcamento .config-item label {
+            font-size: 11px;
+        }
+
+        #orcamento .config-item input {
+            padding: 8px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            #orcamento .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #orcamento .checkbox-group {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+
+        @media (max-width: 768px) {
+            #orcamento .header {
+                flex-direction: column;
+                padding: 15px;
+                text-align: center;
+                gap: 10px;
+            }
+
+            #orcamento .logo-container {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            #orcamento .logo-text {
+                font-size: 20px;
+                letter-spacing: 1px;
+            }
+
+            #orcamento .subtitle {
+                font-size: 11px;
+                text-align: center;
+            }
+
+            #orcamento .container {
+                padding: 10px !important;
+                max-width: 100vw !important;
+                overflow-x: hidden !important;
+            }
+
+            #orcamento .card {
+                padding: 15px !important;
+                overflow-x: hidden !important;
+            }
+
+            #orcamento .row-2 {
+                grid-template-columns: 1fr !important;
+            }
+
+            #orcamento .checkbox-group {
+                grid-template-columns: 1fr !important;
+                /* Force single column to avoid overflow */
+            }
+
+            #orcamento .config-row {
+                grid-template-columns: 1fr 1fr !important;
+            }
+
+            #orcamento .resultado-item {
+                flex-direction: column;
+                gap: 5px;
+                align-items: flex-start;
+            }
+
+            #orcamento .resultado-valor {
+                align-self: flex-end;
+            }
+
+            #orcamento .historico-table,
+            #orcamento .detalhes-table {
+                display: block !important;
+                overflow-x: auto !important;
+                white-space: nowrap !important;
+            }
+        }
     </style>
 </head>
+
 <body>
-    <div id="loginScreen" class="login">
-        <h2 style="text-align:center;margin-bottom:20px">CRM Toposcan</h2>
-        <input type="email" id="emailInput" placeholder="Email @toposcan.com.br">
-        <button onclick="doLogin()">Entrar</button>
-    </div>
-    
-    <div id="crmScreen" style="display:none">
-        <div class="header">
-            <h1>CRM Toposcan</h1>
-            <div style="margin-top:10px;color:#888" id="loggedUser"></div>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <img src="logo-branca.png" alt="Toposcan" style="height:50px;">
+            <h2>CRM Toposcan</h2>
+            <p>Acesso restrito à equipe Toposcan</p>
+            <input type="email" id="loginUser" placeholder="Email" autocomplete="username">
+            <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password"
+                onkeyup="if(event.key==='Enter')doLogin()">
+            <button onclick="doLogin()">Entrar</button>
+            <div class="login-error" id="loginError">Usuário ou senha incorretos</div>
         </div>
-        
-        <div class="stats" id="stats"></div>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Nr</th>
-                    <th>Cliente</th>
-                    <th>Servico</th>
-                    <th>Valor</th>
-                    <th>Status</th>
-                    <th>Vendedor</th>
-                </tr>
-            </thead>
-            <tbody id="propostasTable"></tbody>
-        </table>
     </div>
-    
-    <script src="data_v10.js"></script>
+
     <script>
-        // Verificar se dados carregaram
-        console.log('Dados carregados:', window.propostas ? window.propostas.length : 0);
-        
-        function doLogin() {
-            const email = document.getElementById('emailInput').value;
-            if (!email.includes('@toposcan.com.br')) {
-                alert('Use email @toposcan.com.br');
-                return;
+        // Auth: SHA-256 hash of password for client-side verification
+        // Default credentials: email@toposcan.com.br — senha: toposcan2026
+        // TROQUE AS SENHAS! Use: crypto.subtle.digest('SHA-256', ...) para gerar novos hashes
+        const AUTH_USERS = {
+            'admin@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
+            'guilherme@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
+            'marcelo@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
+            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
+        };
+
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function doLogin() {
+            const user = document.getElementById('loginUser').value.toLowerCase().trim();
+            const pass = document.getElementById('loginPass').value;
+            const passHash = await sha256(pass);
+
+            if (AUTH_USERS[user] && AUTH_USERS[user] === passHash) {
+                sessionStorage.setItem('crm_auth', user);
+                sessionStorage.setItem('crm_auth_time', Date.now().toString());
+                showCRM();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginPass').value = '';
             }
-            
-            sessionStorage.setItem('crm_auth', email.split('@')[0]);
-            showCRM();
         }
-        
+
         function showCRM() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('crmScreen').style.display = 'block';
-            
-            const user = sessionStorage.getItem('crm_auth') || 'Usuario';
-            document.getElementById('loggedUser').textContent = 'Logado: ' + user;
-            
-            renderCRM();
+            const login = document.getElementById('loginScreen');
+            const crm = document.getElementById('crmContent');
+            if (login) login.classList.add('hidden');
+            if (crm) crm.classList.add('active');
+
+            // Re-render data and notifications specifically for the logged in user
+            if (typeof filtrar === 'function') {
+                filtrar();
+            }
         }
-        
-        function renderCRM() {
-            const propostas = window.propostas || [];
-            console.log('Renderizando', propostas.length, 'propostas');
-            
-            // Calcular stats
-            const fechadas = propostas.filter(p => p.status === 'Fechada');
-            const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
-            
-            const totalFechado = fechadas.reduce((s, p) => s + (p.valor || 0), 0);
-            const totalPendente = pendentes.reduce((s, p) => s + (p.valor || 0), 0);
-            
-            document.getElementById('stats').innerHTML = 
-                '<div class="stat"><div class="value">' + propostas.length + '</div><div class="label">Total</div></div>' +
-                '<div class="stat"><div class="value">' + fechadas.length + '</div><div class="label">Fechadas</div></div>' +
-                '<div class="stat"><div class="value">R$ ' + (totalFechado/1000).toFixed(0) + 'k</div><div class="label">Valor Fechado</div></div>' +
-                '<div class="stat"><div class="value">' + pendentes.length + '</div><div class="label">Pendentes</div></div>' +
-                '<div class="stat"><div class="value">R$ ' + (totalPendente/1000).toFixed(0) + 'k</div><div class="label">Valor Pendente</div></div>';
-            
-            // Renderizar tabela
-            const tbody = document.getElementById('propostasTable');
-            tbody.innerHTML = '';
-            
-            // Ordenar por data (mais recentes primeiro)
-            const sorted = [...propostas].sort((a, b) => (b.id || 0) - (a.id || 0));
-            
-            sorted.forEach(p => {
-                const tr = document.createElement('tr');
-                const statusClass = 'status-' + (p.status || 'pendente').toLowerCase();
-                tr.innerHTML = 
-                    '<td>' + (p.numeroProposta || '-') + '</td>' +
-                    '<td>' + (p.cliente || '-') + '</td>' +
-                    '<td>' + (p.servico || '-') + '</td>' +
-                    '<td>R$ ' + ((p.valor || 0)).toLocaleString() + '</td>' +
-                    '<td class="' + statusClass + '">' + (p.status || '-') + '</td>' +
-                    '<td>' + (p.vendedor || '-') + '</td>';
-                tbody.appendChild(tr);
-            });
+
+        function checkAuth() {
+            const auth = sessionStorage.getItem('crm_auth');
+            const authTime = parseInt(sessionStorage.getItem('crm_auth_time') || '0');
+            const maxAge = 8 * 60 * 60 * 1000; // 8 hours session
+            if (auth && (Date.now() - authTime) < maxAge) {
+                showCRM();
+                return true;
+            }
+            return false;
         }
-        
-        // Auto-login se ja autenticado
-        if (sessionStorage.getItem('crm_auth')) {
-            showCRM();
-        }
+
+        // Run check after initial script load, but showCRM will check if elements exist
+        // Also added a backup call at the bottom of the file
+        checkAuth();
     </script>
+
+    <div id="crmContent">
+        <header id="mainHeader"
+            style="padding:15px;display:flex;justify-content:space-between;align-items:center;background:var(--bg-header);border-radius:20px;margin:0 0 25px 0;width:100%;gap:15px;">
+            <img id="mainLogo" src="logo.png" alt="Toposcan" style="height:100px;max-width:200px;object-fit:contain;">
+            <div class="header-right"
+                style="display:flex !important;flex-direction:row !important;align-items:center !important;gap:15px !important;">
+                <span id="loggedUser" style="color:#888;font-size:0.8em;white-space:nowrap;margin-right: -5px;"></span>
+
+                <!-- NOTIFICATION BELL -->
+                <div style="position: relative;">
+                    <button class="notification-btn" id="notifBtn" onclick="toggleNotifications()" title="Alertas">
+                        🔔
+                        <div class="notification-badge" id="notifBadge">0</div>
+                    </button>
+                    <div class="notification-dropdown" id="notifDropdown">
+                        <div class="notif-empty" id="notifEmpty">Nenhum alerta pendente.</div>
+                        <div id="notifList"></div>
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <button onclick="sessionStorage.clear();location.reload()"
+                        style="background:#333;border:1px solid #555;padding:6px 12px;font-size:0.75em;border-radius:6px;color:#ccc;cursor:pointer;">Sair</button>
+                    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"
+                        style="background:#333;border:1px solid #555;padding:8px 14px;font-size:0.85em;white-space:nowrap;border-radius:8px;">Modo
+                        Claro</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="value" id="totalPropostas">0</div>
+                <div class="label">Total</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="fechadas">0</div>
+                <div class="label">Fechadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="pendentes">0</div>
+                <div class="label">Pendente</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="enviadas">0</div>
+                <div class="label">Enviadas</div>
+            </div>
+            <div class="stat-card fechado">
+                <div class="value" id="totalFechado">R$ 0</div>
+                <div class="label">Fechado</div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin:15px 0;flex-wrap:wrap;align-items:center">
+            <select id="anoFilter" onchange="filtrar()"
+                style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;min-width:120px">
+                <option value="">Todos os Anos</option>
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+            </select>
+            <select id="vendedorFilter" onchange="filtrar()"
+                style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;min-width:140px">
+                <option value="">Todos Vendedores</option>
+                <option value="Guilherme">Guilherme</option>
+                <option value="Marcelo">Marcelo</option>
+                <option value="Allana">Allana</option>
+                <option value="Sem nome">Sem nome</option>
+            </select>
+            <button onclick="novaOportunidade()"
+                style="padding:10px;background:#22c55e;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold">+ Nova Oportunidade</button>
+            <button onclick="syncToSheet()"
+                style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
+            <div id="mobileSortContainer" style="width:100%;margin-top:10px">
+                <label style="font-size:0.8em;color:var(--text-secondary);margin-bottom:5px;display:block">Ordenar
+                    por:</label>
+                <select id="mobileSort" onchange="aplicarOrdenacaoMobile(this.value)"
+                    style="width:100%;padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;">
+                    <option value="dataProposta:desc">Mais Recentes</option>
+                    <option value="dataProposta:asc">Mais Antigos</option>
+                    <option value="fechamentoPrevisto:desc">Fechamento previsto</option>
+                    <option value="valor:desc">Maior Valor</option>
+                    <option value="cliente:asc">Cliente (A-Z)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Modal de Edicao -->
+        <div id="editModal" class="modal">
+            <div class="modal-content" style="max-width:600px">
+                <h2>Editar Proposta</h2>
+                <input type="hidden" id="editId">
+                <input type="hidden" id="editRowIndex">
+                <input type="hidden" id="editNumeroProposta">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Vendedor</label>
+                        <select id="editVendedor">
+                            <option value="">Selecione...</option>
+                            <option value="Guilherme">Guilherme</option>
+                            <option value="Marcelo">Marcelo</option>
+                            <option value="Allana">Allana</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>N Proposta</label>
+                        <input type="text" id="editNumeroPropostaInput" placeholder="Numero da proposta" readonly
+                            style="background:var(--bg-tertiary)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Cliente *</label>
+                    <input type="text" id="editCliente" placeholder="Nome do cliente" required>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Contato</label>
+                        <input type="text" id="editContato" placeholder="Nome do contato">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone / Email</label>
+                        <input type="text" id="editTelefoneEmail" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Servico</label>
+                    <input type="text" id="editServico" placeholder="Tipo de servico">
+                </div>
+
+                <div class="form-group">
+                    <label>Localizacao</label>
+                    <input type="text" id="editLocalizacao" placeholder="Endereco ou cidade">
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Data Proposta</label>
+                        <input type="text" id="editDataProposta" placeholder="DD/MM/AAAA">
+                    </div>
+                    <div class="form-group">
+                        <label>Fechamento previsto</label>
+                        <input type="text" id="editFechamentoPrevisto" placeholder="DD/MM/AAAA">
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="editValor" placeholder="Valor em reais">
+                    </div>
+                    <div class="form-group">
+                        <label>Probabilidade</label>
+                        <select id="editProbabilidade">
+                            <option value="">Selecione...</option>
+                            <option value="20%">Lead (20%)</option>
+                            <option value="40%">Enviada (40%)</option>
+                            <option value="60%">Pendente (60%)</option>
+                            <option value="80%">Quase Fechando (80%)</option>
+                            <option value="100%">Fechada (100%)</option>
+                            <option value="0%">Perdida (0%)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Ultimo Follow-up</label>
+                    <input type="text" id="editUltimoFollowup" placeholder="DD/MM/AAAA">
+                </div>
+
+                <div class="form-group">
+                    <label>Observacao</label>
+                    <textarea id="editObservacao" placeholder="Notas e observacoes..."
+                        style="min-height:60px"></textarea>
+                </div>
+
+                <div style="background:var(--bg-tertiary);padding:10px;border-radius:8px;margin-bottom:15px">
+                    <div style="font-size:0.8em;color:var(--text-secondary)">Status (baseado na probabilidade)</div>
+                    <div id="editStatusPreview" style="font-weight:bold;color:var(--accent)">Lead</div>
+                </div>
+
+                <div class="modal-buttons" style="display:flex; flex-direction:column; gap:10px; margin-top:20px">
+                    <button class="btn btn-primary" onclick="salvarEdicao()"
+                        style="width:100%; padding:15px; font-size:1.1em">Salvar Alterações</button>
+                    <div style="display:flex; gap:10px; justify-content:space-between">
+                        <button class="btn btn-secondary" onclick="fecharModal()"
+                            style="flex:1; padding:10px; font-size:0.9em">Cancelar</button>
+                        <button class="btn btn-secondary" onclick="excluirLead()"
+                            style="flex:1; padding:10px; font-size:0.9em; background:#ef4444; color:#fff">Excluir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs" id="tabsContainer">
+            <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()" style="display:none;">
+                <span>☰</span>
+                <span class="menu-label">Menu</span>
+            </button>
+            <div class="tabs-menu" id="tabsMenu">
+                <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
+                <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
+                <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
+                <button class="tab-btn" onclick="trocarTab('insights')">Insights</button>
+                <button class="tab-btn" onclick="trocarTab('kpi')">KPIs</button>
+                <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
+                <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
+            </div>
+        </div>
+
+        <div id="oportunidades" class="section active">
+            <div class="card">
+                <div class="filters">
+                    <select id="statusFilter" onchange="filtrar()">
+                        <option value="todos">Todos Status</option>
+                        <option value="Lead">Lead</option>
+                        <option value="Enviada">Enviada</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Standby">Standby</option>
+                        <option value="Fechada">Fechada</option>
+                        <option value="Perdida">Perdida</option>
+                    </select>
+                    <input type="text" id="busca" placeholder="Buscar..." onkeyup="filtrar()">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Vendedor</th>
+                            <th>Contato</th>
+                            <th>Servico</th>
+                            <th>Data Proposta</th>
+                            <th>Fechamento previsto</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="propostasTable"></tbody>
+                </table>
+                <div id="propostasCards"></div>
+            </div>
+        </div>
+
+        <div id="pipeline" class="section">
+            <div class="card">
+                <h2>Pipeline Kanban</h2>
+                <div class="kanban-board" id="kanbanBoard"></div>
+            </div>
+        </div>
+
+        <div id="evolucao" class="section">
+            <div class="card">
+                <h2>Fechamento por Mes</h2>
+                <div id="evolucaoChart"></div>
+            </div>
+        </div>
+
+        <div id="orcamento" class="section">
+            <header class="header">
+                <div class="logo-container">
+                    <img src="logo.png" alt="Toposcan" class="logo" onerror="this.style.display='none'"
+                        style="height: 40px;">
+                </div>
+                <div style="color: #888; font-size: 12px;">
+                    Sistema de Precificação | Kael Intelligence
+                </div>
+            </header>
+
+            <div class="container">
+                <div class="main-grid">
+                    <!-- FORMULÁRIO DE INPUT -->
+                    <div class="card">
+                        <div class="card-title">📥 Dados do Projeto</div>
+
+                        <div class="form-group">
+                            <label>Cliente / Projeto</label>
+                            <input type="text" id="cliente" placeholder="Nome do cliente ou projeto">
+                        </div>
+
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>Tipo de Serviço</label>
+                                <select id="tipoServico">
+                                    <option value="scanner">Scanner 3D</option>
+                                    <option value="topografia">Topografia</option>
+                                    <option value="lidar">LIDAR</option>
+                                    <option value="drone">Drone</option>
+                                    <option value="tour">Tour Virtual</option>
+                                    <option value="bim">BIM/Modelagem</option>
+                                    <option value="misto">Projeto Misto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>Cidade / Local</label>
+                                <input type="text" id="local" placeholder="Nome da cidade">
+                            </div>
+                            <div class="form-group">
+                                <label>Distância (km)</label>
+                                <input type="number" id="distancia" placeholder="0" value="0">
+                                <small style="color: #666; font-size: 11px;">Ida + volta + 10km/dia na cidade</small>
+                            </div>
+                        </div>
+
+                        <div class="card-title" style="margin-top: 25px;">🤝 Topopartner</div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="chkTopopartner" style="width: 18px; height: 18px;"
+                                    onchange="toggleTopopartner()">
+                                <span style="font-weight: 500;">Usar custos Topopartner</span>
+                            </label>
+                        </div>
+
+                        <div id="topopartnerFields"
+                            style="display: none; padding: 15px; background: #e8f5e9; border-radius: 8px; margin-bottom: 15px;">
+                            <div id="topopartnerCustos">
+                                <!-- Custos serão adicionados aqui -->
+                            </div>
+                            <button type="button" onclick="adicionarCustoTopopartner()"
+                                style="width: 100%; padding: 10px; background: #4caf50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                                + Adicionar Custo
+                            </button>
+                        </div>
+
+                        <div class="card-title" style="margin-top: 25px;">👥 Equipe e Tempo</div>
+
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>Dias de Operação</label>
+                                <input type="number" id="diasOperacao" placeholder="1" value="1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Pessoas</label>
+                                <input type="number" id="pessoas" placeholder="2" value="2" min="1">
+                            </div>
+                        </div>
+
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>Tempo de Deslocamento (horas ida)</label>
+                                <input type="number" id="tempoDeslocamento" placeholder="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Horas de Modelagem</label>
+                                <input type="number" id="horasModelagem" placeholder="0" value="0">
+                            </div>
+                        </div>
+
+                        <div class="card-title" style="margin-top: 25px;">🔧 Equipamentos</div>
+
+                        <div class="checkbox-group">
+                            <label class="checkbox-item checked">
+                                <input type="checkbox" id="chkScanner" checked>
+                                <span class="checkmark">✓</span>
+                                Scanner (R$ 1.800/dia)
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="chkDrone">
+                                <span class="checkmark">✓</span>
+                                Drone (R$ 600/dia)
+                            </label>
+                            <label class="checkbox-item checked">
+                                <input type="checkbox" id="chkGNSS" checked>
+                                <span class="checkmark">✓</span>
+                                GNSS/RTK
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="chkEstacao">
+                                <span class="checkmark">✓</span>
+                                Estação
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="chkBIM">
+                                <span class="checkmark">✓</span>
+                                BIM
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="chkMatterport">
+                                <span class="checkmark">✓</span>
+                                Matterport (R$ 750/dia)
+                            </label>
+                        </div>
+
+                        <div class="card-title" style="margin-top: 20px;">👷 Pessoal Adicional</div>
+
+                        <div class="checkbox-group" style="grid-template-columns: repeat(2, 1fr);">
+                            <label class="checkbox-item" id="chkAuxiliarContainer">
+                                <input type="checkbox" id="chkAuxiliar">
+                                <span class="checkmark">✓</span>
+                                Auxiliar (R$ 200/dia)
+                            </label>
+                            <label class="checkbox-item" id="chkLicencaMatterportContainer">
+                                <input type="checkbox" id="chkLicencaMatterport">
+                                <span class="checkmark">✓</span>
+                                Licença Anual Matterport (+R$ 1.500)
+                            </label>
+                        </div>
+
+                        <div style="margin-top: 15px; padding: 15px; background: #f0f0f0; border-radius: 8px;">
+                            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                <label style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="chkEPI" checked style="width: 18px; height: 18px;">
+                                    <span style="font-weight: 500;">EPIs (R$ 150/unidade)</span>
+                                </label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <label style="font-size: 13px;">Quantidade:</label>
+                                    <input type="number" id="qtdEPI" value="2" min="1" max="10"
+                                        style="width: 60px; padding: 5px; border: 2px solid #ddd; border-radius: 5px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-title" style="margin-top: 20px;">🚗 Logística</div>
+
+                        <div class="checkbox-group" style="grid-template-columns: repeat(3, 1fr);">
+                            <label class="checkbox-item" id="chkCarroContainer">
+                                <input type="checkbox" id="chkCarro">
+                                <span class="checkmark">✓</span>
+                                Carro (R$ 300/dia)
+                            </label>
+                            <label class="checkbox-item" id="chkCombustivelContainer">
+                                <input type="checkbox" id="chkCombustivel">
+                                <span class="checkmark">✓</span>
+                                Combustível
+                            </label>
+                            <label class="checkbox-item" id="chkHotelContainer">
+                                <input type="checkbox" id="chkHotel">
+                                <span class="checkmark">✓</span>
+                                Hotel (R$ 250/pessoa/dia)
+                            </label>
+                        </div>
+
+                        <div class="card-title" style="margin-top: 20px;">📐 Produtos de Engenharia</div>
+
+                        <div class="row-2">
+                            <div class="form-group">
+                                <label>LPC (Levantamento de Pontos de Controle)</label>
+                                <select id="tamanhoLPC">
+                                    <option value="0">Não incluir</option>
+                                    <option value="500">Pequeno - R$ 500</option>
+                                    <option value="1000">Médio - R$ 1.000</option>
+                                    <option value="3000">Grande - R$ 3.000</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>BIM (Modelagem)</label>
+                                <select id="tamanhoBIM">
+                                    <option value="0">Não incluir</option>
+                                    <option value="1000">Pequeno - R$ 1.000</option>
+                                    <option value="2500">Médio - R$ 2.500</option>
+                                    <option value="5000">Grande - R$ 5.000</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="config-section">
+                            <div class="config-title">⚙️ Configurações de Cálculo</div>
+                            <div class="config-row">
+                                <div class="config-item">
+                                    <label>Imposto (%)</label>
+                                    <input type="number" id="impostoPct" value="20">
+                                </div>
+                                <div class="config-item">
+                                    <label>Markup (%)</label>
+                                    <input type="number" id="markupPct" value="25">
+                                </div>
+                                <div class="config-item">
+                                    <label>Desc. Rápido (%)</label>
+                                    <input type="number" id="descontoPct" value="10">
+                                </div>
+                                <div class="config-item">
+                                    <label>Comissão (%)</label>
+                                    <input type="number" id="comissaoPct" value="5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-calcular" onclick="calcular()">
+                            🧮 CALCULAR PREÇO
+                        </button>
+                    </div>
+
+                    <!-- RESULTADO -->
+                    <div class="card resultado-card">
+                        <div class="card-title">📊 Resultado da Precificação</div>
+
+                        <div class="resultado-grid">
+                            <div class="resultado-item">
+                                <span class="resultado-label">Custos Logísticos</span>
+                                <span class="resultado-valor" id="custoLogistico">R$ 0,00</span>
+                            </div>
+                            <div class="resultado-item">
+                                <span class="resultado-label">Custos Operacionais</span>
+                                <span class="resultado-valor" id="custoOperacional">R$ 0,00</span>
+                            </div>
+                            <div class="resultado-item">
+                                <span class="resultado-label">Custo Total</span>
+                                <span class="resultado-valor" id="custoTotal">R$ 0,00</span>
+                            </div>
+                            <div class="resultado-item">
+                                <span class="resultado-label">Imposto (<span id="impostoLabel">20</span>%)</span>
+                                <span class="resultado-valor" id="valorImposto">R$ 0,00</span>
+                            </div>
+                            <div class="resultado-item">
+                                <span class="resultado-label">Markup (<span id="markupLabel">25</span>%)</span>
+                                <span class="resultado-valor" id="valorMarkup">R$ 0,00</span>
+                            </div>
+                            <div class="resultado-item">
+                                <span class="resultado-label">Comissão (<span id="comissaoLabel">5</span>%)</span>
+                                <span class="resultado-valor" id="valorComissao">R$ 0,00</span>
+                            </div>
+                        </div>
+
+                        <div class="total-destaque">
+                            <div class="total-label">PREÇO FINAL</div>
+                            <div class="total-valor" id="precoFinal">R$ 0,00</div>
+                        </div>
+
+                        <div class="total-destaque" style="margin-top: 10px; background: #f0f0f0;">
+                            <div class="total-label">Com Desconto Rápido (<span id="descontoLabel">10</span>%)</div>
+                            <div class="total-valor" id="precoDesconto" style="font-size: 24px;">R$ 0,00</div>
+                        </div>
+
+                        <div class="card-title" style="margin-top: 25px; color: #fff; border-bottom-color: #333;">📋
+                            Detalhamento</div>
+
+                        <table class="detalhes-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Qtd</th>
+                                    <th>Valor Unit.</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalhesTable">
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #666;">
+                                        Clique em "Calcular Preço" para ver o detalhamento
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- HISTÓRICO -->
+                <div class="historico">
+                    <div class="historico-title">📜 Histórico de Orçamentos</div>
+                    <table class="historico-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Cliente</th>
+                                <th>Tipo</th>
+                                <th>Local</th>
+                                <th>Dias</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historicoTable">
+                            <!-- Histórico será populado via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="followup" class="section">
+            <div class="card">
+                <h2>Propostas para Follow-up</h2>
+                <div id="followupList"></div>
+            </div>
+        </div>
+
+        <div id="insights" class="section">
+            <div class="card">
+                <h2>Insights e Oportunidades</h2>
+                <div id="insightsContainer"></div>
+            </div>
+        </div>
+
+        <div id="kpi" class="section">
+            <div class="card">
+                <h2>KPIs e Performance</h2>
+                <div id="kpiContainer"></div>
+            </div>
+        </div>
+
+        <!-- Load proposals data from sync -->
+        <script src="proposals.js"></script>
+        <script>
+            console.log('=== CRM SCRIPT STARTING ===');
+            const CACHE_VERSION = '2026-03-02-v12-cache-bust';
+
+            // XSS sanitizer
+            function esc(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // propostas is defined in proposals.js
+            if (typeof propostas === 'undefined') {
+                console.warn('proposals.js not loaded! Initializing empty array.');
+                var propostas = [];
+            }
+
+            console.log('CRM: Loaded ' + propostas.length + ' proposals.');
+
+
+            function updateLogos(isClaro) {
+                const mainLogo = document.getElementById('mainLogo');
+                if (mainLogo) mainLogo.src = isClaro ? 'logo-preta.png' : 'logo.png';
+                const loginLogo = document.querySelector('.login-box img');
+                if (loginLogo) loginLogo.src = isClaro ? 'logo-preta.png' : 'logo-branca.png';
+                const btn = document.getElementById('themeBtn');
+                if (btn) btn.textContent = isClaro ? 'Modo Escuro' : 'Modo Claro';
+            }
+
+            if (localStorage.getItem('tema') === 'claro') {
+                document.body.classList.add('modo-claro');
+            }
+
+            // Apply logos as soon as possible
+            const initLogos = () => {
+                const isClaro = document.body.classList.contains('modo-claro');
+                updateLogos(isClaro);
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initLogos);
+            } else {
+                initLogos();
+            }
+
+            function toggleTheme() {
+                document.body.classList.toggle('modo-claro');
+                const isClaro = document.body.classList.contains('modo-claro');
+                localStorage.setItem('tema', isClaro ? 'claro' : 'escuro');
+                updateLogos(isClaro);
+            }
+
+            let sortConfig = { key: 'dataProposta', direction: 'desc' };
+            function aplicarOrdenacaoMobile(val) {
+                const [key, dir] = val.split(':');
+                sortConfig.key = key;
+                sortConfig.direction = dir;
+                filtrar();
+            }
+
+            function alternarOrdenacao(chave) {
+                if (sortConfig.key === chave) {
+                    sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortConfig.key = chave;
+                    sortConfig.direction = 'asc';
+                }
+                filtrar();
+            }
+
+            // Force clear cache on version change
+            const savedVersion = localStorage.getItem('crmVersion');
+            console.log('Saved version:', savedVersion, 'Current:', CACHE_VERSION);
+            if (savedVersion !== CACHE_VERSION) {
+                console.log('Clearing cache...');
+                localStorage.clear();
+                localStorage.setItem('crmVersion', CACHE_VERSION);
+                sessionStorage.clear();
+            }
+
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            console.log('isMobile:', isMobile);
+            console.log('propostas initialized with', propostas.length, 'items');
+
+            // Pre-select Salesperson Filter based on login
+            const authLoginUser = sessionStorage.getItem('crm_auth') || '';
+            const authName = authLoginUser.split('@')[0].toLowerCase();
+            if (authName) {
+                const vFilter = document.getElementById('vendedorFilter');
+                if (vFilter && !vFilter.getAttribute('data-init')) {
+                    Array.from(vFilter.options).forEach((opt, idx) => {
+                        if (opt.value.toLowerCase() === authName) {
+                            vFilter.selectedIndex = idx;
+                        }
+                    });
+                    vFilter.setAttribute('data-init', 'true');
+                }
+            }
+
+            function filtrar() {
+                const status = document.getElementById('statusFilter').value;
+                const busca = document.getElementById('busca').value.toLowerCase();
+                const ano = document.getElementById('anoFilter').value;
+                const vendedor = document.getElementById('vendedorFilter').value;
+
+                let f_base = propostas.filter(p => {
+                    const matchesBusca = !busca ||
+                        (p.cliente && p.cliente.toLowerCase().includes(busca)) ||
+                        (p.empresa && p.empresa.toLowerCase().includes(busca)) ||
+                        (p.servico && p.servico.toLowerCase().includes(busca)) ||
+                        (p.contato && p.contato.toLowerCase().includes(busca));
+
+                    // Filter by year from dataProposta or fechamentoPrevisto
+                    let matchesAno = true;
+                    if (ano) {
+                        const data = p.fechamentoPrevisto || p.dataProposta || '';
+                        matchesAno = data.includes(ano);
+                    }
+
+                    // Filter by vendedor
+                    let matchesVendedor = true;
+                    if (vendedor) {
+                        if (vendedor === 'Sem nome') {
+                            matchesVendedor = !p.vendedor || p.vendedor.trim() === '';
+                        } else {
+                            matchesVendedor = p.vendedor === vendedor;
+                        }
+                    }
+
+                    // Hide proposals with 0% probability unless status is Perdida
+                    const probNum = parseInt(p.probabilidade) || 0;
+                    const isZero = probNum === 0 && p.status !== 'Perdida' && p.status !== 'Fechada';
+
+                    return matchesBusca && matchesAno && matchesVendedor && !isZero;
+                });
+
+                let f_stats = f_base;
+                if (status && status !== 'todos') {
+                    f_stats = f_base.filter(p => p.status === status);
+                }
+
+                let f = f_base.filter(p => {
+                    const isAll = !status || status === 'todos';
+                    return isAll ? (p.status !== 'Perdida' && p.status !== 'Fechada') : p.status === status;
+                });
+
+                const total = f_stats.length;
+                const fechadas = f_stats.filter(p => p.status === 'Fechada').length;
+                const pendentes = f_stats.filter(p => p.status === 'Pendente').length;
+                const enviadas = f_stats.filter(p => p.status === 'Enviada').length;
+                const totalFechado = f_stats.filter(p => p.status === 'Fechada').reduce((s, p) => s + (p.valor || 0), 0);
+
+                // Apply sorting
+                f.sort((a, b) => {
+                    let valA = a[sortConfig.key] || '';
+                    let valB = b[sortConfig.key] || '';
+
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (sortConfig.key === 'valor') {
+                        valA = parseFloat(a.valor) || 0;
+                        valB = parseFloat(b.valor) || 0;
+                    }
+
+                    if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                document.getElementById('totalPropostas').textContent = total;
+                document.getElementById('fechadas').textContent = fechadas;
+                document.getElementById('pendentes').textContent = pendentes;
+                document.getElementById('enviadas').textContent = enviadas;
+                document.getElementById('totalFechado').textContent = 'R$ ' + (totalFechado / 1000).toFixed(0) + 'K';
+
+                renderizarLista(f);
+                renderizarKanban();
+                renderizarEvolucao();
+                renderizarInsights();
+                renderizarKPI();
+                verificarAlertas(f_stats);
+            }
+
+            function renderizarLista(f) {
+                const tableContainer = document.getElementById('propostasTable');
+                const cardsContainer = document.getElementById('propostasCards');
+
+                if (!isMobile) {
+                    tableContainer.style.display = 'table';
+                    cardsContainer.style.display = 'none';
+                    tableContainer.innerHTML = f.map(p => `
+                    <tr>
+                        <td style="cursor:pointer;color:var(--accent);font-weight:bold" onclick="abrirEdicao(${p.id})">${esc(p.cliente || '-')}</td>
+                        <td style="font-size:0.85em;color:var(--text-secondary)">${esc(p.vendedor || '-')}</td>
+                        <td>${esc(p.contato || '-')}</td>
+                        <td>${esc(p.servico || '-')}</td>
+                        <td>${esc(p.dataProposta || '-')}</td>
+                        <td>${esc(p.fechamentoPrevisto || '-')}</td>
+                        <td style="color:var(--accent);font-weight:bold;">R$ ${(p.valor || 0).toLocaleString()}</td>
+                        <td><span class="status ${(p.status || 'lead').toLowerCase()}">${esc(p.probabilidade || p.status || 'Lead')}</span></td>
+                    </tr>
+                `).join('');
+                } else {
+                    tableContainer.style.display = 'none';
+                    cardsContainer.style.display = 'block';
+                    cardsContainer.innerHTML = f.map(p => `
+                    <div class="proposta-card" onclick="abrirEdicao(${p.id})">
+                        <div style="display:flex;justify-content:space-between;align-items:start">
+                            <div class="cliente">${p.cliente || '-'}</div>
+                            <div style="font-size:0.7em;color:var(--text-secondary);background:var(--bg-tertiary);padding:2px 6px;border-radius:4px">${p.vendedor || '-'}</div>
+                        </div>
+                        <div class="info">${p.contato || ''} - ${p.servico || ''}</div>
+                        <div style="font-size:0.8em;color:var(--text-secondary);margin:4px 0">
+                            Proposta: ${p.dataProposta || '-'} | Previsto: ${p.fechamentoPrevisto || p.dataFechamento || '-'}
+                        </div>
+                        <div class="valor">R$ ${(p.valor || 0).toLocaleString()}</div>
+                        <div class="footer">
+                            <span class="status ${(p.status || 'lead').toLowerCase()}">${p.probabilidade || p.status || 'Lead'}</span>
+                        </div>
+                    </div>
+                `).join('');
+                }
+            }
+
+            function renderizarKanban() {
+                const statuses = ['Lead', 'Enviada', 'Pendente', 'Standby', 'Fechada', 'Perdida'];
+                const cores = { 'Lead': '#8b5cf6', 'Enviada': '#3b82f6', 'Pendente': '#f59e0b', 'Standby': '#6b7280', 'Fechada': '#22c55e', 'Perdida': '#ef4444' };
+
+                const board = document.getElementById('kanbanBoard');
+                board.innerHTML = statuses.map(s => {
+                    const items = propostas.filter(p => p.status === s);
+                    return `
+                    <div class="kanban-column">
+                        <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
+                        ${items.slice(0, 10).map(p => `
+                            <div class="kanban-item">
+                                <div style="display:flex;justify-content:space-between">
+                                    <span>${p.cliente}</span>
+                                    <span style="font-size:0.8em;color:var(--text-secondary)">${p.vendedor || ''}</span>
+                                </div>
+                                <div class="valor">R$ ${p.valor.toLocaleString()}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                }).join('');
+            }
+
+            function renderizarEvolucao() {
+                const mesesFechados = {};
+                const mesesPrevisao = {};
+                const primeiro = new Date(2025, 1, 1);
+
+                const atual = new Date();
+                const limitePrevisao = new Date(atual.getFullYear(), atual.getMonth(), 1);
+
+                let totalPrevisto = 0;
+
+                propostas.forEach(function (p) {
+                    let d = null;
+                    const data = (p.fechamentoPrevisto || p.dataProposta || '').trim();
+                    if (!data) return;
+
+                    const parts = data.split('/');
+                    if (parts.length === 3) {
+                        const dia = parseInt(parts[0]);
+                        const mes = parseInt(parts[1]);
+                        let ano = parseInt(parts[2]);
+                        if (parts[2].length === 2) ano = 2000 + ano;
+                        d = new Date(ano, mes - 1, dia);
+                    } else if (parts.length === 2) {
+                        const mes = parseInt(parts[0]);
+                        let ano = parseInt(parts[1]);
+                        if (parts[1].length === 2) ano = 2000 + ano;
+                        d = new Date(ano, mes - 1, 1);
+                    }
+
+                    if (!d || d < primeiro) return;
+                    const key = (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+
+                    if (p.status === 'Fechada') {
+                        mesesFechados[key] = (mesesFechados[key] || 0) + (p.valor || 0);
+                    } else if (p.status !== 'Perdida') {
+                        // Considera como previsão apenas do mês atual em diante
+                        const isMesAtualOuFuturo = new Date(d.getFullYear(), d.getMonth(), 1) >= limitePrevisao;
+                        if (isMesAtualOuFuturo) {
+                            mesesPrevisao[key] = (mesesPrevisao[key] || 0) + (p.valor || 0);
+                            totalPrevisto += (p.valor || 0);
+                        }
+                    }
+                });
+
+                const todasAsChaves = new Set([...Object.keys(mesesFechados), ...Object.keys(mesesPrevisao)]);
+                const sorted = Array.from(todasAsChaves).sort(function (a, b) {
+                    const [ma, aa] = a.split('/').map(Number);
+                    const [mb, ab] = b.split('/').map(Number);
+                    return new Date(aa, ma - 1) - new Date(ab, mb - 1);
+                });
+
+                const totalFechadas = propostas.filter(p => p.status === 'Fechada').reduce((s, p) => s + (p.valor || 0), 0);
+
+                const container = document.getElementById('evolucaoChart');
+
+                if (sorted.length === 0) {
+                    container.innerHTML = '<p style="color:var(--text-secondary)">Nenhuma data encontrada</p>';
+                    return;
+                }
+
+                // Reference max value to calculate percentage relative uniformly
+                let maxValorMensal = 0;
+                sorted.forEach(mes => {
+                    const st = (mesesFechados[mes] || 0) + (mesesPrevisao[mes] || 0);
+                    if (st > maxValorMensal) maxValorMensal = st;
+                });
+
+                // Fallback Se maxValorMensal for 0 (ex. filtro não encontrar num)
+                if (maxValorMensal === 0) maxValorMensal = 1;
+
+                var html = '<div style="margin-bottom:20px; display: flex; gap: 20px;">';
+                html += '<div><span style="font-size:1.5em;font-weight:bold;color:var(--accent)">R$ ' + totalFechadas.toLocaleString() + '</span><span style="color:var(--text-secondary)"> total fechado</span></div>';
+                html += '<div><span style="font-size:1.5em;font-weight:bold;color:#3b82f6">R$ ' + totalPrevisto.toLocaleString() + '</span><span style="color:var(--text-secondary)"> total previsto</span></div>';
+                html += '</div>';
+
+                html += '<div style="display:flex;flex-direction:column;gap:12px">';
+
+                for (var i = 0; i < sorted.length; i++) {
+                    var mes = sorted[i];
+                    var vFechado = mesesFechados[mes] || 0;
+                    var vPrevisto = mesesPrevisao[mes] || 0;
+
+                    var pctFechado = (vFechado / maxValorMensal * 100).toFixed(1);
+                    var pctPrevisto = (vPrevisto / maxValorMensal * 100).toFixed(1);
+
+                    html += '<div style="display:flex;align-items:center;gap:10px">';
+                    html += '<span style="min-width:60px;font-weight:bold;font-size:0.9em;">' + mes + '</span>';
+
+                    html += '<div style="flex:1; display:flex; flex-direction:column; gap:2px;">';
+
+                    // Barra Fechado
+                    if (vFechado > 0) {
+                        html += '<div style="display:flex; align-items:center; height:16px;">';
+                        html += '<div style="width:' + pctFechado + '%;background:linear-gradient(90deg,#22c55e,#16a34a);height:100%;border-radius:2px;"></div>';
+                        html += '<span style="margin-left:5px; font-size:0.7em; color:var(--text-secondary)">R$ ' + vFechado.toLocaleString() + '</span>';
+                        html += '</div>';
+                    } else if (vPrevisto > 0) {
+                        html += '<div style="height:16px;"></div>'; // Placeholder
+                    }
+
+                    // Barra Previsto
+                    if (vPrevisto > 0) {
+                        html += '<div style="display:flex; align-items:center; height:16px;">';
+                        html += '<div style="width:' + pctPrevisto + '%;background:linear-gradient(90deg,#60a5fa,#3b82f6);height:100%;border-radius:2px;"></div>';
+                        html += '<span style="margin-left:5px; font-size:0.7em; color:var(--text-secondary)">R$ ' + vPrevisto.toLocaleString() + ' (Prev)</span>';
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+
+                    // Total do mês
+                    const totalMes = vFechado + vPrevisto;
+                    html += '<span style="min-width:90px;text-align:right;color:var(--accent);font-weight:bold;">R$ ' + totalMes.toLocaleString() + '</span>';
+
+                    html += '</div>';
+                }
+                html += '</div>';
+
+                container.innerHTML = html;
+            }
+
+            // Save edits to local persistence server
+            async function saveEditsToServer() {
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                if (Object.keys(edits).length === 0) return;
+
+                try {
+                    const response = await fetch('http://127.0.0.1:18791/edits', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(edits)
+                    });
+
+                    const result = await response.json();
+                    console.log('Edits saved to server:', result);
+                } catch (e) {
+                    console.log('Could not save to server (offline mode)');
+                }
+            }
+
+            // Load edits from persistence server
+            async function loadEditsFromServer() {
+                try {
+                    const response = await fetch('http://127.0.0.1:18791/edits');
+                    const edits = await response.json();
+
+                    if (Object.keys(edits).length > 0) {
+                        localStorage.setItem('crm_edits', JSON.stringify(edits));
+                        console.log('Loaded', Object.keys(edits).length, 'edits from server');
+                        carregarEdits();
+                        filtrar();
+                    }
+                } catch (e) {
+                    console.log('Could not load from server');
+                }
+            }
+
+            // Sync edits to sheet via local persistence (webhook URL moved to server-side)
+            async function excluirLead() {
+                const idStr = document.getElementById('editId').value;
+                const p = propostas.find(x => x.id == idStr);
+                if (!p) return;
+
+                if (!confirm('Tem certeza que deseja excluir esta oportunidade? Esta ação também removerá a linha da planilha Excel.')) return;
+
+                // Mark as deleted for sync
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                const deleteData = { ...p, _deleted: true, _timestamp: Date.now() };
+                edits[idStr] = deleteData;
+                localStorage.setItem('crm_edits', JSON.stringify(edits));
+
+                // Remove from local array
+                propostas = propostas.filter(x => x.id != idStr);
+                window.propostas = propostas;
+
+                filtrar();
+                renderizarFollowup();
+                fecharModal();
+                alert('Oportunidade excluída com sucesso.');
+            }
+
+            async function syncToSheet() {
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                if (Object.keys(edits).length === 0) {
+                    alert('Nenhuma edicao para sincronizar');
+                    return;
+                }
+
+                try {
+                    // Save edits to local server for processing
+                    const response = await fetch('http://127.0.0.1:18791/sync', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ edits: edits })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'ok') {
+                        localStorage.removeItem('crm_edits');
+                        localStorage.setItem('crm_last_sync', new Date().toISOString());
+                        alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
+                    } else {
+                        alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
+                    }
+                } catch (e) {
+                    // Fallback: save edits locally for manual sync
+                    alert('Servidor offline. Edicoes salvas localmente para sincronizar depois.');
+                    await saveEditsToServer();
+                }
+            }
+
+            // Carregar edits do localStorage
+            function carregarEdits() {
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                Object.keys(edits).forEach(id => {
+                    const p = propostas.find(x => x.id == id);
+                    if (p) {
+                        const e = edits[id];
+                        // Normalizacao agressiva de edits locais antigos
+                        if (e.dataFechamento && (!e.fechamentoPrevisto || e.fechamentoPrevisto === "-" || e.fechamentoPrevisto === "")) {
+                            e.fechamentoPrevisto = e.dataFechamento;
+                        }
+                        if (e.dataFollowup && (!e.proximoFollowup || e.proximoFollowup === "-" || e.proximoFollowup === "")) {
+                            e.proximoFollowup = e.dataFollowup;
+                        }
+
+                        Object.assign(p, e);
+                    }
+                });
+            }
+
+            // Renderizar follow-up
+            function renderizarFollowup() {
+                const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const container = document.getElementById('followupList');
+                if (!container) return;
+
+                if (pendentes.length === 0) {
+                    container.innerHTML = '<p style="color:var(--text-secondary)">Nenhuma proposta pendente para follow-up</p>';
+                    return;
+                }
+
+                // Ordenar por score (mais urgentes primeiro)
+                const ordenados = pendentes.map(p => ({ ...p, score: calcularScore(p), dias: diasDesde(p.fechamentoPrevisto || p.dataProposta) }))
+                    .sort((a, b) => b.score - a.score);
+
+                let html = '<div style="margin-bottom:15px;font-size:0.9em;color:var(--text-secondary)">';
+                html += 'Ordenado por prioridade (valor + urgencia)';
+                html += '</div>';
+
+                html += '<div style="display:flex;flex-direction:column;gap:10px">';
+
+                ordenados.forEach(p => {
+                    const cor = p.score > 70 ? '#ef4444' : p.score > 50 ? '#f59e0b' : '#22c55e';
+                    const urgencia = p.score > 70 ? 'URGENTE' : p.score > 50 ? 'Atencao' : 'Normal';
+
+                    html += '<div class="proposta-card" onclick="abrirEdicao(' + p.id + ')" style="border-left:4px solid ' + cor + ';cursor:pointer">';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:start">';
+                    html += '<div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
+                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
+                    html += '</div>';
+                    html += '<div style="text-align:right">';
+                    html += '<span style="font-size:0.7em;padding:3px 8px;border-radius:10px;background:' + cor + ';color:#fff">' + urgencia + '</span>';
+                    html += '</div>';
+                    html += '</div>';
+                    html += '<div style="font-size:0.8em;color:var(--text-secondary);margin:8px 0;background:var(--bg-secondary);padding:6px;border-radius:4px">';
+                    html += '📅 Previsto: <span style="color:var(--accent);font-weight:bold">' + (p.fechamentoPrevisto || p.dataFechamento || '-') + '</span>';
+                    html += '</div>';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">';
+                    html += '<div>';
+                    html += '<span class="status ' + (p.status || 'lead').toLowerCase() + '">' + (p.probabilidade || p.status || 'Lead') + '</span>';
+                    html += '<span style="font-size:0.8em;color:var(--text-secondary);margin-left:8px">' + (p.dias < 999 ? p.dias + ' dias' : 'sem data') + '</span>';
+                    html += '</div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + (p.valor || 0).toLocaleString() + '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+
+
+            function trocarTab(tabId) {
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                event.target.classList.add('active');
+
+                // Close menu on mobile after selection
+                const menu = document.getElementById('tabsMenu');
+                if (menu && window.innerWidth <= 768) {
+                    menu.classList.remove('expanded');
+                }
+            }
+
+            function toggleMenu() {
+                const menu = document.getElementById('tabsMenu');
+                if (menu) {
+                    menu.classList.toggle('expanded');
+                }
+            }
+
+            function velha_calcularOrcamento___() {
+                const tipo = document.getElementById('tipoServico').value;
+                const qtd = parseFloat(document.getElementById('qtdServico').value) || 0;
+                const dist = parseFloat(document.getElementById('distancia').value) || 0;
+
+                if (!tipo || qtd === 0) {
+                    document.getElementById('totalOrcamento').textContent = 'R$ 0';
+                    document.getElementById('detalheOrcamento').textContent = '';
+                    return;
+                }
+
+                const valorBase = parseFloat(tipo) * qtd;
+                let adicional = 0;
+                if (dist > 50) adicional = (dist - 50) * 2;
+
+                const total = valorBase + adicional;
+                document.getElementById('totalOrcamento').textContent = 'R$ ' + total.toLocaleString();
+                document.getElementById('detalheOrcamento').textContent = adicional > 0 ? `Base: R$ ${valorBase.toLocaleString()} + Viagem: R$ ${adicional.toLocaleString()}` : '';
+            }
+
+            // Add event listener for probabilidade change
+            document.addEventListener('DOMContentLoaded', function () {
+                const probSelect = document.getElementById('editProbabilidade');
+                if (probSelect) {
+                    probSelect.addEventListener('change', atualizarStatusPreview);
+                }
+            });
+            console.log('CRM: Starting with', propostas.length, 'propostas');
+
+            // Load edits from server on startup
+            loadEditsFromServer();
+
+            // Try to load latest data from Cloud Bridge
+            async function puxarDadosDaNuvem() {
+                const cloudUrl = 'https://script.google.com/macros/s/AKfycbzlxWzx97kSloAPM5sPf367q3cf9xVfFxORAhI4b69j8ehzL6OSfpLpBTOfRSHLBGpr/exec';
+                try {
+                    const response = await fetch(cloudUrl);
+                    const data = await response.json();
+                    if (data && data.propostas) {
+                        data.propostas.forEach(p => {
+                            if (!p.id || p.id === '') p.id = 'row_' + p.rowIndex;
+                            // Normalizacao agressiva de nomes de campos legados
+                            if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
+                                p.fechamentoPrevisto = p.dataFechamento;
+                            }
+                            if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
+                                p.proximoFollowup = p.dataFollowup;
+                            }
+                        });
+                        propostas = data.propostas;
+                        localStorage.setItem('crm_data_v15', JSON.stringify(data.propostas));
+                        window.propostas = data.propostas;
+                        console.log('Dados atualizados da nuvem:', propostas.length);
+                        carregarEdits();
+                        filtrar();
+                        renderizarFollowup();
+                        renderizarInsights();
+                        renderizarKPI();
+                    }
+                } catch (e) {
+                    console.error('Falha ao puxar dados da nuvem:', e);
+                }
+            }
+
+            // Cache logic
+            const cache = localStorage.getItem('crm_data_v15');
+            if (cache) {
+                propostas = JSON.parse(cache);
+                // Normalizar cache
+                propostas.forEach(p => {
+                    if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
+                        p.fechamentoPrevisto = p.dataFechamento;
+                    }
+                    if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
+                        p.proximoFollowup = p.dataFollowup;
+                    }
+                });
+                window.propostas = propostas;
+            }
+            carregarEdits();
+            filtrar();
+
+            // Puxar da nuvem imediatamente
+            puxarDadosDaNuvem();
+
+            // Refresh periodically (optional, every 5 mins)
+            setInterval(puxarDadosDaNuvem, 300000);
+
+            // --- SISTEMA DE NOTIFICAÇÕES (SININHO) ---
+            function toggleNotifications() {
+                document.getElementById('notifDropdown').classList.toggle('active');
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function (event) {
+                const btn = document.getElementById('notifBtn');
+                const dropdown = document.getElementById('notifDropdown');
+                if (btn && dropdown && !btn.contains(event.target) && !dropdown.contains(event.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+
+            function verificarAlertas(proposalsData) {
+                if (!proposalsData) return;
+                const userEmail = sessionStorage.getItem('crm_auth') || '';
+                const userNamePeca = userEmail.split('@')[0].toLowerCase();
+
+                let countAlertas = 0;
+                let htmlAlertas = '';
+
+                // Helper para interpretar datas "DD-MMM." (ex: 21-ago.) ou "DD/MM/YYYY"
+                function parseMisto(dataStr, defaultYear) {
+                    if (!dataStr || dataStr === '-') return null;
+                    dataStr = dataStr.trim().toLowerCase();
+
+                    // Se for formato BR "DD/MM/YYYY" ou "DD/MM/YY"
+                    if (dataStr.includes('/')) {
+                        const p = dataStr.split('/');
+                        if (p.length >= 2) {
+                            let a = defaultYear || new Date().getFullYear();
+                            if (p.length === 3) {
+                                a = parseInt(p[2]);
+                                if (a < 100) a += 2000;
+                            }
+                            return new Date(a, parseInt(p[1]) - 1, parseInt(p[0]));
+                        }
+                    }
+
+                    // Se for formato textual "21-ago."
+                    const meses = {
+                        'jan': 0, 'fev': 1, 'mar': 2, 'abr': 3, 'mai': 4, 'jun': 5,
+                        'jul': 6, 'ago': 7, 'set': 8, 'out': 9, 'nov': 10, 'dez': 11
+                    };
+                    for (const [nome, idx] of Object.entries(meses)) {
+                        if (dataStr.includes(nome)) {
+                            const num = parseInt(dataStr.replace(/[^0-9]/g, '')) || 1;
+                            let a = defaultYear || new Date().getFullYear();
+                            // Se o mês interpretado for mais de 60 dias do atual, provavelmente é do ano passado
+                            if (idx > new Date().getMonth() + 2 && !defaultYear && a === new Date().getFullYear()) {
+                                a = a - 1;
+                            }
+                            return new Date(a, idx, num);
+                        }
+                    }
+
+                    return null; // Não conseguiu interpretar
+                }
+
+                proposalsData.forEach(p => {
+                    const pVend = (p.vendedor || '').toLowerCase();
+                    if (!pVend.includes(userNamePeca)) return;
+                    if (p.status === 'Fechada' || p.status === 'Perdida' || p.status === 'Lead') return;
+
+                    let pendencias = [];
+
+                    // 1. Verificação de Dados Faltantes em propostas ativas (não lead)
+                    if (!p.servico || p.servico.trim() === '' || p.servico.trim() === '-') pendencias.push('Serviço não preenchido');
+                    if (!p.valor || p.valor === 0 || p.valor === '0') pendencias.push('Valor não preenchido');
+                    if (!p.contato || p.contato.trim() === '' || p.contato.trim() === '-') pendencias.push('Contato não preenchido');
+
+                    // 2. Verificação de Follow-up Estagnado
+                    const hoje = new Date();
+                    hoje.setHours(0, 0, 0, 0);
+
+                    const dProposta = parseMisto(p.dataProposta);
+                    const defaultY = dProposta ? dProposta.getFullYear() : hoje.getFullYear();
+
+                    const dUltimoStr = p.ultimoFollowup && String(p.ultimoFollowup).trim() !== '-' && String(p.ultimoFollowup).trim() !== '' ? String(p.ultimoFollowup) : p.dataProposta;
+                    const semProximo = !p.proximoFollowup || String(p.proximoFollowup).trim() === '-' || String(p.proximoFollowup).trim() === '';
+
+                    if (semProximo) {
+                        let isEstagnada = false;
+                        let diasEstagnada = 0;
+
+                        if (dUltimoStr && String(dUltimoStr).trim() !== '-' && String(dUltimoStr).trim() !== '') {
+                            if (dUltimoStr.toLowerCase().includes('dias')) {
+                                diasEstagnada = parseInt(dUltimoStr.replace(/[^0-9]/g, ''));
+                                if (!isNaN(diasEstagnada) && diasEstagnada >= 14) {
+                                    isEstagnada = true;
+                                }
+                            } else {
+                                const dUltimo = parseMisto(dUltimoStr, defaultY);
+                                if (dUltimo) {
+                                    diasEstagnada = Math.ceil(Math.abs(hoje - dUltimo) / (1000 * 60 * 60 * 24));
+                                    if (diasEstagnada >= 14) {
+                                        isEstagnada = true;
+                                    }
+                                }
+                            }
+
+                            if (isEstagnada) {
+                                pendencias.push(`<b>Estagnada há ${diasEstagnada} dias</b> sem próximo passo`);
+                            }
+                        } else {
+                            pendencias.push('Sem Data de Proposta e sem Próximo Passo agendado');
+                        }
+                    } else {
+                        // Tem algo agendado, verificar se está atrasado
+                        let dProximo = parseMisto(p.proximoFollowup, defaultY);
+                        if (dProximo) {
+                            if (dProximo > hoje && Math.floor((dProximo - hoje) / (1000 * 60 * 60 * 24)) > 150) {
+                                dProximo.setFullYear(dProximo.getFullYear() - 1);
+                            }
+                            if (dProximo < hoje) {
+                                const diasAtraso = Math.floor((hoje - dProximo) / (1000 * 60 * 60 * 24));
+                                pendencias.push(`<b>Atrasado há ${diasAtraso} dias</b> (passo agendado passado)`);
+                            }
+                        }
+                    }
+
+                    if (pendencias.length > 0) {
+                        countAlertas++;
+                        htmlAlertas += `
+                            <div class="notif-item" onclick="abrirEdicao('${p.id}'); toggleNotifications();">
+                                <div class="notif-title">⚠️ ${p.cliente || 'Sem Nome'}</div>
+                                <div class="notif-desc">
+                                    <ul style="margin: 4px 0 0 16px; padding: 0;">
+                                        ${pendencias.map(pend => `<li>${pend}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+
+                const badge = document.getElementById('notifBadge');
+                const list = document.getElementById('notifList');
+                const empty = document.getElementById('notifEmpty');
+
+                if (countAlertas > 0) {
+                    if (badge) {
+                        badge.textContent = countAlertas;
+                        badge.classList.add('active');
+                    }
+                    if (list) {
+                        list.innerHTML = htmlAlertas;
+                        list.style.display = 'block';
+                    }
+                    if (empty) empty.style.display = 'none';
+                } else {
+                    if (badge) badge.classList.remove('active');
+                    if (list) list.style.display = 'none';
+                    if (empty) empty.style.display = 'block';
+                }
+            }
+            // -----------------------------------------
+
+            // Funcao para calcular dias desde data
+            function diasDesde(data) {
+                if (!data || typeof data !== 'string') return 999;
+                const parts = data.split('/');
+                if (parts.length < 2) return 999;
+                let d;
+                if (parts.length === 3) {
+                    let ano = parseInt(parts[2]);
+                    if (parts[2].length === 2) ano = 2000 + ano;
+                    d = new Date(ano, parseInt(parts[1]) - 1, parseInt(parts[0]));
+                } else {
+                    return 999;
+                }
+                const hoje = new Date();
+                return Math.floor((hoje - d) / (1000 * 60 * 60 * 24));
+            }
+
+            // Score de prioridade (0-100)
+            function calcularScore(p) {
+                let score = 0;
+                // Valor (0-40 pontos)
+                if (p.valor > 50000) score += 40;
+                else if (p.valor > 20000) score += 30;
+                else if (p.valor > 10000) score += 20;
+                else if (p.valor > 5000) score += 10;
+
+                // Probabilidade/Status (0-30 pontos)
+                const prob = p.probabilidade || '';
+                const status = p.status || '';
+
+                if (prob.includes('100') || status === 'Fechada') score += 30;
+                else if (prob.includes('80')) score += 25;
+                else if (prob.includes('60') || status === 'Pendente') score += 20;
+                else if (prob.includes('40') || status === 'Enviada') score += 15;
+                else if (prob.includes('20') || status === 'Lead') score += 10;
+
+                // Tempo (0-30 pontos) - mais tempo = mais urgente
+                const dias = diasDesde(p.fechamentoPrevisto || p.dataProposta);
+                if (dias > 30) score += 30;
+                else if (dias > 14) score += 20;
+                else if (dias > 7) score += 10;
+
+                return Math.min(score, 100);
+            }
+
+            // Atualizar preview de status baseado na probabilidade
+            function atualizarStatusPreview() {
+                const prob = document.getElementById('editProbabilidade').value;
+                let status = 'Lead';
+                if (prob === '100%' || prob === '100') status = 'Fechada';
+                else if (prob === '80%' || prob === '80') status = 'Quase Fechando';
+                else if (prob === '60%' || prob === '60') status = 'Pendente';
+                else if (prob === '40%' || prob === '40') status = 'Enviada';
+                else if (prob === '0%' || prob === '0') status = 'Perdida';
+
+                document.getElementById('editStatusPreview').textContent = status;
+
+                // Atualizar cor
+                const cores = {
+                    'Fechada': '#22c55e',
+                    'Quase Fechando': '#22c55e',
+                    'Pendente': '#f59e0b',
+                    'Enviada': '#3b82f6',
+                    'Lead': '#8b5cf6',
+                    'Perdida': '#ef4444'
+                };
+                document.getElementById('editStatusPreview').style.color = cores[status] || 'var(--accent)';
+            }
+
+            // Modal functions
+            function abrirEdicao(id) {
+                const p = propostas.find(x => x.id === id);
+                if (!p) return;
+
+                document.getElementById('editId').value = id;
+                document.getElementById('editRowIndex').value = p.rowIndex || '';
+                document.getElementById('editNumeroProposta').value = p.numeroProposta || '';
+                document.getElementById('editNumeroPropostaInput').value = p.numeroProposta || id;
+                document.getElementById('editVendedor').value = p.vendedor || '';
+                document.getElementById('editCliente').value = p.cliente || '';
+                document.getElementById('editContato').value = p.contato || '';
+                document.getElementById('editTelefoneEmail').value = p.telefoneEmail || '';
+                document.getElementById('editServico').value = p.servico || '';
+                document.getElementById('editLocalizacao').value = p.localizacao || '';
+                document.getElementById('editDataProposta').value = p.dataProposta || '';
+                document.getElementById('editFechamentoPrevisto').value = p.fechamentoPrevisto || '';
+                document.getElementById('editValor').value = p.valor || '';
+                document.getElementById('editProbabilidade').value = p.probabilidade || '';
+                document.getElementById('editUltimoFollowup').value = p.ultimoFollowup || '';
+                document.getElementById('editObservacao').value = p.observacao || '';
+
+                atualizarStatusPreview();
+                document.getElementById('editModal').classList.add('active');
+            }
+
+            function fecharModal() {
+                document.getElementById('editModal').classList.remove('active');
+            }
+
+            function novaOportunidade() {
+                // Gerar um ID único temporário
+                const id = Date.now();
+                
+                // Limpar campos do modal
+                document.getElementById('editId').value = id;
+                document.getElementById('editRowIndex').value = ''; // Indica que é novo
+                document.getElementById('editNumeroProposta').value = '';
+                document.getElementById('editNumeroPropostaInput').value = 'NOVA-' + id.toString().slice(-4);
+                document.getElementById('editVendedor').value = (sessionStorage.getItem('crm_auth') || '').split('@')[0];
+                document.getElementById('editCliente').value = '';
+                document.getElementById('editContato').value = '';
+                document.getElementById('editTelefoneEmail').value = '';
+                document.getElementById('editServico').value = '';
+                document.getElementById('editLocalizacao').value = '';
+                document.getElementById('editDataProposta').value = new Date().toLocaleDateString('pt-BR');
+                document.getElementById('editFechamentoPrevisto').value = '';
+                document.getElementById('editValor').value = '';
+                document.getElementById('editProbabilidade').value = '20%';
+                document.getElementById('editUltimoFollowup').value = '';
+                document.getElementById('editObservacao').value = '';
+
+                atualizarStatusPreview();
+                document.getElementById('editModal').classList.add('active');
+            }
+
+            function salvarEdicao() {
+                const idStr = document.getElementById('editId').value;
+                const rowIndex = document.getElementById('editRowIndex').value;
+                
+                let p = propostas.find(x => x.id == idStr);
+                let isNew = false;
+                
+                if (!p) {
+                    isNew = true;
+                    p = { id: idStr };
+                }
+
+                // Gather all fields
+                const editData = {
+                    id: idStr,
+                    rowIndex: rowIndex,
+                    numeroProposta: document.getElementById('editNumeroPropostaInput').value,
+                    vendedor: document.getElementById('editVendedor').value,
+                    cliente: document.getElementById('editCliente').value,
+                    contato: document.getElementById('editContato').value,
+                    telefoneEmail: document.getElementById('editTelefoneEmail').value,
+                    servico: document.getElementById('editServico').value,
+                    localizacao: document.getElementById('editLocalizacao').value,
+                    dataProposta: document.getElementById('editDataProposta').value,
+                    fechamentoPrevisto: document.getElementById('editFechamentoPrevisto').value,
+                    valor: parseFloat(document.getElementById('editValor').value) || 0,
+                    probabilidade: document.getElementById('editProbabilidade').value,
+                    ultimoFollowup: document.getElementById('editUltimoFollowup').value,
+                    observacao: document.getElementById('editObservacao').value,
+                    status: document.getElementById('editStatusPreview').textContent
+                };
+
+                // Update local proposal
+                Object.assign(p, editData);
+
+                if (isNew) {
+                    propostas.push(p);
+                }
+
+                // Save to local edits (for sync back to sheet)
+                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                editData._timestamp = Date.now();
+                edits[idStr] = editData;
+                localStorage.setItem('crm_edits', JSON.stringify(edits));
+
+                // Save to persistence server
+                saveEditsToServer();
+
+                filtrar();
+                renderizarFollowup();
+                fecharModal();
+
+                console.log('Edit saved:', editData);
+            }
+            // Note: syncToSheet() is defined above, no duplicate needed
+
+            // Renderizar Insights
+            function renderizarInsights() {
+                const container = document.getElementById('insightsContainer');
+                if (!container) return;
+
+                const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+                const semData = pendentes.filter(p => !(p.fechamentoPrevisto || p.dataProposta));
+                const antigas = pendentes.filter(p => diasDesde(p.fechamentoPrevisto || p.dataProposta) > 14);
+                const altoValor = pendentes.filter(p => p.valor > 20000).sort((a, b) => b.valor - a.valor);
+
+                const totalPendente = pendentes.reduce((s, p) => s + p.valor, 0);
+                const probFechamento = pendentes.length > 0 ? (propostas.filter(p => p.status === 'Fechada').length / propostas.length * 100).toFixed(0) : 0;
+                const previsao = totalPendente * 0.3;
+
+                let html = '';
+
+                // Previsao de receita
+                html += '<div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:20px;border-radius:12px;margin-bottom:15px">';
+                html += '<div style="font-size:0.9em;color:#fff;opacity:0.9">Previsao de Fechamento (30%)</div>';
+                html += '<div style="font-size:2.2em;font-weight:bold;color:#fff">R$ ' + previsao.toLocaleString() + '</div>';
+                html += '<div style="font-size:0.8em;color:#fff;opacity:0.7;margin-top:5px">de R$ ' + totalPendente.toLocaleString() + ' em propostas ativas</div>';
+                html += '</div>';
+
+                // Alertas
+                html += '<div style="display:grid;gap:10px;margin-bottom:15px">';
+
+                if (semData.length > 0) {
+                    html += '<div style="background:#ef4444;color:#fff;padding:15px;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
+                    html += '<div><strong>' + semData.length + '</strong> propostas sem data definida</div>';
+                    html += '<span style="font-size:1.2em">!</span>';
+                    html += '</div>';
+                }
+
+                if (antigas.length > 0) {
+                    html += '<div style="background:#f59e0b;color:#000;padding:15px;border-radius:8px;display:flex;justify-content:space-between;align-items:center">';
+                    html += '<div><strong>' + antigas.length + '</strong> propostas ha mais de 14 dias</div>';
+                    html += '<span style="font-size:1.2em">!</span>';
+                    html += '</div>';
+                }
+
+                html += '</div>';
+
+                // Top oportunidades
+                html += '<h3 style="margin:20px 0 10px;font-size:1em">Top 5 Oportunidades</h3>';
+                html += '<div style="display:flex;flex-direction:column;gap:8px">';
+
+                altoValor.slice(0, 5).forEach(p => {
+                    const score = calcularScore(p);
+                    const cor = score > 70 ? '#ef4444' : score > 50 ? '#f59e0b' : '#22c55e';
+                    html += '<div class="proposta-card" onclick="abrirEdicao(' + p.id + ')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">';
+                    html += '<div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
+                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
+                    html += '<div style="font-size:0.75em;color:var(--accent);margin-top:4px">📅 Fechamento: ' + (p.fechamentoPrevisto || p.dataFechamento || '-') + '</div>';
+                    html += '</div>';
+                    html += '<div style="text-align:right">';
+                    html += '<div style="font-weight:bold">R$ ' + p.valor.toLocaleString() + '</div>';
+                    html += '<div style="font-size:0.8em;padding:2px 8px;border-radius:10px;background:' + cor + ';color:#fff">Score ' + score + '</div>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+
+                html += '</div>';
+
+                container.innerHTML = html;
+            }
+
+            // Renderizar KPIs
+            function renderizarKPI() {
+                const container = document.getElementById('kpiContainer');
+                if (!container) return;
+
+                const total = propostas.length;
+                const fechadas = propostas.filter(p => p.status === 'Fechada');
+                const perdidas = propostas.filter(p => p.status === 'Perdida');
+                const ativas = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+
+                const totalFechado = fechadas.reduce((s, p) => s + p.valor, 0);
+                const totalPerdido = perdidas.reduce((s, p) => s + p.valor, 0);
+                const totalAtivo = ativas.reduce((s, p) => s + p.valor, 0);
+
+                const taxaConversao = (fechadas.length + perdidas.length) > 0
+                    ? (fechadas.length / (fechadas.length + perdidas.length) * 100).toFixed(0)
+                    : 0;
+
+                const ticketMedio = fechadas.length > 0
+                    ? Math.round(totalFechado / fechadas.length)
+                    : 0;
+
+                // Por vendedor
+                const vendedores = {};
+                propostas.forEach(p => {
+                    const v = p.vendedor || 'Sem vendedor';
+                    if (!vendedores[v]) vendedores[v] = { total: 0, fechado: 0, valor: 0 };
+                    vendedores[v].total++;
+                    if (p.status === 'Fechada') {
+                        vendedores[v].fechado++;
+                        vendedores[v].valor += p.valor;
+                    }
+                });
+
+                // Por servico
+                const servicos = {};
+                propostas.forEach(p => {
+                    const s = p.servico || 'Nao definido';
+                    if (!servicos[s]) servicos[s] = { total: 0, fechado: 0, valor: 0 };
+                    servicos[s].total++;
+                    if (p.status === 'Fechada') {
+                        servicos[s].fechado++;
+                        servicos[s].valor += p.valor;
+                    }
+                });
+
+                let html = '';
+
+                // KPIs principais
+                html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px">';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:#22c55e">' + taxaConversao + '%</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Taxa de Conversao</div>';
+                html += '</div>';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:var(--accent)">R$ ' + (ticketMedio / 1000).toFixed(0) + 'K</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Ticket Medio</div>';
+                html += '</div>';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:#f59e0b">' + ativas.length + '</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Propostas Ativas</div>';
+                html += '</div>';
+
+                html += '<div style="background:var(--bg-tertiary);padding:15px;border-radius:10px;text-align:center">';
+                html += '<div style="font-size:2em;font-weight:bold;color:#ef4444">' + perdidas.length + '</div>';
+                html += '<div style="font-size:0.8em;color:var(--text-secondary)">Propostas Perdidas</div>';
+                html += '</div>';
+
+                html += '</div>';
+
+                // Por vendedor
+                html += '<h3 style="margin:20px 0 10px;font-size:1em">Performance por Vendedor</h3>';
+                html += '<div style="display:flex;flex-direction:column;gap:8px">';
+
+                Object.entries(vendedores)
+                    .filter(([v]) => v !== 'Sem vendedor')
+                    .sort((a, b) => b[1].valor - a[1].valor)
+                    .forEach(([vendedor, dados]) => {
+                        const taxa = dados.total > 0 ? (dados.fechado / dados.total * 100).toFixed(0) : 0;
+                        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-tertiary);border-radius:8px">';
+                        html += '<div>';
+                        html += '<div style="font-weight:bold">' + vendedor + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.total + ' propostas - ' + taxa + '% conversao</div>';
+                        html += '</div>';
+                        html += '<div style="text-align:right">';
+                        html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + dados.valor.toLocaleString() + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.fechado + ' fechadas</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    });
+
+                html += '</div>';
+
+                // Por servico
+                html += '<h3 style="margin:20px 0 10px;font-size:1em">Servicos Mais Vendidos</h3>';
+                html += '<div style="display:flex;flex-direction:column;gap:8px">';
+
+                Object.entries(servicos)
+                    .filter(([s]) => s !== 'Nao definido')
+                    .sort((a, b) => b[1].valor - a[1].valor)
+                    .slice(0, 5)
+                    .forEach(([servico, dados]) => {
+                        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg-tertiary);border-radius:8px">';
+                        html += '<div>';
+                        html += '<div style="font-weight:bold">' + servico + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.total + ' propostas</div>';
+                        html += '</div>';
+                        html += '<div style="text-align:right">';
+                        html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + dados.valor.toLocaleString() + '</div>';
+                        html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + dados.fechado + ' fechadas</div>';
+                        html += '</div>';
+                        html += '</div>';
+                    });
+
+                html += '</div>';
+
+                container.innerHTML = html;
+            }
+
+            // Show logged user in header
+            const authUser = sessionStorage.getItem('crm_auth');
+            if (authUser) {
+                const el = document.getElementById('loggedUser');
+                if (el) el.textContent = '👤 ' + authUser.charAt(0).toUpperCase() + authUser.slice(1);
+            }
+
+            // Final check to catch any racing conditions
+            checkAuth();
+
+            /* PRECIFICAÇÃO DASHBOARD JS */
+            // Custos base (extraídos da análise)
+            const custos = {
+                // Equipamentos (por dia)
+                scanner: 1800,
+                drone: 600,
+                gnss: 350,
+                estacao: 200,
+                matterport: 750,
+
+                // Pessoal (por dia)
+                topografo: 800,
+                piloto: 1000,
+                operador: 500,
+                auxiliar: 200,
+                gestor: 500,
+                bim: 100, // por hora
+                epis: 150, // por dia
+
+                // Logística (por dia/viagem)
+                hospedagem: 250, // por pessoa por dia
+                refeicao: 80, // por dia por pessoa
+                carro: 300, // por dia
+                pedagio: 100,
+
+                // Deslocamento
+                kmRodado: 2, // por km
+                horaDeslocamento: 50 // por hora
+            };
+
+            let historico = JSON.parse(localStorage.getItem('toposcan_historico') || '[]');
+            let custosTopopartner = [];
+
+            function toggleCheckbox(element) {
+                const checkbox = element.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                if (checkbox.checked) {
+                    element.classList.add('checked');
+                } else {
+                    element.classList.remove('checked');
+                }
+            }
+
+            function formatarMoeda(valor) {
+                return new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                }).format(valor);
+            }
+
+            function toggleTopopartner() {
+                const checked = document.getElementById('chkTopopartner').checked;
+                document.getElementById('topopartnerFields').style.display = checked ? 'block' : 'none';
+                if (!checked) {
+                    custosTopopartner = [];
+                    document.getElementById('topopartnerCustos').innerHTML = '';
+                }
+            }
+
+            function adicionarCustoTopopartner() {
+                const id = Date.now();
+                custosTopopartner.push({ id, descricao: '', valor: 0 });
+                renderizarCustosTopopartner();
+            }
+
+            function removerCustoTopopartner(id) {
+                custosTopopartner = custosTopopartner.filter(c => c.id !== id);
+                renderizarCustosTopopartner();
+            }
+
+            function atualizarCustoTopopartner(id, campo, valor) {
+                const custo = custosTopopartner.find(c => c.id === id);
+                if (custo) {
+                    custo[campo] = campo === 'valor' ? parseFloat(valor) || 0 : valor;
+                }
+            }
+
+            function renderizarCustosTopopartner() {
+                const container = document.getElementById('topopartnerCustos');
+                if (custosTopopartner.length === 0) {
+                    container.innerHTML = '<p style="color: #666; font-size: 13px; margin-bottom: 10px;">Nenhum custo adicionado</p>';
+                    return;
+                }
+
+                let html = '';
+                custosTopopartner.forEach((custo, index) => {
+                    html += '<div style="display: grid; grid-template-columns: 1fr 120px 40px; gap: 8px; margin-bottom: 8px;">';
+                    html += '<input type="text" placeholder="Descricao" value="' + custo.descricao + '" onchange="atualizarCustoTopopartner(' + custo.id + ', \'descricao\', this.value)" style="padding: 8px; border: 2px solid #c8e6c9; border-radius: 5px; font-size: 13px;">';
+                    html += '<input type="number" placeholder="Valor" value="' + (custo.valor || '') + '" onchange="atualizarCustoTopopartner(' + custo.id + ', \'valor\', this.value)" style="padding: 8px; border: 2px solid #c8e6c9; border-radius: 5px; font-size: 13px;">';
+                    html += '<button onclick="removerCustoTopopartner(' + custo.id + ')" style="background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer;">X</button>';
+                    html += '</div>';
+                });
+                container.innerHTML = html;
+            }
+
+            function calcular() {
+                // Pegar valores dos inputs
+                const cliente = document.getElementById('cliente').value || 'Sem nome';
+                const tipoServico = document.getElementById('tipoServico').value;
+                const local = document.getElementById('local').value || '-';
+                const distancia = parseFloat(document.getElementById('distancia').value) || 0;
+                const diasOperacao = parseFloat(document.getElementById('diasOperacao').value) || 1;
+                const pessoas = parseFloat(document.getElementById('pessoas').value) || 2;
+                const tempoDeslocamento = parseFloat(document.getElementById('tempoDeslocamento').value) || 0;
+                const horasModelagem = parseFloat(document.getElementById('horasModelagem').value) || 0;
+
+                // Configurações (permitir 0%)
+                const impostoPct = parseFloat(document.getElementById('impostoPct').value);
+                const markupPct = parseFloat(document.getElementById('markupPct').value);
+                const descontoPct = parseFloat(document.getElementById('descontoPct').value);
+                const comissaoPct = parseFloat(document.getElementById('comissaoPct').value);
+
+                // Equipamentos
+                const usarScanner = document.getElementById('chkScanner').checked;
+                const usarDrone = document.getElementById('chkDrone').checked;
+                const usarGNSS = document.getElementById('chkGNSS').checked;
+                const usarEstacao = document.getElementById('chkEstacao').checked;
+                const usarBIM = document.getElementById('chkBIM').checked;
+                const usarMatterport = document.getElementById('chkMatterport').checked;
+                const usarAuxiliar = document.getElementById('chkAuxiliar').checked;
+                const usarCarro = document.getElementById('chkCarro').checked;
+                const usarCombustivel = document.getElementById('chkCombustivel').checked;
+                const usarHotel = document.getElementById('chkHotel').checked;
+                const usarLicencaMatterport = document.getElementById('chkLicencaMatterport').checked;
+                const usarEPI = document.getElementById('chkEPI').checked;
+
+                // Detalhes para tabela
+                let detalhes = [];
+
+                // === CUSTOS LOGÍSTICOS ===
+                let custoLogistico = 0;
+
+                // Carro (só se marcado)
+                if (usarCarro) {
+                    const custoCarro = custos.carro * diasOperacao;
+                    custoLogistico += custoCarro;
+                    detalhes.push({ item: 'Carro', qtd: `${diasOperacao} dias`, unit: custos.carro, total: custoCarro });
+                }
+
+                // Combustível (só se marcado)
+                // Até 50km: R$ 50/dia | Acima de 50km: R$ 200/dia
+                if (usarCombustivel) {
+                    const valorCombustivelDia = distancia <= 50 ? 50 : 200;
+                    const custoCombustivel = valorCombustivelDia * diasOperacao;
+                    custoLogistico += custoCombustivel;
+                    detalhes.push({ item: 'Combustível', qtd: `${diasOperacao} dias`, unit: valorCombustivelDia, total: custoCombustivel });
+                }
+
+                // Hotel (só se marcado - por pessoa por noite)
+                // Diárias = dias de operação - 1 (no último dia a equipe volta para casa)
+                if (usarHotel) {
+                    const noites = Math.max(0, diasOperacao - 1);
+                    if (noites > 0) {
+                        const custoHotel = custos.hospedagem * noites * pessoas;
+                        custoLogistico += custoHotel;
+                        detalhes.push({ item: 'Hotel', qtd: `${noites} noites × ${pessoas} pessoas`, unit: custos.hospedagem, total: custoHotel });
+                    }
+                }
+
+                // Alimentação (por pessoa por dia)
+                const custoAlimentacao = custos.refeicao * diasOperacao * pessoas;
+                custoLogistico += custoAlimentacao;
+                detalhes.push({ item: 'Alimentação', qtd: `${diasOperacao} dias × ${pessoas} pessoas`, unit: custos.refeicao, total: custoAlimentacao });
+
+                // EPIs (quantidade fixa - não multiplica por dia)
+                if (usarEPI) {
+                    const qtdEPI = parseFloat(document.getElementById('qtdEPI').value) || 1;
+                    const custoEPI = custos.epis * qtdEPI;
+                    custoLogistico += custoEPI;
+                    detalhes.push({ item: 'EPIs', qtd: qtdEPI, unit: custos.epis, total: custoEPI });
+                }
+
+                // === CUSTOS OPERACIONAIS ===
+                let custoOperacional = 0;
+
+                // Lógica de pessoal:
+                // - Scanner sozinho: apenas Operador
+                // - Drone: Piloto
+                // - GNSS/RTK ou Estação: Topógrafo
+
+                const precisaPiloto = usarDrone;
+                const precisaTopografo = usarGNSS || usarEstacao;
+                const precisaOperador = usarScanner || usarMatterport;
+
+                // Piloto (se drone)
+                if (precisaPiloto) {
+                    const custoPiloto = custos.topografo * diasOperacao;
+                    custoOperacional += custoPiloto;
+                    detalhes.push({ item: 'Piloto Drone', qtd: `${diasOperacao} dias`, unit: custos.topografo, total: custoPiloto });
+                }
+
+                // Topógrafo (se GNSS ou Estação)
+                if (precisaTopografo) {
+                    const custoTop = custos.topografo * diasOperacao;
+                    custoOperacional += custoTop;
+                    detalhes.push({ item: 'Topógrafo', qtd: `${diasOperacao} dias`, unit: custos.topografo, total: custoTop });
+                }
+
+                // Operador Scan (se Scanner ou Matterport)
+                if (precisaOperador) {
+                    const custoOp = custos.operador * diasOperacao;
+                    custoOperacional += custoOp;
+                    detalhes.push({ item: 'Operador Scan', qtd: `${diasOperacao} dias`, unit: custos.operador, total: custoOp });
+                }
+
+                // Auxiliar (se marcado)
+                if (usarAuxiliar) {
+                    const custoAux = custos.auxiliar * diasOperacao;
+                    custoOperacional += custoAux;
+                    detalhes.push({ item: 'Auxiliar', qtd: `${diasOperacao} dias`, unit: custos.auxiliar, total: custoAux });
+                }
+
+                // Scanner
+                if (usarScanner) {
+                    const custoScan = custos.scanner * diasOperacao;
+                    custoOperacional += custoScan;
+                    detalhes.push({ item: 'Scanner 3D', qtd: `${diasOperacao} dias`, unit: custos.scanner, total: custoScan });
+                }
+
+                // Drone
+                if (usarDrone) {
+                    const custoDrone = custos.drone * diasOperacao;
+                    custoOperacional += custoDrone;
+                    detalhes.push({ item: 'Drone', qtd: diasOperacao, unit: custos.drone, total: custoDrone });
+                }
+
+                // GNSS
+                if (usarGNSS) {
+                    const custoGNSS = custos.gnss * diasOperacao;
+                    custoOperacional += custoGNSS;
+                    detalhes.push({ item: 'GNSS/RTK', qtd: `${diasOperacao} dias`, unit: custos.gnss, total: custoGNSS });
+                }
+
+                // Estação
+                if (usarEstacao) {
+                    const custoEstacao = custos.estacao * diasOperacao;
+                    custoOperacional += custoEstacao;
+                    detalhes.push({ item: 'Estação Total', qtd: `${diasOperacao} dias`, unit: custos.estacao, total: custoEstacao });
+                }
+
+                // Matterport
+                if (usarMatterport) {
+                    const custoMatterport = custos.matterport * diasOperacao;
+                    custoOperacional += custoMatterport;
+                    detalhes.push({ item: 'Matterport', qtd: `${diasOperacao} dias`, unit: custos.matterport, total: custoMatterport });
+                }
+
+                // Licença Anual Matterport (adicional)
+                if (usarLicencaMatterport) {
+                    custoOperacional += 1500;
+                    detalhes.push({ item: 'Licença Anual Matterport', qtd: 1, unit: 1500, total: 1500 });
+                }
+
+                // === PRODUTOS DE ENGENHARIA ===
+                const tamanhoLPC = parseFloat(document.getElementById('tamanhoLPC').value) || 0;
+                const tamanhoBIMProduto = parseFloat(document.getElementById('tamanhoBIM').value) || 0;
+
+                // LPC
+                if (tamanhoLPC > 0) {
+                    custoOperacional += tamanhoLPC;
+                    const tamanhoLPCLabel = tamanhoLPC === 500 ? 'Pequeno' : tamanhoLPC === 1000 ? 'Médio' : 'Grande';
+                    detalhes.push({ item: `LPC (${tamanhoLPCLabel})`, qtd: 1, unit: tamanhoLPC, total: tamanhoLPC });
+                }
+
+                // BIM Produto
+                if (tamanhoBIMProduto > 0) {
+                    custoOperacional += tamanhoBIMProduto;
+                    const tamanhoBIMLabel = tamanhoBIMProduto === 1000 ? 'Pequeno' : tamanhoBIMProduto === 2500 ? 'Médio' : 'Grande';
+                    detalhes.push({ item: `BIM (${tamanhoBIMLabel})`, qtd: 1, unit: tamanhoBIMProduto, total: tamanhoBIMProduto });
+                }
+
+                // BIM/Modelagem (por hora - manter compatibilidade)
+                if (horasModelagem > 0) {
+                    const custoBIM = custos.bim * horasModelagem;
+                    custoOperacional += custoBIM;
+                    detalhes.push({ item: 'BIM/Modelagem (horas)', qtd: `${horasModelagem}h`, unit: custos.bim, total: custoBIM });
+                }
+
+                // === CUSTOS TOPOPARTNER ===
+                let custoTopopartnerTotal = 0;
+                const usarTopopartner = document.getElementById('chkTopopartner').checked;
+                if (usarTopopartner && custosTopopartner.length > 0) {
+                    custosTopopartner.forEach(c => {
+                        if (c.valor > 0) {
+                            custoTopopartnerTotal += c.valor;
+                            detalhes.push({ item: c.descricao || 'Topopartner', qtd: 1, unit: c.valor, total: c.valor });
+                        }
+                    });
+                }
+
+                // === CÁLCULO FINAL ===
+                const custoTotal = custoLogistico + custoOperacional + custoTopopartnerTotal;
+
+                // Tudo sobre a venda bruta (preço final)
+                // Fórmula: Preço Final = Custo / (1 - Imposto% - Markup% - Comissão%)
+                const pctImposto = (isNaN(impostoPct) ? 20 : impostoPct) / 100;
+                const pctMarkup = (isNaN(markupPct) ? 25 : markupPct) / 100;
+                const pctComissao = (isNaN(comissaoPct) ? 5 : comissaoPct) / 100;
+                const pctDesconto = (isNaN(descontoPct) ? 10 : descontoPct) / 100;
+
+                const divisor = 1 - pctImposto - pctMarkup - pctComissao;
+                const precoFinal = custoTotal / divisor;
+
+                // Valores calculados sobre a venda bruta (preço final)
+                const valorImposto = precoFinal * pctImposto;
+                const valorMarkup = precoFinal * pctMarkup;
+                const valorComissao = precoFinal * pctComissao;
+                const precoDesconto = precoFinal * (1 - pctDesconto);
+
+                // Atualizar labels
+                document.getElementById('impostoLabel').textContent = isNaN(impostoPct) ? 20 : impostoPct;
+                document.getElementById('markupLabel').textContent = isNaN(markupPct) ? 25 : markupPct;
+                document.getElementById('comissaoLabel').textContent = isNaN(comissaoPct) ? 5 : comissaoPct;
+                document.getElementById('descontoLabel').textContent = isNaN(descontoPct) ? 10 : descontoPct;
+
+                // Atualizar valores
+                document.getElementById('custoLogistico').textContent = formatarMoeda(custoLogistico);
+                document.getElementById('custoOperacional').textContent = formatarMoeda(custoOperacional);
+                document.getElementById('custoTotal').textContent = formatarMoeda(custoTotal);
+                document.getElementById('valorImposto').textContent = formatarMoeda(valorImposto);
+                document.getElementById('valorMarkup').textContent = formatarMoeda(valorMarkup);
+                document.getElementById('valorComissao').textContent = formatarMoeda(valorComissao);
+                document.getElementById('precoFinal').textContent = formatarMoeda(precoFinal);
+                document.getElementById('precoDesconto').textContent = formatarMoeda(precoDesconto);
+
+                // Popular tabela de detalhes
+                let detalhesHTML = '';
+                detalhes.forEach(d => {
+                    detalhesHTML += `
+                    <tr>
+                        <td>${d.item}</td>
+                        <td>${d.qtd}</td>
+                        <td>${formatarMoeda(d.unit)}</td>
+                        <td>${formatarMoeda(d.total)}</td>
+                    </tr>
+                `;
+                });
+                document.getElementById('detalhesTable').innerHTML = detalhesHTML;
+
+                // Salvar no histórico
+                const registro = {
+                    data: new Date().toLocaleString('pt-BR'),
+                    cliente: cliente,
+                    tipo: tipoServico,
+                    local: local,
+                    dias: diasOperacao,
+                    valor: precoFinal,
+                    valorFormatado: formatarMoeda(precoFinal)
+                };
+
+                historico.unshift(registro);
+                if (historico.length > 20) historico.pop();
+                localStorage.setItem('toposcan_historico', JSON.stringify(historico));
+
+                atualizarHistorico();
+            }
+
+            function atualizarHistorico() {
+                let html = '';
+                historico.forEach((h, i) => {
+                    const badgeClass = {
+                        'scanner': 'badge-scanner',
+                        'topografia': 'badge-topografia',
+                        'lidar': 'badge-lidar',
+                        'drone': 'badge-lidar',
+                        'tour': 'badge-bim',
+                        'bim': 'badge-bim'
+                    }[h.tipo] || 'badge-scanner';
+
+                    html += `
+                    <tr>
+                        <td>${h.data}</td>
+                        <td>${h.cliente}</td>
+                        <td><span class="badge ${badgeClass}">${h.tipo.toUpperCase()}</span></td>
+                        <td>${h.local}</td>
+                        <td>${h.dias}</td>
+                        <td><strong>${h.valorFormatado}</strong></td>
+                        <td>
+                            <button onclick="copiarOrcamento(${i})" style="padding: 5px 10px; cursor: pointer; margin-right: 5px;">📋</button>
+                            <button onclick="excluirOrcamento(${i})" style="padding: 5px 10px; cursor: pointer; background: #ff4444; color: white; border: none; border-radius: 4px;">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+                });
+
+                if (html === '') {
+                    html = '<tr><td colspan="7" style="text-align: center; color: #666;">Nenhum orçamento calculado ainda</td></tr>';
+                }
+
+                document.getElementById('historicoTable').innerHTML = html;
+            }
+
+            function excluirOrcamento(index) {
+                if (confirm('Excluir este orçamento?')) {
+                    historico.splice(index, 1);
+                    localStorage.setItem('toposcan_historico', JSON.stringify(historico));
+                    atualizarHistorico();
+                }
+            }
+
+            function copiarOrcamento(index) {
+                const h = historico[index];
+                const texto = `Orçamento Toposcan
+Cliente: ${h.cliente}
+Tipo: ${h.tipo.toUpperCase()}
+Local: ${h.local}
+Dias: ${h.dias}
+Valor: ${h.valorFormatado}
+Data: ${h.data}`;
+
+                navigator.clipboard.writeText(texto).then(() => {
+                    alert('Orçamento copiado!');
+                });
+            }
+
+            // Inicializar
+            function initPrecificacao() {
+                atualizarHistorico();
+
+                // Inicializar checkboxes corretamente
+                document.querySelectorAll('.checkbox-item').forEach(item => {
+                    // Marcar os que já estão checked
+                    const checkbox = item.querySelector('input[type="checkbox"]');
+                    if (checkbox.checked) {
+                        item.classList.add('checked');
+                    }
+
+                    // Adicionar evento de clique
+                    item.addEventListener('click', function (e) {
+                        const cb = this.querySelector('input[type="checkbox"]');
+                        cb.checked = !cb.checked;
+                        if (cb.checked) {
+                            this.classList.add('checked');
+                        } else {
+                            this.classList.remove('checked');
+                        }
+                    });
+                });
+            }
+            initPrecificacao();
+        </script>
+    </div><!-- /crmContent -->
 </body>
+
 </html>

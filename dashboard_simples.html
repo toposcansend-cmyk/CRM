@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Fluxo de Caixa - Toposcan</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .header { background: linear-gradient(135deg, #0066cc, #003366); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { opacity: 0.8; font-size: 14px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+        .card h3 { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 10px; }
+        .card .value { font-size: 28px; font-weight: bold; }
+        .receber .value { color: #28a745; }
+        .pagar .value { color: #dc3545; }
+        .saldo .value { color: #0066cc; }
+        .final .value { color: #28a745; }
+        
+        .chart-box { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .chart-box h3 { margin-bottom: 15px; color: #333; text-align: center; }
+        
+        .bar-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 200px; padding: 20px; border-bottom: 2px solid #ccc; }
+        .bar { width: 60px; background: #0066cc; border-radius: 5px 5px 0 0; position: relative; transition: height 0.5s; }
+        .bar.receber { background: #28a745; }
+        .bar.pagar { background: #dc3545; }
+        .bar.saldo { background: #0066cc; }
+        .bar-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #333; white-space: nowrap; }
+        .bar-value { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 11px; color: #333; white-space: nowrap; }
+        
+        .table-box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        
+        .simple-chart { display: flex; align-items: center; justify-content: space-around; height: 180px; padding: 10px; }
+        .pie { width: 150px; height: 150px; border-radius: 50%; position: relative; }
+        .pie-receber { background: conic-gradient(#28a745 0deg 107deg, #17a2b8 107deg 115deg, #0066cc 115deg 257deg, #6f42c1 257deg 360deg); }
+        
+        .alert { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .alert h4 { color: #856404; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💰 Dashboard Fluxo de Caixa - Toposcan</h1>
+        <p>Atualizado em 04/03/2026</p>
+    </div>
+    
+    <div class="cards">
+        <div class="card saldo">
+            <h3>💵 Saldo Atual</h3>
+            <div class="value">R$ 40.283,49</div>
+        </div>
+        <div class="card receber">
+            <h3>📥 A Receber</h3>
+            <div class="value">R$ 55.866,66</div>
+        </div>
+        <div class="card pagar">
+            <h3>📤 A Pagar</h3>
+            <div class="value">R$ 59.975,10</div>
+        </div>
+        <div class="card final">
+            <h3>📊 Saldo Final</h3>
+            <div class="value">R$ 36.175,05</div>
+        </div>
+    </div>
+    
+    <div class="chart-box">
+        <h3>📈 Projeção Semanal de Saldo</h3>
+        <div class="bar-chart">
+            <div class="bar" style="height: 120px;">
+                <span class="bar-value">R$ 40.283</span>
+                <span class="bar-label">Atual</span>
+            </div>
+            <div class="bar" style="height: 100px;">
+                <span class="bar-value">R$ 33.583</span>
+                <span class="bar-label">Sem 01</span>
+            </div>
+            <div class="bar" style="height: 180px;">
+                <span class="bar-value">R$ 60.650</span>
+                <span class="bar-label">Sem 02</span>
+            </div>
+            <div class="bar" style="height: 135px;">
+                <span class="bar-value">R$ 45.050</span>
+                <span class="bar-label">Sem 03</span>
+            </div>
+            <div class="bar" style="height: 108px;">
+                <span class="bar-value">R$ 36.175</span>
+                <span class="bar-label">Sem 04</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="chart-box">
+        <h3>📊 Comparativo Receber vs Pagar</h3>
+        <div class="bar-chart">
+            <div class="bar receber" style="height: 167px;">
+                <span class="bar-value">R$ 55.867</span>
+                <span class="bar-label">Receber</span>
+            </div>
+            <div class="bar pagar" style="height: 179px;">
+                <span class="bar-value">R$ 59.975</span>
+                <span class="bar-label">Pagar</span>
+            </div>
+            <div class="bar saldo" style="height: 108px;">
+                <span class="bar-value">R$ 36.175</span>
+                <span class="bar-label">Saldo Final</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-box">
+        <h3>📅 Projeção Semanal</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Semana</th>
+                    <th>Saldo Inicial</th>
+                    <th>Receber</th>
+                    <th>Pagar</th>
+                    <th>Saldo Final</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>01 (01-07/03)</td>
+                    <td>R$ 40.283,49</td>
+                    <td class="positive">+ R$ 3.800,00</td>
+                    <td class="negative">- R$ 10.500,00</td>
+                    <td><strong>R$ 33.583,49</strong></td>
+                </tr>
+                <tr>
+                    <td>02 (08-14/03)</td>
+                    <td>R$ 33.583,49</td>
+                    <td class="positive">+ R$ 52.066,66</td>
+                    <td class="negative">- R$ 25.000,00</td>
+                    <td><strong>R$ 60.650,15</strong></td>
+                </tr>
+                <tr>
+                    <td>03 (15-21/03)</td>
+                    <td>R$ 60.650,15</td>
+                    <td class="positive">+ R$ 0,00</td>
+                    <td class="negative">- R$ 15.600,00</td>
+                    <td><strong>R$ 45.050,15</strong></td>
+                </tr>
+                <tr>
+                    <td>04 (22-31/03)</td>
+                    <td>R$ 45.050,15</td>
+                    <td class="positive">+ R$ 0,00</td>
+                    <td class="negative">- R$ 8.875,10</td>
+                    <td><strong>R$ 36.175,05</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="alert" style="margin-top: 20px;">
+        <h4>⚠️ Pontos de Atenção</h4>
+        <ul>
+            <li>Semana 01: Saldo cai mas permanece positivo</li>
+            <li>Semana 02: Pico de recebimento (GEPLAN + EAC)</li>
+            <li>Semana 03: Saída R$ 15.600 (FS ENGENHARIA) - já coberto</li>
+        </ul>
+    </div>
+</body>
+</html>
