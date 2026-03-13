@@ -1911,8 +1911,8 @@
             const savedVersion = localStorage.getItem('crmVersion');
             console.log('Saved version:', savedVersion, 'Current:', CACHE_VERSION);
             if (savedVersion !== CACHE_VERSION) {
-                console.log('Clearing cache...');
-                localStorage.clear();
+                console.log('Clearing data cache (preserving edits)...');
+                localStorage.removeItem('crm_data_v15'); // Remove apenas o cache de dados
                 localStorage.setItem('crmVersion', CACHE_VERSION);
                 sessionStorage.clear();
             }
@@ -2275,7 +2275,7 @@
                 }
 
                 try {
-                    // Save edits to local server for processing
+                    // Try local server first
                     const response = await fetch('http://127.0.0.1:18791/sync', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -2287,14 +2287,34 @@
                     if (result.status === 'ok') {
                         localStorage.removeItem('crm_edits');
                         localStorage.setItem('crm_last_sync', new Date().toISOString());
-                        alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
+                        alert('Sincronizado via Servidor Local! ' + (result.updated || 0) + ' atualizações.');
                     } else {
-                        alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
+                        throw new Error(result.message || 'Erro no servidor local');
                     }
                 } catch (e) {
-                    // Fallback: save edits locally for manual sync
-                    alert('Servidor offline. Edicoes salvas localmente para sincronizar depois.');
-                    await saveEditsToServer();
+                    console.warn('Servidor local offline, tentando Cloud Bridge (JSONP)...');
+
+                    // Fallback para Cloud Bridge (JSONP)
+                    const cloudUrl = 'https://script.google.com/macros/s/AKfycbzlxWzx97kSloAPM5sPf367q3cf9xVfFxORAhI4b69j8ehzL6OSfpLpBTOfRSHLBGpr/exec';
+                    const payload = encodeURIComponent(JSON.stringify({ edits: edits }));
+                    const callbackName = 'crm_save_callback_' + Date.now();
+
+                    window[callbackName] = function (result) {
+                        if (result.status === 'ok') {
+                            localStorage.removeItem('crm_edits');
+                            localStorage.setItem('crm_last_sync', new Date().toISOString());
+                            alert('Sincronizado via Nuvem! ' + (result.updated || 0) + ' atualizações.');
+                            puxarDadosDaNuvem(); // Atualiza a lista
+                        } else {
+                            alert('Falha na sincronização via nuvem: ' + result.message);
+                        }
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                    };
+
+                    const script = document.createElement('script');
+                    script.src = cloudUrl + '?mode=save&data=' + payload + '&callback=' + callbackName;
+                    document.body.appendChild(script);
                 }
             }
 
