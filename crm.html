@@ -1308,7 +1308,8 @@
                 <option value="Sem nome">Sem nome</option>
             </select>
             <button onclick="novaOportunidade()"
-                style="padding:10px;background:#22c55e;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold">+ Nova Oportunidade</button>
+                style="padding:10px;background:#22c55e;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold;margin-right:5px">+
+                Nova Oportunidade</button>
             <button onclick="syncToSheet()"
                 style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
             <div id="mobileSortContainer" style="width:100%;margin-top:10px">
@@ -1838,7 +1839,7 @@
         <script src="proposals.js"></script>
         <script>
             console.log('=== CRM SCRIPT STARTING ===');
-            const CACHE_VERSION = '2026-03-02-v12-cache-bust';
+            const CACHE_VERSION = '2026-03-13-v13-forced-refresh';
 
             // XSS sanitizer
             function esc(str) {
@@ -2426,32 +2427,51 @@
             // Try to load latest data from Cloud Bridge
             async function puxarDadosDaNuvem() {
                 const cloudUrl = 'https://script.google.com/macros/s/AKfycbzlxWzx97kSloAPM5sPf367q3cf9xVfFxORAhI4b69j8ehzL6OSfpLpBTOfRSHLBGpr/exec';
+
                 try {
-                    const response = await fetch(cloudUrl);
+                    console.log('CRM: Tentando puxar dados da nuvem...');
+                    const response = await fetch(cloudUrl, { redirect: 'follow' });
                     const data = await response.json();
-                    if (data && data.propostas) {
-                        data.propostas.forEach(p => {
-                            if (!p.id || p.id === '') p.id = 'row_' + p.rowIndex;
-                            // Normalizacao agressiva de nomes de campos legados
-                            if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
-                                p.fechamentoPrevisto = p.dataFechamento;
-                            }
-                            if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
-                                p.proximoFollowup = p.dataFollowup;
-                            }
-                        });
-                        propostas = data.propostas;
-                        localStorage.setItem('crm_data_v15', JSON.stringify(data.propostas));
-                        window.propostas = data.propostas;
-                        console.log('Dados atualizados da nuvem:', propostas.length);
-                        carregarEdits();
-                        filtrar();
-                        renderizarFollowup();
-                        renderizarInsights();
-                        renderizarKPI();
-                    }
+                    processarDadosNuvem(data);
                 } catch (e) {
-                    console.error('Falha ao puxar dados da nuvem:', e);
+                    console.warn('CRM: Falha no fetch padrão, tentando JSONP...', e);
+                    puxarDadosJSONP(cloudUrl);
+                }
+            }
+
+            function puxarDadosJSONP(url) {
+                const callbackName = 'crm_callback_' + Math.floor(Math.random() * 1000000);
+                window[callbackName] = function (data) {
+                    processarDadosNuvem(data);
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                };
+                const script = document.createElement('script');
+                script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+                document.body.appendChild(script);
+            }
+
+            function processarDadosNuvem(data) {
+                if (data && data.propostas) {
+                    data.propostas.forEach(p => {
+                        if (!p.id || p.id === '') p.id = 'row_' + p.rowIndex;
+                        // Normalizacao agressiva de nomes de campos legados
+                        if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
+                            p.fechamentoPrevisto = p.dataFechamento;
+                        }
+                        if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
+                            p.proximoFollowup = p.dataFollowup;
+                        }
+                    });
+                    propostas = data.propostas;
+                    localStorage.setItem('crm_data_v15', JSON.stringify(data.propostas));
+                    window.propostas = data.propostas;
+                    console.log('Dados atualizados da nuvem:', propostas.length);
+                    carregarEdits();
+                    filtrar();
+                    renderizarFollowup();
+                    renderizarInsights();
+                    renderizarKPI();
                 }
             }
 
@@ -2740,7 +2760,7 @@
             function novaOportunidade() {
                 // Gerar um ID único temporário
                 const id = Date.now();
-                
+
                 // Limpar campos do modal
                 document.getElementById('editId').value = id;
                 document.getElementById('editRowIndex').value = ''; // Indica que é novo
@@ -2766,10 +2786,10 @@
             function salvarEdicao() {
                 const idStr = document.getElementById('editId').value;
                 const rowIndex = document.getElementById('editRowIndex').value;
-                
+
                 let p = propostas.find(x => x.id == idStr);
                 let isNew = false;
-                
+
                 if (!p) {
                     isNew = true;
                     p = { id: idStr };
