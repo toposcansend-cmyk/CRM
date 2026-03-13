@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir -p deploy
           cp crm.html deploy/index.html
-          cp data_v9.js deploy/data_v9.js
+          cp proposals.js deploy/proposals.js
           cp logo.png deploy/logo.png
           cp logo-preto.png deploy/logo-preto.png
           cp logo-branca.png deploy/logo-branca.png
