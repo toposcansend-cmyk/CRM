@@ -1836,7 +1836,7 @@
         <script src="proposals.js"></script>
         <script>
             console.log('=== CRM SCRIPT STARTING ===');
-            const CACHE_VERSION = '2026-03-17-v13-sync-fix';
+            const CACHE_VERSION = '2026-03-17-v16-date-sync-fix';
 
             // XSS sanitizer
             function esc(str) {
@@ -2321,8 +2321,8 @@
                         if (e.dataFechamento && (!e.fechamentoPrevisto || e.fechamentoPrevisto === "-" || e.fechamentoPrevisto === "")) {
                             e.fechamentoPrevisto = e.dataFechamento;
                         }
-                        if (e.dataFollowup && (!e.proximoFollowup || e.proximoFollowup === "-" || e.proximoFollowup === "")) {
-                            e.proximoFollowup = e.dataFollowup;
+                        if (e.ultimoFollowup && (!e.proximoFollowup || e.proximoFollowup === "-" || e.proximoFollowup === "")) {
+                            e.proximoFollowup = e.ultimoFollowup;
                         }
 
                         Object.assign(p, e);
@@ -2451,12 +2451,12 @@
                             if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
                                 p.fechamentoPrevisto = p.dataFechamento;
                             }
-                            if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
-                                p.proximoFollowup = p.dataFollowup;
+                            if (p.ultimoFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
+                                p.proximoFollowup = p.ultimoFollowup;
                             }
                         });
                         propostas = data.propostas;
-                        localStorage.setItem('crm_data_v15', JSON.stringify(data.propostas));
+                        localStorage.setItem('crm_data_v16', JSON.stringify(data.propostas));
                         window.propostas = data.propostas;
                         console.log('Dados atualizados da nuvem:', propostas.length, 'propostas');
                         carregarEdits();
@@ -2473,16 +2473,17 @@
             }
 
             // Cache logic
-            const cache = localStorage.getItem('crm_data_v15');
+            const cache = localStorage.getItem('crm_data_v16');
             if (cache) {
                 propostas = JSON.parse(cache);
                 // Normalizar cache
                 propostas.forEach(p => {
+                    if (!p.id || p.id === '') p.id = 'row_' + p.rowIndex;
                     if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
                         p.fechamentoPrevisto = p.dataFechamento;
                     }
-                    if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
-                        p.proximoFollowup = p.dataFollowup;
+                    if (p.ultimoFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
+                        p.proximoFollowup = p.ultimoFollowup;
                     }
                 });
                 window.propostas = propostas;
