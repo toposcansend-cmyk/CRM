@@ -52,11 +52,13 @@ function doPost(e) {
       : (e.parameter && e.parameter.data) ? e.parameter.data
         : null;
 
+    const cb = (e.parameter && e.parameter.callback) || null;
+
     if (!raw) return respond({ status: 'error', message: 'Nenhum dado recebido' }, cb);
 
     const data = JSON.parse(raw);
-    const cb = data.callback || (e.parameter && e.parameter.callback) || null;
-    if (data.token !== AUTH_TOKEN) return respond({ status: 'error', message: 'Token invalido' }, cb);
+    // Token is optional - only validate if provided
+    if (data.token && data.token !== AUTH_TOKEN) return respond({ status: 'error', message: 'Token invalido' }, cb);
 
     const ss = SpreadsheetApp.openById(SHEET_ID);
     let sheet = ss.getSheetByName(SHEET_NAME);
@@ -122,9 +124,9 @@ function doPost(e) {
 function doGet(e) {
   const cb = e.parameter && e.parameter.callback;
 
-  // Acao: Buscar dados (para gerar o data.js)
-  if (e.parameter && e.parameter.action === 'getdata') {
-    return respond({ status: 'ok', propostas: readData() }, cb);
+  // Health check only when explicitly requested
+  if (e.parameter && e.parameter.action === 'health') {
+    return respond({ status: 'healthy', message: 'OK v6' }, cb);
   }
 
   // Se receber parametro 'data', processa a sincronizacao (chamado pelo CRM via GET)
@@ -132,8 +134,8 @@ function doGet(e) {
     return doPost(e);
   }
 
-  // Health check
-  return respond({ status: 'healthy', message: 'OK v5' }, cb);
+  // Default: retorna todos os dados (para puxarDadosDaNuvem do CRM)
+  return respond({ status: 'ok', propostas: readData() }, cb);
 }
 
 // Formatar valor conforme o campo
