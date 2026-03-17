@@ -16,7 +16,7 @@
  */
 
 const SHEET_ID = '1190S57Jmbb-eJcMHJYaOZ7qIqMCUpOTV-SDlWoSrMO4';
-const SHEET_NAME = 'Planilha1';
+const SHEET_NAME = 'CRM Consolidado';
 const AUTH_TOKEN = 'toposcan-crm-2026-v2';
 
 // Mapeamento de colunas (1-base, conforme planilha real)

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Toposcan</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1419; color: #eee; padding: 20px; }
+        .header { background: #1a1a2e; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .header h1 { font-size: 1.5em; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat { background: #1a1a2e; padding: 20px; border-radius: 10px; text-align: center; }
+        .stat .value { font-size: 2em; font-weight: bold; color: #00d4ff; }
+        .stat .label { color: #888; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; background: #1a1a2e; border-radius: 10px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        th { background: #252540; font-weight: 600; }
+        tr:hover { background: #252540; }
+        .status-fechada { color: #4ade80; }
+        .status-pendente { color: #fbbf24; }
+        .status-perdida { color: #f87171; }
+        .login { max-width: 400px; margin: 100px auto; background: #1a1a2e; padding: 40px; border-radius: 12px; }
+        .login input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #333; border-radius: 6px; background: #252540; color: #eee; }
+        .login button { width: 100%; padding: 12px; background: #00d4ff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: #000; }
+        .login button:hover { background: #00b8e6; }
+    </style>
+</head>
+<body>
+    <div id="loginScreen" class="login">
+        <h2 style="text-align:center;margin-bottom:20px">CRM Toposcan</h2>
+        <input type="email" id="emailInput" placeholder="Email @toposcan.com.br">
+        <button onclick="doLogin()">Entrar</button>
+    </div>
+    
+    <div id="crmScreen" style="display:none">
+        <div class="header">
+            <h1>CRM Toposcan</h1>
+            <div style="margin-top:10px;color:#888" id="loggedUser"></div>
+        </div>
+        
+        <div class="stats" id="stats"></div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Nr</th>
+                    <th>Cliente</th>
+                    <th>Servico</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Vendedor</th>
+                </tr>
+            </thead>
+            <tbody id="propostasTable"></tbody>
+        </table>
+    </div>
+    
+    <script src="data_v10.js"></script>
+    <script>
+        // Verificar se dados carregaram
+        console.log('Dados carregados:', window.propostas ? window.propostas.length : 0);
+        
+        function doLogin() {
+            const email = document.getElementById('emailInput').value;
+            if (!email.includes('@toposcan.com.br')) {
+                alert('Use email @toposcan.com.br');
+                return;
+            }
+            
+            sessionStorage.setItem('crm_auth', email.split('@')[0]);
+            showCRM();
+        }
+        
+        function showCRM() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('crmScreen').style.display = 'block';
+            
+            const user = sessionStorage.getItem('crm_auth') || 'Usuario';
+            document.getElementById('loggedUser').textContent = 'Logado: ' + user;
+            
+            renderCRM();
+        }
+        
+        function renderCRM() {
+            const propostas = window.propostas || [];
+            console.log('Renderizando', propostas.length, 'propostas');
+            
+            // Calcular stats
+            const fechadas = propostas.filter(p => p.status === 'Fechada');
+            const pendentes = propostas.filter(p => ['Pendente', 'Enviada', 'Lead'].includes(p.status));
+            
+            const totalFechado = fechadas.reduce((s, p) => s + (p.valor || 0), 0);
+            const totalPendente = pendentes.reduce((s, p) => s + (p.valor || 0), 0);
+            
+            document.getElementById('stats').innerHTML = 
+                '<div class="stat"><div class="value">' + propostas.length + '</div><div class="label">Total</div></div>' +
+                '<div class="stat"><div class="value">' + fechadas.length + '</div><div class="label">Fechadas</div></div>' +
+                '<div class="stat"><div class="value">R$ ' + (totalFechado/1000).toFixed(0) + 'k</div><div class="label">Valor Fechado</div></div>' +
+                '<div class="stat"><div class="value">' + pendentes.length + '</div><div class="label">Pendentes</div></div>' +
+                '<div class="stat"><div class="value">R$ ' + (totalPendente/1000).toFixed(0) + 'k</div><div class="label">Valor Pendente</div></div>';
+            
+            // Renderizar tabela
+            const tbody = document.getElementById('propostasTable');
+            tbody.innerHTML = '';
+            
+            // Ordenar por data (mais recentes primeiro)
+            const sorted = [...propostas].sort((a, b) => (b.id || 0) - (a.id || 0));
+            
+            sorted.forEach(p => {
+                const tr = document.createElement('tr');
+                const statusClass = 'status-' + (p.status || 'pendente').toLowerCase();
+                tr.innerHTML = 
+                    '<td>' + (p.numeroProposta || '-') + '</td>' +
+                    '<td>' + (p.cliente || '-') + '</td>' +
+                    '<td>' + (p.servico || '-') + '</td>' +
+                    '<td>R$ ' + ((p.valor || 0)).toLocaleString() + '</td>' +
+                    '<td class="' + statusClass + '">' + (p.status || '-') + '</td>' +
+                    '<td>' + (p.vendedor || '-') + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // Auto-login se ja autenticado
+        if (sessionStorage.getItem('crm_auth')) {
+            showCRM();
+        }
+    </script>
+</body>
+</html>
