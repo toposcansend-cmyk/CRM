@@ -180,9 +180,22 @@ function readData() {
       const field = REVERSE_MAP[j + 1];
       if (field) {
         let val = row[j];
+        // Formatar datas para o padrao experado pelo CRM (DD/MM/YYYY)
+        if (val instanceof Date) {
+          val = Utilities.formatDate(val, 'America/Sao_Paulo', 'dd/MM/yyyy');
+        }
         // Tratamento basico de tipos
         if (field === 'valor' && typeof val === 'string') {
           val = parseFloat(val.replace(/[R$. ]/g, '').replace(',', '.')) || 0;
+        }
+        // Normalizar probabilidade para evitar erros na interface (prob.includes)
+        if (field === 'probabilidade') {
+          if (typeof val === 'number') {
+            if (val > 0 && val <= 1) val = Math.round(val * 100) + '%';
+            else val = Math.round(val) + '%';
+          } else if (typeof val === 'string' && val && !val.includes('%')) {
+            val = val + '%';
+          }
         }
         item[field] = val;
       }
