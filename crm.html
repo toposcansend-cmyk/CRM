@@ -2213,15 +2213,25 @@
 
             // Save edits to Cloud Bridge
             async function saveEditsToServer() {
-                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-                if (Object.keys(edits).length === 0) return;
+                const rawEdits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                if (Object.keys(rawEdits).length === 0) return;
+
+                const edits = {};
+                const newLeads = [];
+                Object.keys(rawEdits).forEach(id => {
+                    if (id.startsWith('new_')) {
+                        newLeads.push(rawEdits[id]);
+                    } else {
+                        edits[id] = rawEdits[id];
+                    }
+                });
 
                 try {
                     const response = await fetch(CLOUD_BRIDGE_URL, {
                         method: 'POST',
                         redirect: 'follow',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ edits: edits })
+                        body: JSON.stringify({ token: 'toposcan-crm-2026-v2', edits: edits, newLeads: newLeads })
                     });
 
                     const result = await response.json();
@@ -2279,19 +2289,29 @@
             }
 
             async function syncToSheet() {
-                const edits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
-                if (Object.keys(edits).length === 0) {
+                const rawEdits = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                if (Object.keys(rawEdits).length === 0) {
                     alert('Nenhuma edição pendente. Atualizando dados da planilha...');
                     await puxarDadosDaNuvem();
                     return;
                 }
+
+                const edits = {};
+                const newLeads = [];
+                Object.keys(rawEdits).forEach(id => {
+                    if (id.startsWith('new_')) {
+                        newLeads.push(rawEdits[id]);
+                    } else {
+                        edits[id] = rawEdits[id];
+                    }
+                });
 
                 try {
                     const response = await fetch(CLOUD_BRIDGE_URL, {
                         method: 'POST',
                         redirect: 'follow',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ edits: edits })
+                        body: JSON.stringify({ token: 'toposcan-crm-2026-v2', edits: edits, newLeads: newLeads })
                     });
 
                     const result = await response.json();
