@@ -2467,7 +2467,7 @@
             async function puxarDadosDaNuvem() {
                 const cloudUrl = 'https://script.google.com/macros/s/AKfycbyT1GlDWqWFml8HvjQJUe-8yhMLas_DUYPl2_MRx-2h8uecxuGbW8XORtw3sZN4PkRNXg/exec';
                 try {
-                    const response = await fetch(cloudUrl);
+                    const response = await fetch(cloudUrl + '?action=getdata');
                     const data = await response.json();
                     if (data && data.propostas) {
                         data.propostas.forEach(p => {
