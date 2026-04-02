@@ -1473,6 +1473,7 @@
             <div class="card">
                 <div class="filters">
                     <select id="statusFilter" onchange="filtrar()">
+                        <option value="ativos">Propostas Ativas (Ocultar Perdidas)</option>
                         <option value="todos">Todos Status</option>
                         <option value="Lead">Lead</option>
                         <option value="Enviada">Enviada</option>
@@ -1989,13 +1990,21 @@
                 });
 
                 let f_stats = f_base;
-                if (status && status !== 'todos') {
+                if (status && status !== 'todos' && status !== 'ativos') {
                     f_stats = f_base.filter(p => p.status === status);
                 }
 
                 let f = f_base.filter(p => {
-                    const isAll = !status || status === 'todos';
-                    return isAll ? (p.status !== 'Perdida' && p.status !== 'Fechada') : p.status === status;
+                    const isSpecificStatus = status && status !== 'todos' && status !== 'ativos';
+                    // Se digitou uma busca e não está em um filtro rígido (ex: Fechada), mostre a proposta independentemente do status!
+                    if (busca && !isSpecificStatus) return true;
+
+                    const isAll = status === 'todos';
+                    const isAtivos = !status || status === 'ativos';
+
+                    if (isAll) return true;
+                    if (isAtivos) return p.status !== 'Perdida' && p.status !== 'Fechada';
+                    return p.status === status;
                 });
 
                 const total = f_stats.length;
