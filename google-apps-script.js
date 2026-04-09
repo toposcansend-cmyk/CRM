@@ -35,6 +35,7 @@ const COLUMN_MAP = {
   'ultimoFollowup': 8,
   'localizacao': 10,
   'dataProposta': 11,
+  'fechamentoPrevisto': 12,
   'dataFechamento': 12,
   'valor': 13,
   'probabilidade': 14,
@@ -162,17 +163,20 @@ function readData() {
   const headers = data[0];
   const propostas = [];
 
-  // Mapeamento reverso do COLUMN_MAP para facilitar a montagem do objeto
+  // Mapeamento reverso: prioriza 'fechamentoPrevisto' sobre 'dataFechamento' para col 12
   const REVERSE_MAP = {};
+  const PREFERRED_FIELDS = { 12: 'fechamentoPrevisto' };
   for (const [key, col] of Object.entries(COLUMN_MAP)) {
-    REVERSE_MAP[col] = key;
+    if (!REVERSE_MAP[col] || PREFERRED_FIELDS[col] === key) {
+      REVERSE_MAP[col] = key;
+    }
   }
 
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
     const item = {
-      id: i, // ID sequencial para uso interno no CRM
-      rowIndex: i + 1, // Indice real da linha (1-base + header)
+      id: i,
+      rowIndex: i + 1,
       isLocal: false
     };
 
@@ -180,31 +184,57 @@ function readData() {
       const field = REVERSE_MAP[j + 1];
       if (field) {
         let val = row[j];
-        // Formatar datas para o padrao experado pelo CRM (DD/MM/YYYY)
+        // Formatar datas para DD/MM/YYYY (o CRM espera este formato)
         if (val instanceof Date) {
           val = Utilities.formatDate(val, 'America/Sao_Paulo', 'dd/MM/yyyy');
         }
-        // Tratamento basico de tipos
-        if (field === 'valor' && typeof val === 'string') {
-          val = parseFloat(val.replace(/[R$. ]/g, '').replace(',', '.')) || 0;
+        // Converter valor monetario string para numero
+        if (field === 'valor') {
+          if (typeof val === 'string') {
+            val = parseFloat(val.replace(/[R$. ]/g, '').replace(',', '.')) || 0;
+          } else if (typeof val !== 'number') {
+            val = 0;
+          }
         }
-        // Normalizar probabilidade para evitar erros na interface (prob.includes)
+        // CRITICO: Normalizar probabilidade SEMPRE para string com %
+        // O CRM usa .includes('%') que crasha se vier como numero
         if (field === 'probabilidade') {
           if (typeof val === 'number') {
             if (val > 0 && val <= 1) val = Math.round(val * 100) + '%';
             else val = Math.round(val) + '%';
-          } else if (typeof val === 'string' && val && !val.includes('%')) {
-            val = val + '%';
+          } else if (typeof val === 'string' && val.trim() !== '') {
+            if (!val.includes('%')) val = val.trim() + '%';
+          } else {
+            val = '';
           }
         }
         item[field] = val;
       }
     }
-    // Determinar status baseado na probabilidade se vazio
-    if (!item.status) {
+
+    // Filtrar linhas completamente vazias (sem cliente)
+    if (!item.cliente || String(item.cliente).trim() === '') continue;
+
+    // Determinar status: usa 'observacao' da planilha se parecer status valido
+    const obsLower = (item.observacao || '').trim().toLowerCase();
+    const statusValidos = ['fechada', 'pendente', 'perdida', 'lead', 'enviada', 'standby'];
+    if (statusValidos.includes(obsLower)) {
+      item.status = obsLower.charAt(0).toUpperCase() + obsLower.slice(1);
+    } else {
+      // Fallback: calcular status pela probabilidade
       const prob = parseInt(item.probabilidade) || 0;
-      item.status = prob === 100 ? 'Fechada' : prob === 0 ? 'Perdida' : 'Pendente';
+      if (prob >= 100) item.status = 'Fechada';
+      else if (prob <= 0) item.status = 'Perdida';
+      else if (prob <= 20) item.status = 'Lead';
+      else if (prob <= 40) item.status = 'Enviada';
+      else item.status = 'Pendente';
     }
+
+    // Garantir que fechamentoPrevisto tambem esta disponivel como dataFechamento
+    if (item.fechamentoPrevisto && !item.dataFechamento) {
+      item.dataFechamento = item.fechamentoPrevisto;
+    }
+
     propostas.push(item);
   }
   return propostas;

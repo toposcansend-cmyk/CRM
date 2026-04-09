@@ -1857,7 +1857,7 @@
         <script src="proposals.js"></script>
         <script>
             console.log('=== CRM SCRIPT STARTING ===');
-            const CACHE_VERSION = '2026-03-02-v12-cache-bust';
+            const CACHE_VERSION = '2026-04-09-v17-consolidated';
 
             // XSS sanitizer
             function esc(str) {
@@ -1930,8 +1930,13 @@
             console.log('Saved version:', savedVersion, 'Current:', CACHE_VERSION);
             if (savedVersion !== CACHE_VERSION) {
                 console.log('Clearing cache...');
+                // Preservar tema e edits ao limpar cache
+                const savedTema = localStorage.getItem('tema');
+                const savedEdits = localStorage.getItem('crm_edits');
                 localStorage.clear();
                 localStorage.setItem('crmVersion', CACHE_VERSION);
+                if (savedTema) localStorage.setItem('tema', savedTema);
+                if (savedEdits) localStorage.setItem('crm_edits', savedEdits);
                 sessionStorage.clear();
             }
 
@@ -2262,21 +2267,11 @@
                 }
             }
 
-            // Load edits from persistence server
+            // Load edits from persistence server - DISABLED in production
+            // The localhost 127.0.0.1 server is never running on GitHub Pages
             async function loadEditsFromServer() {
-                try {
-                    const response = await fetch('http://127.0.0.1:18791/edits');
-                    const edits = await response.json();
-
-                    if (Object.keys(edits).length > 0) {
-                        localStorage.setItem('crm_edits', JSON.stringify(edits));
-                        console.log('Loaded', Object.keys(edits).length, 'edits from server');
-                        carregarEdits();
-                        filtrar();
-                    }
-                } catch (e) {
-                    console.log('Could not load from server');
-                }
+                // Disabled: local server is not available in production
+                console.log('loadEditsFromServer: skipped (production mode)');
             }
 
             // Sync edits to sheet via local persistence (webhook URL moved to server-side)
@@ -2472,6 +2467,43 @@
             // Load edits from server on startup
             loadEditsFromServer();
 
+            // Helper: normalizar uma proposta vinda da nuvem ou cache
+            function normalizarProposta(p) {
+                // Normalizar probabilidade: numero -> string%
+                if (typeof p.probabilidade === 'number') {
+                    if (p.probabilidade > 0 && p.probabilidade <= 1) p.probabilidade = Math.round(p.probabilidade * 100) + '%';
+                    else p.probabilidade = Math.round(p.probabilidade) + '%';
+                } else if (typeof p.probabilidade === 'string' && p.probabilidade.trim() !== '' && !p.probabilidade.includes('%')) {
+                    p.probabilidade = p.probabilidade.trim() + '%';
+                }
+
+                // Normalizar datas ISO -> DD/MM/YYYY
+                ['dataProposta', 'fechamentoPrevisto', 'dataFechamento', 'ultimoFollowup', 'proximoFollowup', 'dataFollowup'].forEach(function(campo) {
+                    if (p[campo] && typeof p[campo] === 'string' && p[campo].includes('T') && p[campo].includes('-')) {
+                        try {
+                            var d = new Date(p[campo]);
+                            if (!isNaN(d.getTime())) {
+                                p[campo] = d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+                            }
+                        } catch(e) {}
+                    }
+                });
+
+                // Normalizar telefoneEmail que vem como numero
+                if (typeof p.telefoneEmail === 'number') {
+                    p.telefoneEmail = String(p.telefoneEmail);
+                }
+
+                // Normalizar campos legados
+                if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === '-' || p.fechamentoPrevisto === '')) {
+                    p.fechamentoPrevisto = p.dataFechamento;
+                }
+                if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === '-' || p.proximoFollowup === '')) {
+                    p.proximoFollowup = p.dataFollowup;
+                }
+                if (!p.id || p.id === '') p.id = 'row_' + p.rowIndex;
+            }
+
             // Try to load latest data from Cloud Bridge
             async function puxarDadosDaNuvem() {
                 const cloudUrl = 'https://script.google.com/macros/s/AKfycbyT1GlDWqWFml8HvjQJUe-8yhMLas_DUYPl2_MRx-2h8uecxuGbW8XORtw3sZN4PkRNXg/exec';
@@ -2479,18 +2511,9 @@
                     const response = await fetch(cloudUrl + '?action=getdata');
                     const data = await response.json();
                     if (data && data.propostas) {
-                        data.propostas.forEach(p => {
-                            if (!p.id || p.id === '') p.id = 'row_' + p.rowIndex;
-                            // Normalizacao agressiva de nomes de campos legados
-                            if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
-                                p.fechamentoPrevisto = p.dataFechamento;
-                            }
-                            if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
-                                p.proximoFollowup = p.dataFollowup;
-                            }
-                        });
+                        data.propostas.forEach(normalizarProposta);
                         propostas = data.propostas;
-                        localStorage.setItem('crm_data_v16', JSON.stringify(data.propostas));
+                        localStorage.setItem('crm_data_v17', JSON.stringify(data.propostas));
                         window.propostas = data.propostas;
                         console.log('Dados atualizados da nuvem:', propostas.length);
                         carregarEdits();
@@ -2505,18 +2528,11 @@
             }
 
             // Cache logic
-            const cache = localStorage.getItem('crm_data_v16');
+            const cache = localStorage.getItem('crm_data_v17');
             if (cache) {
                 propostas = JSON.parse(cache);
                 // Normalizar cache
-                propostas.forEach(p => {
-                    if (p.dataFechamento && (!p.fechamentoPrevisto || p.fechamentoPrevisto === "-" || p.fechamentoPrevisto === "")) {
-                        p.fechamentoPrevisto = p.dataFechamento;
-                    }
-                    if (p.dataFollowup && (!p.proximoFollowup || p.proximoFollowup === "-" || p.proximoFollowup === "")) {
-                        p.proximoFollowup = p.dataFollowup;
-                    }
-                });
+                propostas.forEach(normalizarProposta);
                 window.propostas = propostas;
             }
             carregarEdits();
@@ -2715,7 +2731,8 @@
                 else if (p.valor > 5000) score += 10;
 
                 // Probabilidade/Status (0-30 pontos)
-                const prob = p.probabilidade || '';
+                // DEFENSIVO: converter para String para evitar crash em .includes()
+                const prob = String(p.probabilidade || '');
                 const status = p.status || '';
 
                 if (prob.includes('100') || status === 'Fechada') score += 30;
