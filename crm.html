@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CRM Toposcan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -13,30 +16,45 @@
         }
 
         :root {
-            --bg-primary: #0f1419;
-            --bg-secondary: #1a1a2e;
-            --bg-tertiary: #252540;
-            --text-primary: #eee;
-            --text-secondary: #888;
+            --bg-primary: #0a0e1a;
+            --bg-secondary: rgba(20, 27, 45, 0.85);
+            --bg-tertiary: rgba(30, 40, 65, 0.7);
+            --text-primary: #e8ecf4;
+            --text-secondary: #7a8ba8;
             --accent: #00d4ff;
-            --border: #333;
-            --bg-header: #000;
+            --accent-secondary: #7c3aed;
+            --border: rgba(255,255,255,0.08);
+            --bg-header: rgba(10, 14, 26, 0.95);
+            --glass-bg: rgba(255,255,255,0.04);
+            --glass-border: rgba(255,255,255,0.08);
+            --gradient-1: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            --gradient-2: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+            --gradient-3: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.4);
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.2);
         }
 
         .modo-claro {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f5f5f5;
-            --bg-tertiary: #e8e8e8;
-            --text-primary: #111;
-            --text-secondary: #555;
-            --accent: #0077ff;
-            --border: #ddd;
-            --bg-header: #f0f0f0;
+            --bg-primary: #f0f4f8;
+            --bg-secondary: rgba(255, 255, 255, 0.9);
+            --bg-tertiary: rgba(230, 235, 245, 0.8);
+            --text-primary: #1a202c;
+            --text-secondary: #64748b;
+            --accent: #0284c7;
+            --accent-secondary: #6d28d9;
+            --border: rgba(0,0,0,0.08);
+            --bg-header: rgba(255,255,255,0.95);
+            --glass-bg: rgba(255,255,255,0.6);
+            --glass-border: rgba(0,0,0,0.06);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.1);
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.06);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
+            background-image: radial-gradient(ellipse at 20% 50%, rgba(0,212,255,0.05) 0%, transparent 50%),
+                              radial-gradient(ellipse at 80% 20%, rgba(124,58,237,0.05) 0%, transparent 50%);
             color: var(--text-primary);
             padding: 15px;
             min-height: 100vh;
@@ -46,23 +64,38 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
+            padding: 15px 20px;
             background: var(--bg-secondary);
-            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
             margin-bottom: 15px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-card);
         }
 
         h1 {
             font-size: 1.4em;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         .theme-toggle {
             background: var(--bg-tertiary);
             color: var(--text-primary);
-            border: 1px solid var(--border);
+            border: 1px solid var(--glass-border);
             padding: 8px 16px;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: #000;
+            transform: translateY(-1px);
         }
 
         /* --- NOTIFICATION BELL CSS --- */
@@ -193,31 +226,63 @@
         .stats {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 15px;
         }
 
         .stat-card {
             background: var(--bg-secondary);
-            padding: 15px;
-            border-radius: 10px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 18px;
+            border-radius: 14px;
             text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-1);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,212,255,0.15);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
         }
 
         .stat-card .value {
-            font-size: 1.4em;
-            font-weight: bold;
+            font-size: 1.6em;
+            font-weight: 800;
             color: var(--accent);
+            letter-spacing: -0.02em;
         }
 
         .stat-card .label {
-            font-size: 0.75em;
+            font-size: 0.72em;
             color: var(--text-secondary);
-            margin-top: 5px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
         }
 
         .stat-card.fechado {
-            background: linear-gradient(135deg, #22c55e, #16a34a);
+            background: var(--gradient-2);
+            border: none;
         }
 
         .stat-card.fechado .value,
@@ -225,16 +290,31 @@
             color: #fff;
         }
 
+        .stat-card.fechado:hover {
+            box-shadow: 0 8px 30px rgba(34,197,94,0.3);
+        }
+
         .card {
             background: var(--bg-secondary);
-            padding: 20px;
-            border-radius: 12px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 22px;
+            border-radius: 16px;
             margin-bottom: 15px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-card);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 40px rgba(0,0,0,0.25);
         }
 
         .card h2 {
             font-size: 1.1em;
             margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .filters {
@@ -246,14 +326,23 @@
 
         .filters select,
         .filters input {
-            padding: 10px 12px;
+            padding: 10px 14px;
             background: var(--bg-tertiary);
             color: var(--text-primary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
             font-size: 14px;
             flex: 1;
             min-width: 140px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .filters select:focus,
+        .filters input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
         }
 
         #mobileSortContainer {
@@ -280,16 +369,30 @@
             min-width: 100px;
             padding: 12px 15px;
             background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: none;
-            border-radius: 8px;
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 0.85em;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.01em;
+        }
+
+        .tab-btn:hover {
+            background: var(--glass-bg);
+            color: var(--accent);
+            border-color: rgba(0,212,255,0.2);
+            transform: translateY(-1px);
         }
 
         .tab-btn.active {
-            background: var(--accent);
+            background: var(--gradient-1);
             color: #fff;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0,212,255,0.3);
+            font-weight: 600;
         }
 
         .menu-toggle {
@@ -356,50 +459,65 @@
 
         th,
         td {
-            padding: 10px 8px;
+            padding: 12px 10px;
             text-align: left;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         th {
             background: var(--bg-tertiary);
             cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--glass-bg);
         }
 
         .status {
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 20px;
-            font-size: 0.75em;
-            font-weight: 500;
+            font-size: 0.7em;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
         }
 
         .status.lead {
-            background: #8b5cf6;
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             color: #fff;
         }
 
         .status.enviada {
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             color: #fff;
         }
 
         .status.pendente {
-            background: #f59e0b;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             color: #fff;
         }
 
         .status.standby {
-            background: #6b7280;
+            background: linear-gradient(135deg, #6b7280, #4b5563);
             color: #fff;
         }
 
         .status.fechada {
-            background: #22c55e;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             color: #fff;
         }
 
         .status.perdida {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
             color: #fff;
         }
 
@@ -411,31 +529,45 @@
         }
 
         .kanban-column {
-            min-width: 200px;
+            min-width: 220px;
             background: var(--bg-tertiary);
-            border-radius: 10px;
-            padding: 12px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 14px;
+            padding: 14px;
             flex-shrink: 0;
+            border: 1px solid var(--glass-border);
         }
 
         .kanban-column h3 {
-            font-size: 0.9em;
+            font-size: 0.85em;
             margin-bottom: 10px;
             padding-bottom: 8px;
-            border-bottom: 2px solid var(--accent);
+            border-bottom: 2px solid;
+            border-image: var(--gradient-1) 1;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .kanban-item {
             background: var(--bg-secondary);
-            padding: 8px;
-            border-radius: 6px;
+            padding: 10px;
+            border-radius: 8px;
             margin-bottom: 6px;
             font-size: 0.75em;
+            border: 1px solid var(--glass-border);
+            transition: all 0.2s ease;
+        }
+
+        .kanban-item:hover {
+            transform: translateX(3px);
+            border-color: var(--accent);
         }
 
         .kanban-item .valor {
             color: var(--accent);
-            font-weight: bold;
+            font-weight: 700;
         }
 
         #comandoKael {
@@ -469,17 +601,31 @@
 
         .modal-content {
             background: var(--bg-secondary);
-            border-radius: 15px;
-            padding: 25px;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 20px;
+            padding: 28px;
             max-width: 500px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .modal h2 {
             margin-bottom: 20px;
-            color: var(--accent);
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
         }
 
         .modal .form-group {
@@ -594,13 +740,19 @@
 
             .proposta-card {
                 background: var(--bg-tertiary);
-                padding: 14px;
-                border-radius: 10px;
+                padding: 16px;
+                border-radius: 12px;
                 margin-bottom: 12px;
+                border: 1px solid var(--glass-border);
+                transition: all 0.2s ease;
+            }
+
+            .proposta-card:active {
+                transform: scale(0.98);
             }
 
             .proposta-card .cliente {
-                font-weight: bold;
+                font-weight: 700;
                 color: var(--accent);
                 margin-bottom: 6px;
             }
@@ -612,7 +764,7 @@
             }
 
             .proposta-card .valor {
-                font-weight: bold;
+                font-weight: 800;
                 font-size: 1.1em;
                 color: var(--accent);
                 margin: 8px 0;
@@ -652,6 +804,10 @@
             width: 100%;
             height: 100%;
             background: var(--bg-primary);
+            background-image: 
+                radial-gradient(ellipse at 30% 40%, rgba(0,212,255,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(124,58,237,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(34,197,94,0.06) 0%, transparent 50%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -664,70 +820,97 @@
 
         .login-box {
             background: var(--bg-secondary);
-            padding: 40px 30px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 44px 34px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
             text-align: center;
             width: 90%;
-            max-width: 380px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            box-shadow: var(--shadow-lg);
+            animation: loginFadeIn 0.6s ease-out;
+        }
+
+        @keyframes loginFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
         .login-box img {
             height: 80px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .login-box h2 {
-            color: var(--accent);
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 8px;
-            font-size: 1.3em;
+            font-size: 1.4em;
+            font-weight: 800;
+            letter-spacing: -0.02em;
         }
 
         .login-box p {
             color: var(--text-secondary);
             font-size: 0.85em;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .login-box input {
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            padding: 13px 18px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
             background: var(--bg-tertiary);
             color: var(--text-primary);
             font-size: 1em;
             margin-bottom: 12px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
         }
 
         .login-box input:focus {
             outline: none;
             border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.15);
         }
 
         .login-box button {
             width: 100%;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 13px;
+            border-radius: 10px;
             border: none;
-            background: var(--accent);
-            color: #000;
-            font-weight: bold;
+            background: var(--gradient-1);
+            color: #fff;
+            font-weight: 700;
             font-size: 1em;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.02em;
         }
 
         .login-box button:hover {
-            opacity: 0.85;
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,212,255,0.3);
         }
 
         .login-error {
-            color: #ff4444;
+            color: #ef4444;
             font-size: 0.85em;
             margin-top: 8px;
             display: none;
+            font-weight: 500;
         }
 
         #crmContent {
@@ -736,6 +919,12 @@
 
         #crmContent.active {
             display: block;
+            animation: contentFadeIn 0.4s ease-out;
+        }
+
+        @keyframes contentFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         @media (max-width: 600px) {
@@ -1857,7 +2046,7 @@
         <script src="proposals.js"></script>
         <script>
             console.log('=== CRM SCRIPT STARTING ===');
-            const CACHE_VERSION = '2026-04-09-v17-consolidated';
+            const CACHE_VERSION = '2026-04-09-v18-newurl';
 
             // XSS sanitizer
             function esc(str) {
@@ -2251,7 +2440,7 @@
                 });
 
                 try {
-                    const response = await fetch('https://script.google.com/macros/s/AKfycbyT1GlDWqWFml8HvjQJUe-8yhMLas_DUYPl2_MRx-2h8uecxuGbW8XORtw3sZN4PkRNXg/exec', {
+                    const response = await fetch('https://script.google.com/macros/s/AKfycbwhErtnKzcu3Q_jVhCYLQ1cYulqd3YU_U7y4TJW5hS3mBW7VmfBzlp01EA3C-MWgVixgw/exec', {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({ token: 'toposcan-crm-2026-v2', edits: edits, newLeads: newLeads })
@@ -2319,7 +2508,7 @@
 
                 try {
                     // Try to save edits via Cloud Bridge Direct since local server might be offline
-                    const response = await fetch('https://script.google.com/macros/s/AKfycbyT1GlDWqWFml8HvjQJUe-8yhMLas_DUYPl2_MRx-2h8uecxuGbW8XORtw3sZN4PkRNXg/exec', {
+                    const response = await fetch('https://script.google.com/macros/s/AKfycbwhErtnKzcu3Q_jVhCYLQ1cYulqd3YU_U7y4TJW5hS3mBW7VmfBzlp01EA3C-MWgVixgw/exec', {
                         method: 'POST',
                         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                         body: JSON.stringify({ token: 'toposcan-crm-2026-v2', edits: edits, newLeads: newLeads })
@@ -2506,14 +2695,14 @@
 
             // Try to load latest data from Cloud Bridge
             async function puxarDadosDaNuvem() {
-                const cloudUrl = 'https://script.google.com/macros/s/AKfycbyT1GlDWqWFml8HvjQJUe-8yhMLas_DUYPl2_MRx-2h8uecxuGbW8XORtw3sZN4PkRNXg/exec';
+                const cloudUrl = 'https://script.google.com/macros/s/AKfycbwhErtnKzcu3Q_jVhCYLQ1cYulqd3YU_U7y4TJW5hS3mBW7VmfBzlp01EA3C-MWgVixgw/exec';
                 try {
                     const response = await fetch(cloudUrl + '?action=getdata');
                     const data = await response.json();
                     if (data && data.propostas) {
                         data.propostas.forEach(normalizarProposta);
                         propostas = data.propostas;
-                        localStorage.setItem('crm_data_v17', JSON.stringify(data.propostas));
+                        localStorage.setItem('crm_data_v18', JSON.stringify(data.propostas));
                         window.propostas = data.propostas;
                         console.log('Dados atualizados da nuvem:', propostas.length);
                         carregarEdits();
@@ -2528,7 +2717,7 @@
             }
 
             // Cache logic
-            const cache = localStorage.getItem('crm_data_v17');
+            const cache = localStorage.getItem('crm_data_v18');
             if (cache) {
                 propostas = JSON.parse(cache);
                 // Normalizar cache
