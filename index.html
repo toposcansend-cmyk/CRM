@@ -1361,6 +1361,358 @@
                 white-space: nowrap !important;
             }
         }
+
+        /* === EVOLUÇÃO TAB === */
+        .evo-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .evo-period-group {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            padding: 3px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .evo-period-btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.82em;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all 0.25s ease;
+            letter-spacing: 0.02em;
+        }
+
+        .evo-period-btn:hover {
+            color: var(--accent);
+            background: rgba(0,212,255,0.08);
+        }
+
+        .evo-period-btn.active {
+            background: var(--gradient-1);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(0,212,255,0.3);
+        }
+
+        .evo-toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .evo-toggle-label {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .evo-toggle {
+            position: relative;
+            width: 42px;
+            height: 22px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .evo-toggle.active {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            border-color: transparent;
+        }
+
+        .evo-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        .evo-toggle.active::after {
+            left: 22px;
+        }
+
+        .evo-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .evo-filter-select {
+            padding: 7px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            font-size: 0.82em;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            min-width: 120px;
+        }
+
+        .evo-filter-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0,212,255,0.12);
+        }
+
+        .evo-summary {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .evo-summary-item {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .evo-summary-value {
+            font-size: 1.4em;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .evo-summary-label {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .evo-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+        }
+
+        .evo-bar-row:hover {
+            background: rgba(0,212,255,0.06);
+            transform: translateX(2px);
+        }
+
+        .evo-bar-row.selected {
+            background: rgba(0,212,255,0.1);
+            border-left: 3px solid var(--accent);
+            padding-left: 7px;
+        }
+
+        .evo-bar-label {
+            min-width: 70px;
+            font-weight: 700;
+            font-size: 0.88em;
+            flex-shrink: 0;
+        }
+
+        .evo-bar-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .evo-bar-track {
+            display: flex;
+            align-items: center;
+            height: 18px;
+        }
+
+        .evo-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            min-width: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .evo-bar-fill.fechado {
+            background: linear-gradient(90deg, #22c55e, #16a34a);
+        }
+
+        .evo-bar-fill.previsto {
+            background: linear-gradient(90deg, #60a5fa, #3b82f6);
+        }
+
+        .evo-bar-value-inline {
+            margin-left: 6px;
+            font-size: 0.7em;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .evo-bar-total {
+            min-width: 100px;
+            text-align: right;
+            color: var(--accent);
+            font-weight: 700;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+
+        /* Detail list */
+        .evo-detail-panel {
+            margin-top: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+            animation: evoSlideDown 0.3s ease;
+        }
+
+        @keyframes evoSlideDown {
+            from { opacity: 0; max-height: 0; transform: translateY(-10px); }
+            to { opacity: 1; max-height: 2000px; transform: translateY(0); }
+        }
+
+        .evo-detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .evo-detail-header h3 {
+            font-size: 0.95em;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .evo-detail-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .evo-detail-close:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--text-primary);
+        }
+
+        .evo-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82em;
+        }
+
+        .evo-detail-table th {
+            background: rgba(0,0,0,0.15);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.78em;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+        }
+
+        .evo-detail-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .evo-detail-table tr:hover td {
+            background: rgba(0,212,255,0.04);
+        }
+
+        /* Line chart */
+        .evo-line-card {
+            margin-top: 15px;
+        }
+
+        .evo-line-card h2 {
+            font-size: 1.1em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .evo-line-chart-container {
+            position: relative;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .evo-line-chart-container svg {
+            display: block;
+        }
+
+        .evo-chart-dot {
+            transition: r 0.2s ease;
+            cursor: pointer;
+        }
+
+        .evo-chart-dot:hover {
+            r: 6;
+        }
+
+        .evo-chart-tooltip {
+            position: absolute;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.8em;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            white-space: nowrap;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .evo-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .evo-bar-label {
+                min-width: 55px;
+                font-size: 0.78em;
+            }
+            .evo-bar-total {
+                min-width: 75px;
+                font-size: 0.8em;
+            }
+            .evo-summary {
+                gap: 12px;
+            }
+            .evo-summary-value {
+                font-size: 1.1em;
+            }
+            .evo-detail-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
     </style>
 </head>
 
@@ -1701,10 +2053,46 @@
 
         <div id="evolucao" class="section">
             <div class="card">
-                <h2>Fechamento por Mes</h2>
+                <!-- Controls bar -->
+                <div class="evo-controls">
+                    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                        <div class="evo-period-group">
+                            <button class="evo-period-btn active" onclick="evoTrocarPeriodo('mes', this)">Mes</button>
+                            <button class="evo-period-btn" onclick="evoTrocarPeriodo('trimestre', this)">Trimestre</button>
+                            <button class="evo-period-btn" onclick="evoTrocarPeriodo('ano', this)">Ano</button>
+                        </div>
+                        <div class="evo-filters">
+                            <select id="evoAnoFilter" class="evo-filter-select" onchange="renderizarEvolucao()">
+                                <option value="">Todos os Anos</option>
+                            </select>
+                            <select id="evoVendedorFilter" class="evo-filter-select" onchange="renderizarEvolucao()">
+                                <option value="">Todos Vendedores</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="evo-toggle-group">
+                        <span class="evo-toggle-label">Previsto</span>
+                        <div class="evo-toggle active" id="evoPrevistToggle" onclick="evoTogglePrevisto()"></div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div id="evoSummary" class="evo-summary"></div>
+
+                <!-- Bar chart -->
                 <div id="evolucaoChart"></div>
+
+                <!-- Detail panel (hidden by default) -->
+                <div id="evoDetailPanel"></div>
+            </div>
+
+            <!-- Line chart card -->
+            <div class="card evo-line-card">
+                <h2>Faturamento Acumulado</h2>
+                <div id="evoLineChart" class="evo-line-chart-container"></div>
             </div>
         </div>
+
 
         <div id="orcamento" class="section">
             <header class="header">
@@ -2303,125 +2691,400 @@
                 }).join('');
             }
 
-            function renderizarEvolucao() {
-                const mesesFechados = {};
-                const mesesPrevisao = {};
-                const primeiro = new Date(2025, 1, 1);
+            // === EVOLUÇÃO TAB STATE ===
+            var evoPeriodo = 'mes';
+            var evoMostrarPrevisto = true;
+            var evoSelectedKey = null;
 
-                const atual = new Date();
-                const limitePrevisao = new Date(atual.getFullYear(), atual.getMonth(), 1);
+            function evoTrocarPeriodo(periodo, btn) {
+                evoPeriodo = periodo;
+                document.querySelectorAll('.evo-period-btn').forEach(function(b) { b.classList.remove('active'); });
+                if (btn) btn.classList.add('active');
+                evoSelectedKey = null;
+                renderizarEvolucao();
+            }
 
-                let totalPrevisto = 0;
+            function evoTogglePrevisto() {
+                evoMostrarPrevisto = !evoMostrarPrevisto;
+                var toggle = document.getElementById('evoPrevistToggle');
+                if (toggle) toggle.classList.toggle('active', evoMostrarPrevisto);
+                renderizarEvolucao();
+            }
 
-                propostas.forEach(function (p) {
-                    let d = null;
-                    const data = (p.fechamentoPrevisto || p.dataProposta || '').trim();
-                    if (!data) return;
+            function evoParseDate(p) {
+                var data = (p.fechamentoPrevisto || p.dataProposta || '').trim();
+                if (!data) return null;
+                var parts = data.split('/');
+                if (parts.length === 3) {
+                    var dia = parseInt(parts[0]);
+                    var mes = parseInt(parts[1]);
+                    var ano = parseInt(parts[2]);
+                    if (parts[2].length === 2) ano = 2000 + ano;
+                    return new Date(ano, mes - 1, dia);
+                } else if (parts.length === 2) {
+                    var mes2 = parseInt(parts[0]);
+                    var ano2 = parseInt(parts[1]);
+                    if (parts[1].length === 2) ano2 = 2000 + ano2;
+                    return new Date(ano2, mes2 - 1, 1);
+                }
+                return null;
+            }
 
-                    const parts = data.split('/');
-                    if (parts.length === 3) {
-                        const dia = parseInt(parts[0]);
-                        const mes = parseInt(parts[1]);
-                        let ano = parseInt(parts[2]);
-                        if (parts[2].length === 2) ano = 2000 + ano;
-                        d = new Date(ano, mes - 1, dia);
-                    } else if (parts.length === 2) {
-                        const mes = parseInt(parts[0]);
-                        let ano = parseInt(parts[1]);
-                        if (parts[1].length === 2) ano = 2000 + ano;
-                        d = new Date(ano, mes - 1, 1);
+            function evoGetPeriodKey(d, periodo) {
+                if (periodo === 'mes') {
+                    return (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+                } else if (periodo === 'trimestre') {
+                    var q = Math.floor(d.getMonth() / 3) + 1;
+                    return 'Q' + q + '/' + d.getFullYear();
+                } else {
+                    return '' + d.getFullYear();
+                }
+            }
+
+            function evoSortKeys(keys, periodo) {
+                return keys.sort(function(a, b) {
+                    if (periodo === 'ano') return parseInt(a) - parseInt(b);
+                    if (periodo === 'trimestre') {
+                        var pa = a.split('/'), pb = b.split('/');
+                        var ya = parseInt(pa[1]), yb = parseInt(pb[1]);
+                        var qa = parseInt(pa[0].replace('Q','')), qb = parseInt(pb[0].replace('Q',''));
+                        return (ya * 10 + qa) - (yb * 10 + qb);
                     }
+                    var ma = a.split('/').map(Number), mb = b.split('/').map(Number);
+                    return new Date(ma[1], ma[0] - 1) - new Date(mb[1], mb[0] - 1);
+                });
+            }
 
+            function evoClickPeriodo(key) {
+                if (evoSelectedKey === key) {
+                    evoSelectedKey = null;
+                    document.getElementById('evoDetailPanel').innerHTML = '';
+                    document.querySelectorAll('.evo-bar-row').forEach(function(r) { r.classList.remove('selected'); });
+                    return;
+                }
+                evoSelectedKey = key;
+                document.querySelectorAll('.evo-bar-row').forEach(function(r) {
+                    r.classList.toggle('selected', r.getAttribute('data-key') === key);
+                });
+                evoRenderDetail(key);
+            }
+
+            function evoFecharDetalhe() {
+                evoSelectedKey = null;
+                document.getElementById('evoDetailPanel').innerHTML = '';
+                document.querySelectorAll('.evo-bar-row').forEach(function(r) { r.classList.remove('selected'); });
+            }
+
+            function evoRenderDetail(key) {
+                var evoAno = document.getElementById('evoAnoFilter').value;
+                var evoVendedor = document.getElementById('evoVendedorFilter').value;
+                var primeiro = new Date(2025, 1, 1);
+                var items = [];
+
+                propostas.forEach(function(p) {
+                    var d = evoParseDate(p);
                     if (!d || d < primeiro) return;
-                    const key = (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+                    if (evoAno && d.getFullYear() !== parseInt(evoAno)) return;
+                    if (evoVendedor && p.vendedor !== evoVendedor) return;
+                    var pk = evoGetPeriodKey(d, evoPeriodo);
+                    if (pk !== key) return;
+                    if (p.status === 'Fechada' || (evoMostrarPrevisto && p.status !== 'Perdida')) {
+                        items.push(p);
+                    }
+                });
+
+                items.sort(function(a, b) { return (b.valor || 0) - (a.valor || 0); });
+
+                var totalVal = items.reduce(function(s, p) { return s + (p.valor || 0); }, 0);
+                var fechadasCount = items.filter(function(p) { return p.status === 'Fechada'; }).length;
+
+                var html = '<div class="evo-detail-panel">';
+                html += '<div class="evo-detail-header">';
+                html += '<h3>' + key + ' — ' + items.length + ' propostas (' + fechadasCount + ' fechadas) — R$ ' + totalVal.toLocaleString('pt-BR') + '</h3>';
+                html += '<button class="evo-detail-close" onclick="evoFecharDetalhe()">&#x2715;</button>';
+                html += '</div>';
+
+                if (items.length === 0) {
+                    html += '<div style="padding:20px;text-align:center;color:var(--text-secondary)">Nenhuma proposta neste periodo</div>';
+                } else {
+                    html += '<table class="evo-detail-table"><thead><tr>';
+                    html += '<th>Cliente</th><th>Servico</th><th>Valor</th><th>Data</th><th>Vendedor</th><th>Status</th>';
+                    html += '</tr></thead><tbody>';
+                    items.forEach(function(p) {
+                        var statusClass = (p.status || '').toLowerCase();
+                        html += '<tr>';
+                        html += '<td style="font-weight:600">' + (p.cliente || '-') + '</td>';
+                        html += '<td>' + (p.servico || '-') + '</td>';
+                        html += '<td style="color:var(--accent);font-weight:700">R$ ' + (p.valor || 0).toLocaleString('pt-BR') + '</td>';
+                        html += '<td>' + (p.fechamentoPrevisto || p.dataProposta || '-') + '</td>';
+                        html += '<td>' + (p.vendedor || '-') + '</td>';
+                        html += '<td><span class="status ' + statusClass + '">' + (p.status || '-') + '</span></td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table>';
+                }
+                html += '</div>';
+
+                document.getElementById('evoDetailPanel').innerHTML = html;
+                // Scroll to detail
+                setTimeout(function() {
+                    var panel = document.getElementById('evoDetailPanel');
+                    if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            }
+
+            function renderizarEvolucao() {
+                var evoAno = document.getElementById('evoAnoFilter') ? document.getElementById('evoAnoFilter').value : '';
+                var evoVendedor = document.getElementById('evoVendedorFilter') ? document.getElementById('evoVendedorFilter').value : '';
+
+                // Populate filter dropdowns dynamically
+                var anoSet = new Set();
+                var vendedorSet = new Set();
+                propostas.forEach(function(p) {
+                    var d = evoParseDate(p);
+                    if (d) anoSet.add(d.getFullYear());
+                    if (p.vendedor && p.vendedor.trim()) vendedorSet.add(p.vendedor.trim());
+                });
+
+                var anoSelect = document.getElementById('evoAnoFilter');
+                if (anoSelect) {
+                    var currentAno = anoSelect.value;
+                    var anoOpts = '<option value="">Todos os Anos</option>';
+                    Array.from(anoSet).sort(function(a,b) { return b - a; }).forEach(function(a) {
+                        anoOpts += '<option value="' + a + '"' + (currentAno == a ? ' selected' : '') + '>' + a + '</option>';
+                    });
+                    anoSelect.innerHTML = anoOpts;
+                }
+
+                var vendSelect = document.getElementById('evoVendedorFilter');
+                if (vendSelect) {
+                    var currentVend = vendSelect.value;
+                    var vendOpts = '<option value="">Todos Vendedores</option>';
+                    Array.from(vendedorSet).sort().forEach(function(v) {
+                        vendOpts += '<option value="' + v + '"' + (currentVend === v ? ' selected' : '') + '>' + v + '</option>';
+                    });
+                    vendSelect.innerHTML = vendOpts;
+                }
+
+                // Process data
+                var fechados = {};
+                var previsao = {};
+                var propostasPorKey = {};
+                var primeiro = new Date(2025, 1, 1);
+                var atual = new Date();
+                var limitePrevisao = new Date(atual.getFullYear(), atual.getMonth(), 1);
+                var totalPrevisto = 0;
+                var totalFechadasVal = 0;
+                var countFechadas = 0;
+                var countPrevisao = 0;
+
+                propostas.forEach(function(p) {
+                    var d = evoParseDate(p);
+                    if (!d || d < primeiro) return;
+                    if (evoAno && d.getFullYear() !== parseInt(evoAno)) return;
+                    if (evoVendedor && p.vendedor !== evoVendedor) return;
+
+                    var key = evoGetPeriodKey(d, evoPeriodo);
+
+                    if (!propostasPorKey[key]) propostasPorKey[key] = [];
+                    propostasPorKey[key].push(p);
 
                     if (p.status === 'Fechada') {
-                        mesesFechados[key] = (mesesFechados[key] || 0) + (p.valor || 0);
+                        fechados[key] = (fechados[key] || 0) + (p.valor || 0);
+                        totalFechadasVal += (p.valor || 0);
+                        countFechadas++;
                     } else if (p.status !== 'Perdida') {
-                        // Considera como previsão apenas do mês atual em diante
-                        const isMesAtualOuFuturo = new Date(d.getFullYear(), d.getMonth(), 1) >= limitePrevisao;
-                        if (isMesAtualOuFuturo) {
-                            mesesPrevisao[key] = (mesesPrevisao[key] || 0) + (p.valor || 0);
+                        var isFuturo = new Date(d.getFullYear(), d.getMonth(), 1) >= limitePrevisao;
+                        if (isFuturo) {
+                            previsao[key] = (previsao[key] || 0) + (p.valor || 0);
                             totalPrevisto += (p.valor || 0);
+                            countPrevisao++;
                         }
                     }
                 });
 
-                const todasAsChaves = new Set([...Object.keys(mesesFechados), ...Object.keys(mesesPrevisao)]);
-                const sorted = Array.from(todasAsChaves).sort(function (a, b) {
-                    const [ma, aa] = a.split('/').map(Number);
-                    const [mb, ab] = b.split('/').map(Number);
-                    return new Date(aa, ma - 1) - new Date(ab, mb - 1);
-                });
+                // Summary
+                var summaryHtml = '<div class="evo-summary-item">';
+                summaryHtml += '<span class="evo-summary-value" style="color:var(--accent)">R$ ' + totalFechadasVal.toLocaleString('pt-BR') + '</span>';
+                summaryHtml += '<span class="evo-summary-label">fechado (' + countFechadas + ')</span>';
+                summaryHtml += '</div>';
+                if (evoMostrarPrevisto) {
+                    summaryHtml += '<div class="evo-summary-item">';
+                    summaryHtml += '<span class="evo-summary-value" style="color:#3b82f6">R$ ' + totalPrevisto.toLocaleString('pt-BR') + '</span>';
+                    summaryHtml += '<span class="evo-summary-label">previsto (' + countPrevisao + ')</span>';
+                    summaryHtml += '</div>';
+                }
+                var summaryEl = document.getElementById('evoSummary');
+                if (summaryEl) summaryEl.innerHTML = summaryHtml;
 
-                const totalFechadas = propostas.filter(p => p.status === 'Fechada').reduce((s, p) => s + (p.valor || 0), 0);
+                // Build sorted keys
+                var allKeys = new Set(Object.keys(fechados).concat(Object.keys(previsao)));
+                var sorted = evoSortKeys(Array.from(allKeys), evoPeriodo);
 
-                const container = document.getElementById('evolucaoChart');
-
+                var container = document.getElementById('evolucaoChart');
                 if (sorted.length === 0) {
-                    container.innerHTML = '<p style="color:var(--text-secondary)">Nenhuma data encontrada</p>';
+                    container.innerHTML = '<p style="color:var(--text-secondary);padding:20px 0">Nenhuma data encontrada</p>';
+                    document.getElementById('evoDetailPanel').innerHTML = '';
+                    renderizarFaturamentoLinha([], {}, evoPeriodo);
                     return;
                 }
 
-                // Reference max value to calculate percentage relative uniformly
-                let maxValorMensal = 0;
-                sorted.forEach(mes => {
-                    const st = (mesesFechados[mes] || 0) + (mesesPrevisao[mes] || 0);
-                    if (st > maxValorMensal) maxValorMensal = st;
+                // Max value for bar scaling
+                var maxVal = 0;
+                sorted.forEach(function(k) {
+                    var total = (fechados[k] || 0) + (evoMostrarPrevisto ? (previsao[k] || 0) : 0);
+                    if (total > maxVal) maxVal = total;
                 });
+                if (maxVal === 0) maxVal = 1;
 
-                // Fallback Se maxValorMensal for 0 (ex. filtro não encontrar num)
-                if (maxValorMensal === 0) maxValorMensal = 1;
+                // Render bars
+                var html = '<div style="display:flex;flex-direction:column">';
+                sorted.forEach(function(k) {
+                    var vF = fechados[k] || 0;
+                    var vP = evoMostrarPrevisto ? (previsao[k] || 0) : 0;
+                    var pctF = (vF / maxVal * 100).toFixed(1);
+                    var pctP = (vP / maxVal * 100).toFixed(1);
+                    var isSelected = evoSelectedKey === k;
 
-                var html = '<div style="margin-bottom:20px; display: flex; gap: 20px;">';
-                html += '<div><span style="font-size:1.5em;font-weight:bold;color:var(--accent)">R$ ' + totalFechadas.toLocaleString() + '</span><span style="color:var(--text-secondary)"> total fechado</span></div>';
-                html += '<div><span style="font-size:1.5em;font-weight:bold;color:#3b82f6">R$ ' + totalPrevisto.toLocaleString() + '</span><span style="color:var(--text-secondary)"> total previsto</span></div>';
-                html += '</div>';
+                    html += '<div class="evo-bar-row' + (isSelected ? ' selected' : '') + '" data-key="' + k + '" onclick="evoClickPeriodo(\'' + k + '\')">';
+                    html += '<span class="evo-bar-label">' + k + '</span>';
+                    html += '<div class="evo-bar-container">';
 
-                html += '<div style="display:flex;flex-direction:column;gap:12px">';
-
-                for (var i = 0; i < sorted.length; i++) {
-                    var mes = sorted[i];
-                    var vFechado = mesesFechados[mes] || 0;
-                    var vPrevisto = mesesPrevisao[mes] || 0;
-
-                    var pctFechado = (vFechado / maxValorMensal * 100).toFixed(1);
-                    var pctPrevisto = (vPrevisto / maxValorMensal * 100).toFixed(1);
-
-                    html += '<div style="display:flex;align-items:center;gap:10px">';
-                    html += '<span style="min-width:60px;font-weight:bold;font-size:0.9em;">' + mes + '</span>';
-
-                    html += '<div style="flex:1; display:flex; flex-direction:column; gap:2px;">';
-
-                    // Barra Fechado
-                    if (vFechado > 0) {
-                        html += '<div style="display:flex; align-items:center; height:16px;">';
-                        html += '<div style="width:' + pctFechado + '%;background:linear-gradient(90deg,#22c55e,#16a34a);height:100%;border-radius:2px;"></div>';
-                        html += '<span style="margin-left:5px; font-size:0.7em; color:var(--text-secondary)">R$ ' + vFechado.toLocaleString() + '</span>';
+                    if (vF > 0) {
+                        html += '<div class="evo-bar-track">';
+                        html += '<div class="evo-bar-fill fechado" style="width:' + pctF + '%"></div>';
+                        html += '<span class="evo-bar-value-inline">R$ ' + vF.toLocaleString('pt-BR') + '</span>';
                         html += '</div>';
-                    } else if (vPrevisto > 0) {
-                        html += '<div style="height:16px;"></div>'; // Placeholder
+                    } else if (vP > 0) {
+                        html += '<div style="height:18px"></div>';
                     }
 
-                    // Barra Previsto
-                    if (vPrevisto > 0) {
-                        html += '<div style="display:flex; align-items:center; height:16px;">';
-                        html += '<div style="width:' + pctPrevisto + '%;background:linear-gradient(90deg,#60a5fa,#3b82f6);height:100%;border-radius:2px;"></div>';
-                        html += '<span style="margin-left:5px; font-size:0.7em; color:var(--text-secondary)">R$ ' + vPrevisto.toLocaleString() + ' (Prev)</span>';
+                    if (vP > 0) {
+                        html += '<div class="evo-bar-track">';
+                        html += '<div class="evo-bar-fill previsto" style="width:' + pctP + '%"></div>';
+                        html += '<span class="evo-bar-value-inline">R$ ' + vP.toLocaleString('pt-BR') + ' (Prev)</span>';
                         html += '</div>';
                     }
 
                     html += '</div>';
-
-                    // Total do mês
-                    const totalMes = vFechado + vPrevisto;
-                    html += '<span style="min-width:90px;text-align:right;color:var(--accent);font-weight:bold;">R$ ' + totalMes.toLocaleString() + '</span>';
-
+                    var totalK = vF + vP;
+                    html += '<span class="evo-bar-total">R$ ' + totalK.toLocaleString('pt-BR') + '</span>';
                     html += '</div>';
-                }
+                });
                 html += '</div>';
 
                 container.innerHTML = html;
+
+                // Re-render detail if a key was selected
+                if (evoSelectedKey && sorted.indexOf(evoSelectedKey) >= 0) {
+                    evoRenderDetail(evoSelectedKey);
+                } else {
+                    document.getElementById('evoDetailPanel').innerHTML = '';
+                }
+
+                // Render line chart
+                renderizarFaturamentoLinha(sorted, fechados, evoPeriodo);
+            }
+
+            function renderizarFaturamentoLinha(sorted, fechados, periodo) {
+                var lineContainer = document.getElementById('evoLineChart');
+                if (!lineContainer) return;
+
+                if (sorted.length < 2) {
+                    lineContainer.innerHTML = '<p style="color:var(--text-secondary);padding:10px 0;font-size:0.9em">Dados insuficientes para o grafico de linha</p>';
+                    return;
+                }
+
+                // Build cumulative data
+                var cumulativo = [];
+                var acum = 0;
+                sorted.forEach(function(k) {
+                    acum += (fechados[k] || 0);
+                    cumulativo.push({ key: k, valor: acum, mensal: fechados[k] || 0 });
+                });
+
+                var maxCum = cumulativo[cumulativo.length - 1].valor || 1;
+
+                // SVG dimensions
+                var svgW = Math.max(sorted.length * 80, 600);
+                var svgH = 220;
+                var padL = 70, padR = 30, padT = 25, padB = 45;
+                var chartW = svgW - padL - padR;
+                var chartH = svgH - padT - padB;
+
+                // Points
+                var points = [];
+                cumulativo.forEach(function(item, i) {
+                    var x = padL + (i / (cumulativo.length - 1)) * chartW;
+                    var y = padT + chartH - (item.valor / maxCum) * chartH;
+                    points.push({ x: x, y: y, key: item.key, valor: item.valor, mensal: item.mensal });
+                });
+
+                // Build SVG
+                var svg = '<svg width="' + svgW + '" height="' + svgH + '" viewBox="0 0 ' + svgW + ' ' + svgH + '">';
+
+                // Grid lines
+                for (var g = 0; g <= 4; g++) {
+                    var gy = padT + (g / 4) * chartH;
+                    var gVal = maxCum - (g / 4) * maxCum;
+                    svg += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (svgW - padR) + '" y2="' + gy + '" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';
+                    svg += '<text x="' + (padL - 8) + '" y="' + (gy + 4) + '" fill="var(--text-secondary)" font-size="10" text-anchor="end" font-family="Inter">R$ ' + (gVal / 1000).toFixed(0) + 'K</text>';
+                }
+
+                // Area fill
+                var areaPath = 'M ' + points[0].x + ' ' + (padT + chartH);
+                points.forEach(function(pt) { areaPath += ' L ' + pt.x + ' ' + pt.y; });
+                areaPath += ' L ' + points[points.length - 1].x + ' ' + (padT + chartH) + ' Z';
+                svg += '<defs><linearGradient id="evoAreaGrad" x1="0" y1="0" x2="0" y2="1">';
+                svg += '<stop offset="0%" stop-color="#00d4ff" stop-opacity="0.25"/>';
+                svg += '<stop offset="100%" stop-color="#00d4ff" stop-opacity="0.02"/>';
+                svg += '</linearGradient></defs>';
+                svg += '<path d="' + areaPath + '" fill="url(#evoAreaGrad)"/>';
+
+                // Line
+                var linePath = 'M';
+                points.forEach(function(pt, i) {
+                    linePath += (i > 0 ? ' L ' : ' ') + pt.x + ' ' + pt.y;
+                });
+                svg += '<path d="' + linePath + '" fill="none" stroke="url(#evoLineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+                svg += '<defs><linearGradient id="evoLineGrad" x1="0" y1="0" x2="1" y2="0">';
+                svg += '<stop offset="0%" stop-color="#00d4ff"/>';
+                svg += '<stop offset="100%" stop-color="#7c3aed"/>';
+                svg += '</linearGradient></defs>';
+
+                // Dots and labels
+                points.forEach(function(pt, i) {
+                    svg += '<circle class="evo-chart-dot" cx="' + pt.x + '" cy="' + pt.y + '" r="4" fill="#00d4ff" stroke="#0a0e1a" stroke-width="2"';
+                    svg += ' onmouseenter="evoShowTooltip(evt,' + pt.valor + ',\'' + pt.key + '\',' + pt.mensal + ')"';
+                    svg += ' onmouseleave="evoHideTooltip()"/>';
+
+                    // X axis labels
+                    var labelRotate = sorted.length > 8 ? ' transform="rotate(-35 ' + pt.x + ' ' + (svgH - 8) + ')"' : '';
+                    svg += '<text x="' + pt.x + '" y="' + (svgH - 8) + '" fill="var(--text-secondary)" font-size="10" text-anchor="middle" font-family="Inter"' + labelRotate + '>' + pt.key + '</text>';
+                });
+
+                svg += '</svg>';
+
+                lineContainer.innerHTML = svg + '<div class="evo-chart-tooltip" id="evoTooltip"></div>';
+            }
+
+            function evoShowTooltip(evt, valor, key, mensal) {
+                var tooltip = document.getElementById('evoTooltip');
+                if (!tooltip) return;
+                tooltip.innerHTML = '<div style="font-weight:700;color:var(--accent)">' + key + '</div>'
+                    + '<div>Acumulado: <b>R$ ' + valor.toLocaleString('pt-BR') + '</b></div>'
+                    + '<div>No periodo: R$ ' + mensal.toLocaleString('pt-BR') + '</div>';
+                tooltip.style.display = 'block';
+                var rect = tooltip.parentElement.getBoundingClientRect();
+                var cx = evt.clientX - rect.left;
+                var cy = evt.clientY - rect.top;
+                tooltip.style.left = (cx + 15) + 'px';
+                tooltip.style.top = (cy - 10) + 'px';
+            }
+
+            function evoHideTooltip() {
+                var tooltip = document.getElementById('evoTooltip');
+                if (tooltip) tooltip.style.display = 'none';
             }
 
             // Save edits to local persistence server
