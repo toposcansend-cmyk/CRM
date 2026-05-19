@@ -581,6 +581,190 @@
             margin-top: 10px;
         }
 
+        /* ==================== FINANCEIRO ==================== */
+        .fin-kpi-card {
+            padding: 16px 18px;
+            border-radius: 14px;
+            color: #fff;
+            box-shadow: var(--shadow-card);
+        }
+        .fin-kpi-label { font-size: 0.85em; opacity: 0.92; margin-bottom: 6px; }
+        .fin-kpi-value { font-size: 1.6em; font-weight: 700; letter-spacing: -0.5px; }
+
+        .fin-view-btn {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .fin-view-btn:hover { color: var(--accent); border-color: rgba(0,212,255,0.3); }
+        .fin-view-btn.active {
+            background: var(--gradient-1);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+        }
+
+        .fin-status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+        .fin-status-Pago { background: rgba(34,197,94,0.18); color: #22c55e; }
+        .fin-status-Pendente { background: rgba(245,158,11,0.18); color: #f59e0b; }
+        .fin-status-Atrasado { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .fin-status-Cancelado { background: rgba(120,120,120,0.2); color: #888; }
+
+        .fin-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr 0.9fr 0.8fr 90px;
+            gap: 10px;
+            padding: 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .fin-row:hover { background: var(--bg-tertiary); border-color: rgba(0,212,255,0.3); transform: translateX(2px); }
+        .fin-row.atrasado { border-left: 4px solid #ef4444; }
+        .fin-row.pago { opacity: 0.65; }
+        .fin-row .fin-cliente { font-weight: 600; color: var(--text-primary); }
+        .fin-row .fin-sub { font-size: 0.78em; color: var(--text-secondary); margin-top: 2px; }
+        .fin-row .fin-valor { font-weight: 700; color: var(--accent); }
+        .fin-row .fin-acoes { display: flex; gap: 6px; justify-content: flex-end; }
+
+        .fin-header-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr 0.9fr 0.8fr 90px;
+            gap: 10px;
+            padding: 10px 12px;
+            font-size: 0.75em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .pay-tipo-btn {
+            padding: 10px 16px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        .pay-tipo-btn.active {
+            background: var(--gradient-1);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+        }
+
+        .pay-parcela-row {
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr 1.2fr;
+            gap: 8px;
+            padding: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+        .pay-parcela-row input, .pay-parcela-row select {
+            padding: 6px 8px;
+            font-size: 0.85em;
+        }
+        .pay-parcela-num {
+            font-weight: 700;
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .fin-kanban-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        .fin-kanban-col {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 200px;
+        }
+        .fin-kanban-col h4 {
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .fin-kanban-card {
+            background: var(--bg-tertiary);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fin-kanban-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+        .fin-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .fin-cal-day {
+            min-height: 80px;
+            padding: 6px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            font-size: 0.78em;
+        }
+        .fin-cal-day-num {
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .fin-cal-event {
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 5px;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            font-size: 0.7em;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .fin-cal-event.atrasado { background: #ef4444; }
+        .fin-cal-event.pago { background: #22c55e; }
+
+        @media (max-width: 768px) {
+            .fin-row, .fin-header-row {
+                grid-template-columns: 1fr;
+            }
+            .fin-header-row { display: none; }
+            .fin-row > div { padding: 2px 0; }
+            .fin-cal-day { min-height: 50px; font-size: 0.65em; }
+        }
+
         /* Modal de Edicao */
         .modal {
             display: none;
@@ -1739,7 +1923,8 @@
             'admin@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'guilherme@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'marcelo@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
-            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
+            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
+            'rafaela@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
         };
 
         async function sha256(message) {
@@ -1858,6 +2043,7 @@
                 <option value="Guilherme">Guilherme</option>
                 <option value="Marcelo">Marcelo</option>
                 <option value="Allana">Allana</option>
+                <option value="Rafaela">Rafaela</option>
                 <option value="Sem nome">Sem nome</option>
             </select>
             <button onclick="abrirNovoLead()"
@@ -1895,6 +2081,7 @@
                             <option value="Guilherme">Guilherme</option>
                             <option value="Marcelo">Marcelo</option>
                             <option value="Allana">Allana</option>
+                            <option value="Rafaela">Rafaela</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -2007,6 +2194,7 @@
                 <button class="tab-btn" onclick="trocarTab('kpi')">KPIs</button>
                 <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
                 <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
+                <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
             </div>
         </div>
 
@@ -2440,6 +2628,242 @@
             <div class="card">
                 <h2>KPIs e Performance</h2>
                 <div id="kpiContainer"></div>
+            </div>
+        </div>
+
+        <!-- ==================== ABA FINANCEIRO ==================== -->
+        <div id="financeiro" class="section">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <h2 style="margin:0">💰 Controle Financeiro</h2>
+                    <button class="btn btn-primary" onclick="finRefresh()" style="padding:8px 16px;font-size:0.9em">🔄 Atualizar</button>
+                </div>
+
+                <!-- KPIs -->
+                <div id="finKPIs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px">
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+                        <div class="fin-kpi-label">💰 A Receber (30d)</div>
+                        <div class="fin-kpi-value" id="finKpiAReceber">R$ 0</div>
+                    </div>
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#06b6d4,#0284c7)">
+                        <div class="fin-kpi-label">✅ Recebido no Mês</div>
+                        <div class="fin-kpi-value" id="finKpiRecebido">R$ 0</div>
+                    </div>
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#ef4444,#b91c1c)">
+                        <div class="fin-kpi-label">🔴 Inadimplência</div>
+                        <div class="fin-kpi-value" id="finKpiAtrasado">R$ 0</div>
+                    </div>
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#f59e0b,#b45309)">
+                        <div class="fin-kpi-label">🟡 Previsto Próx. Mês</div>
+                        <div class="fin-kpi-value" id="finKpiPrevisto">R$ 0</div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="filters" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <select id="finFilterStatus" onchange="renderizarFinanceiro()">
+                        <option value="todas">Todos Status</option>
+                        <option value="pendente">🟡 Pendente</option>
+                        <option value="atrasado">🔴 Atrasado</option>
+                        <option value="pago">✅ Pago</option>
+                        <option value="cancelado">⚫ Cancelado</option>
+                    </select>
+                    <select id="finFilterVendedor" onchange="renderizarFinanceiro()">
+                        <option value="">Todos Vendedores</option>
+                        <option value="Guilherme">Guilherme</option>
+                        <option value="Marcelo">Marcelo</option>
+                        <option value="Allana">Allana</option>
+                        <option value="Rafaela">Rafaela</option>
+                    </select>
+                    <select id="finFilterPeriodo" onchange="renderizarFinanceiro()">
+                        <option value="todos">Todos Períodos</option>
+                        <option value="hoje">Vence Hoje</option>
+                        <option value="7d">Próximos 7 dias</option>
+                        <option value="30d">Próximos 30 dias</option>
+                        <option value="mes">Mês atual</option>
+                        <option value="atraso">Em atraso</option>
+                    </select>
+                    <input type="text" id="finBusca" placeholder="Buscar cliente/proposta..." onkeyup="renderizarFinanceiro()" style="flex:1;min-width:180px">
+                </div>
+
+                <!-- Toggle de visualização -->
+                <div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap">
+                    <button class="fin-view-btn active" onclick="finTrocarView('lista', this)">📋 Lista</button>
+                    <button class="fin-view-btn" onclick="finTrocarView('kanban', this)">🎯 Kanban</button>
+                    <button class="fin-view-btn" onclick="finTrocarView('calendario', this)">📅 Calendário</button>
+                </div>
+
+                <!-- Container das views -->
+                <div id="finViewContainer">
+                    <div id="finLoading" style="text-align:center;padding:40px;color:var(--text-secondary)">
+                        Carregando dados financeiros...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MODAL DE CONFIGURACAO DE PAGAMENTO ==================== -->
+        <div id="paymentConfigModal" class="modal">
+            <div class="modal-content" style="max-width:700px">
+                <h2>💰 Configurar Pagamento</h2>
+                <input type="hidden" id="payNumeroProposta">
+                <input type="hidden" id="payCliente">
+                <input type="hidden" id="payVendedor">
+
+                <div style="background:var(--bg-tertiary);padding:12px;border-radius:8px;margin-bottom:15px">
+                    <div style="font-size:0.8em;color:var(--text-secondary)">Proposta</div>
+                    <div id="payInfoProposta" style="font-weight:bold;color:var(--accent);font-size:1.05em"></div>
+                    <div id="payInfoCliente" style="font-size:0.9em"></div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px">
+                    <div class="form-group">
+                        <label>Valor Total (R$)</label>
+                        <input type="number" id="payValorTotal" step="0.01" placeholder="0,00">
+                    </div>
+                    <div class="form-group">
+                        <label>Forma Padrão</label>
+                        <select id="payFormaPadrao">
+                            <option value="PIX">PIX</option>
+                            <option value="Boleto">Boleto</option>
+                            <option value="Transferência">Transferência</option>
+                            <option value="Cartão">Cartão</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Espécie">Espécie</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:15px">
+                    <label style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;display:block">Tipo de Pagamento</label>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                        <button class="pay-tipo-btn active" onclick="payTrocarTipo('avista', this)">À Vista</button>
+                        <button class="pay-tipo-btn" onclick="payTrocarTipo('parcelado', this)">Parcelado</button>
+                        <button class="pay-tipo-btn" onclick="payTrocarTipo('entrada', this)">Entrada + Saldo</button>
+                    </div>
+                </div>
+
+                <!-- Config À Vista -->
+                <div id="payConfigAvista" class="pay-config-section">
+                    <div class="form-group">
+                        <label>Data de Vencimento</label>
+                        <input type="text" id="payVencAvista" placeholder="DD/MM/AAAA">
+                    </div>
+                </div>
+
+                <!-- Config Parcelado -->
+                <div id="payConfigParcelado" class="pay-config-section" style="display:none">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+                        <div class="form-group">
+                            <label>Nº Parcelas</label>
+                            <input type="number" id="payNumParcelas" value="2" min="1" max="60">
+                        </div>
+                        <div class="form-group">
+                            <label>Intervalo (dias)</label>
+                            <select id="payIntervalo">
+                                <option value="30">30 dias</option>
+                                <option value="15">15 dias</option>
+                                <option value="60">60 dias</option>
+                                <option value="90">90 dias</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>1ª Parcela</label>
+                            <input type="text" id="payPrimeiraData" placeholder="DD/MM/AAAA">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Config Entrada + Saldo -->
+                <div id="payConfigEntrada" class="pay-config-section" style="display:none">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div class="form-group">
+                            <label>Entrada (R$)</label>
+                            <input type="number" id="payEntradaValor" step="0.01" placeholder="0,00">
+                        </div>
+                        <div class="form-group">
+                            <label>Data Entrada</label>
+                            <input type="text" id="payEntradaData" placeholder="DD/MM/AAAA">
+                        </div>
+                        <div class="form-group">
+                            <label>Saldo (R$)</label>
+                            <input type="number" id="paySaldoValor" step="0.01" placeholder="0,00" readonly style="background:var(--bg-tertiary)">
+                        </div>
+                        <div class="form-group">
+                            <label>Data Saldo</label>
+                            <input type="text" id="paySaldoData" placeholder="DD/MM/AAAA">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="payGerarParcelas()" style="width:100%;margin-bottom:15px;background:var(--bg-tertiary);color:var(--accent);padding:10px">
+                    ⚙️ Gerar / Atualizar Parcelas
+                </button>
+
+                <!-- Grid de parcelas geradas -->
+                <div id="payParcelasGrid" style="margin-bottom:15px"></div>
+
+                <div class="modal-buttons" style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+                    <button class="btn btn-primary" onclick="salvarPagamento()" style="width:100%;padding:15px;font-size:1.1em">💾 Salvar Pagamento</button>
+                    <button class="btn btn-secondary" onclick="fecharPaymentModal()" style="padding:10px">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MODAL DE EDICAO DE PARCELA ==================== -->
+        <div id="parcelaEditModal" class="modal">
+            <div class="modal-content" style="max-width:500px">
+                <h2>Editar Parcela</h2>
+                <input type="hidden" id="parcEditRowIndex">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Valor (R$)</label>
+                        <input type="number" id="parcEditValor" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Forma de Pagamento</label>
+                        <select id="parcEditForma">
+                            <option value="PIX">PIX</option>
+                            <option value="Boleto">Boleto</option>
+                            <option value="Transferência">Transferência</option>
+                            <option value="Cartão">Cartão</option>
+                            <option value="Cheque">Cheque</option>
+                            <option value="Espécie">Espécie</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label>Vencimento</label>
+                        <input type="text" id="parcEditVencimento" placeholder="DD/MM/AAAA">
+                    </div>
+                    <div class="form-group">
+                        <label>Data Pagamento</label>
+                        <input type="text" id="parcEditDataPagto" placeholder="DD/MM/AAAA (vazio = não pago)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Comprovante / ID</label>
+                    <input type="text" id="parcEditComprovante" placeholder="Ex: ID transação PIX, nº boleto">
+                </div>
+
+                <div class="form-group">
+                    <label>Observação</label>
+                    <textarea id="parcEditObservacao" style="min-height:50px"></textarea>
+                </div>
+
+                <div class="modal-buttons" style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+                    <button class="btn btn-primary" onclick="salvarParcelaEdit()" style="width:100%;padding:12px">💾 Salvar</button>
+                    <div style="display:flex;gap:10px">
+                        <button class="btn btn-secondary" onclick="parcelaMarcarPago()" style="flex:1;padding:10px;background:#22c55e;color:#fff">✅ Marcar Pago Hoje</button>
+                        <button class="btn btn-secondary" onclick="fecharParcelaEditModal()" style="flex:1;padding:10px">Cancelar</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -4542,6 +4966,449 @@ Data: ${h.data}`;
                 });
             }
             initPrecificacao();
+
+            // ============================================================
+            // MODULO FINANCEIRO - CRM Toposcan
+            // ============================================================
+            const WEBHOOK_FIN_URL = 'https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A/exec';
+            const FIN_SECRET = 'toposcan-agent-2026';
+
+            let finParcelas = [];
+            let finView = 'lista';
+            let finLastLoad = 0;
+
+            async function finApi(action, payload) {
+                const body = Object.assign({ action: action, secret: FIN_SECRET }, payload || {});
+                const r = await fetch(WEBHOOK_FIN_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(body),
+                    redirect: 'follow'
+                });
+                return r.json();
+            }
+
+            function finFmtBRL(v) {
+                const n = parseFloat(v) || 0;
+                return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            function finHoje() {
+                const d = new Date();
+                return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+            }
+
+            function finParseDataBR(s) {
+                if (!s) return null;
+                const m = String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+                if (!m) return null;
+                let y = parseInt(m[3]); if (y < 100) y += 2000;
+                return new Date(y, parseInt(m[2]) - 1, parseInt(m[1]));
+            }
+
+            function finAddDays(dataBR, dias) {
+                const d = finParseDataBR(dataBR) || new Date();
+                d.setDate(d.getDate() + parseInt(dias));
+                return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+            }
+
+            async function finRefresh() {
+                const loading = document.getElementById('finLoading');
+                if (loading) loading.textContent = 'Carregando dados financeiros...';
+                try {
+                    const [list, kpis] = await Promise.all([
+                        finApi('listPayments', { filter: 'todas' }),
+                        finApi('getFinanceKPIs', {})
+                    ]);
+                    if (list && list.ok) {
+                        finParcelas = list.parcelas || [];
+                        finLastLoad = Date.now();
+                    } else {
+                        console.warn('listPayments falhou:', list);
+                        finParcelas = [];
+                    }
+                    if (kpis && kpis.ok) finRenderKPIs(kpis.kpis);
+                    renderizarFinanceiro();
+                } catch (e) {
+                    console.error('finRefresh err:', e);
+                    if (loading) loading.innerHTML = '⚠️ Erro ao carregar. Verifique o deploy do GAS Financeiro.<br><small>' + e.message + '</small>';
+                }
+            }
+
+            function finRenderKPIs(k) {
+                document.getElementById('finKpiAReceber').textContent = finFmtBRL(k.aReceber30);
+                document.getElementById('finKpiRecebido').textContent = finFmtBRL(k.recebidoMes);
+                document.getElementById('finKpiAtrasado').textContent = finFmtBRL(k.atrasado);
+                document.getElementById('finKpiPrevisto').textContent = finFmtBRL(k.previstoProxMes);
+            }
+
+            function finTrocarView(view, btn) {
+                finView = view;
+                document.querySelectorAll('.fin-view-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                renderizarFinanceiro();
+            }
+
+            function finAplicarFiltros(arr) {
+                const status = document.getElementById('finFilterStatus').value;
+                const vendedor = document.getElementById('finFilterVendedor').value;
+                const periodo = document.getElementById('finFilterPeriodo').value;
+                const busca = document.getElementById('finBusca').value.toLowerCase().trim();
+                const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+
+                return arr.filter(p => {
+                    if (status !== 'todas' && (p.status || '').toLowerCase() !== status) return false;
+                    if (vendedor && p.vendedor !== vendedor) return false;
+                    if (busca && !String(p.cliente || '').toLowerCase().includes(busca) && !String(p.numeroProposta || '').toLowerCase().includes(busca)) return false;
+                    if (periodo && periodo !== 'todos') {
+                        const venc = finParseDataBR(p.vencimento);
+                        if (!venc) return false;
+                        const diff = (venc - hoje) / (1000 * 60 * 60 * 24);
+                        if (periodo === 'hoje' && diff !== 0) return false;
+                        if (periodo === '7d' && (diff < 0 || diff > 7)) return false;
+                        if (periodo === '30d' && (diff < 0 || diff > 30)) return false;
+                        if (periodo === 'mes' && (venc.getMonth() !== hoje.getMonth() || venc.getFullYear() !== hoje.getFullYear())) return false;
+                        if (periodo === 'atraso' && (p.status !== 'Atrasado')) return false;
+                    }
+                    return true;
+                });
+            }
+
+            function renderizarFinanceiro() {
+                const container = document.getElementById('finViewContainer');
+                if (!container) return;
+                const filtrado = finAplicarFiltros(finParcelas);
+
+                if (finParcelas.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary)">📋 Nenhuma parcela cadastrada ainda.<br><small>Marque uma proposta como <b>Fechada</b> para registrar o pagamento.</small></div>';
+                    return;
+                }
+
+                if (finView === 'lista') return finRenderLista(container, filtrado);
+                if (finView === 'kanban') return finRenderKanban(container, filtrado);
+                if (finView === 'calendario') return finRenderCalendario(container, filtrado);
+            }
+
+            function finRenderLista(container, arr) {
+                arr.sort((a, b) => {
+                    const da = finParseDataBR(a.vencimento) || new Date(8640000000000000);
+                    const db = finParseDataBR(b.vencimento) || new Date(8640000000000000);
+                    return da - db;
+                });
+
+                let html = '<div class="fin-header-row">';
+                html += '<div>Cliente / Proposta</div><div>Vendedor</div><div>Parcela</div><div>Valor</div><div>Vencimento</div><div>Status</div><div></div>';
+                html += '</div>';
+
+                if (arr.length === 0) {
+                    html += '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhuma parcela com esses filtros.</div>';
+                } else {
+                    arr.forEach(p => {
+                        const cls = p.status === 'Atrasado' ? 'atrasado' : (p.status === 'Pago' ? 'pago' : '');
+                        html += '<div class="fin-row ' + cls + '" onclick="abrirParcelaEdit(' + p.rowIndex + ')">';
+                        html += '<div><div class="fin-cliente">' + esc(p.cliente || '-') + '</div><div class="fin-sub">' + esc(p.numeroProposta || '') + ' · ' + esc(p.formaPagamento || '') + '</div></div>';
+                        html += '<div>' + esc(p.vendedor || '-') + '</div>';
+                        html += '<div>' + (p.parcelaNum || '-') + '/' + (p.totalParcelas || '-') + '</div>';
+                        html += '<div class="fin-valor">' + finFmtBRL(p.valor) + '</div>';
+                        html += '<div>' + esc(p.vencimento || '-') + '</div>';
+                        html += '<div><span class="fin-status-badge fin-status-' + p.status + '">' + p.status + '</span></div>';
+                        html += '<div class="fin-acoes">';
+                        if (p.status !== 'Pago' && p.status !== 'Cancelado') {
+                            html += '<button class="btn-icon" onclick="event.stopPropagation(); finMarcarPago(' + p.rowIndex + ')" title="Marcar como Pago" style="background:#22c55e;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:0.85em">✅</button>';
+                        }
+                        html += '</div></div>';
+                    });
+                }
+                container.innerHTML = html;
+            }
+
+            function finRenderKanban(container, arr) {
+                const cols = { 'Pendente': [], 'Próximas (7d)': [], 'Atrasado': [], 'Pago': [] };
+                const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+                arr.forEach(p => {
+                    if (p.status === 'Pago') cols['Pago'].push(p);
+                    else if (p.status === 'Atrasado') cols['Atrasado'].push(p);
+                    else {
+                        const v = finParseDataBR(p.vencimento);
+                        const diff = v ? (v - hoje) / (86400000) : 999;
+                        if (diff <= 7) cols['Próximas (7d)'].push(p);
+                        else cols['Pendente'].push(p);
+                    }
+                });
+
+                let html = '<div class="fin-kanban-board">';
+                Object.entries(cols).forEach(([nome, items]) => {
+                    const total = items.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+                    html += '<div class="fin-kanban-col"><h4>' + nome + ' <span style="color:var(--accent)">(' + items.length + ')</span><div style="font-size:0.85em;color:var(--text-secondary);font-weight:400;text-transform:none">' + finFmtBRL(total) + '</div></h4>';
+                    items.forEach(p => {
+                        html += '<div class="fin-kanban-card" onclick="abrirParcelaEdit(' + p.rowIndex + ')">';
+                        html += '<div style="font-weight:600">' + esc(p.cliente) + '</div>';
+                        html += '<div style="font-size:0.78em;color:var(--text-secondary)">' + esc(p.numeroProposta) + ' · ' + (p.parcelaNum || '?') + '/' + (p.totalParcelas || '?') + '</div>';
+                        html += '<div style="display:flex;justify-content:space-between;margin-top:6px"><span class="fin-valor">' + finFmtBRL(p.valor) + '</span><span style="font-size:0.78em;color:var(--text-secondary)">' + esc(p.vencimento || '-') + '</span></div>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            function finRenderCalendario(container, arr) {
+                const hoje = new Date();
+                const ano = hoje.getFullYear(), mes = hoje.getMonth();
+                const primeiro = new Date(ano, mes, 1);
+                const ultimo = new Date(ano, mes + 1, 0);
+                const inicioDia = primeiro.getDay();
+                const totalDias = ultimo.getDate();
+
+                const porDia = {};
+                arr.forEach(p => {
+                    const v = finParseDataBR(p.vencimento);
+                    if (!v || v.getMonth() !== mes || v.getFullYear() !== ano) return;
+                    const d = v.getDate();
+                    if (!porDia[d]) porDia[d] = [];
+                    porDia[d].push(p);
+                });
+
+                const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                let html = '<div style="margin-bottom:12px;font-weight:600;font-size:1.1em;color:var(--accent)">📅 ' + meses[mes] + ' / ' + ano + '</div>';
+                html += '<div class="fin-cal-grid">';
+                ['Dom','Seg','Ter','Qua','Qui','Sex','Sab'].forEach(d => {
+                    html += '<div style="text-align:center;font-size:0.75em;color:var(--text-secondary);padding:6px;font-weight:600">' + d + '</div>';
+                });
+                for (let i = 0; i < inicioDia; i++) html += '<div></div>';
+                for (let d = 1; d <= totalDias; d++) {
+                    html += '<div class="fin-cal-day"><div class="fin-cal-day-num">' + d + '</div>';
+                    (porDia[d] || []).forEach(p => {
+                        const cls = p.status === 'Atrasado' ? 'atrasado' : (p.status === 'Pago' ? 'pago' : '');
+                        html += '<div class="fin-cal-event ' + cls + '" onclick="abrirParcelaEdit(' + p.rowIndex + ')" title="' + esc(p.cliente) + ' - ' + finFmtBRL(p.valor) + '">' + esc((p.cliente || '').substring(0, 10)) + ' ' + finFmtBRL(p.valor).replace('R$ ', '') + '</div>';
+                    });
+                    html += '</div>';
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            async function finMarcarPago(rowIndex) {
+                if (!confirm('Confirma marcar esta parcela como PAGA hoje (' + finHoje() + ')?')) return;
+                try {
+                    const r = await finApi('markPaid', { rowIndex: rowIndex });
+                    if (r && r.ok) {
+                        await finRefresh();
+                    } else {
+                        alert('Erro: ' + (r && r.error ? r.error : 'falha desconhecida'));
+                    }
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            // ============================================================
+            // MODAL DE CONFIGURACAO DE PAGAMENTO
+            // ============================================================
+            let payTipo = 'avista';
+            let payParcelas = [];
+
+            function abrirPaymentModalParaProposta(proposta) {
+                document.getElementById('payNumeroProposta').value = proposta.numeroProposta || '';
+                document.getElementById('payCliente').value = proposta.cliente || '';
+                document.getElementById('payVendedor').value = proposta.vendedor || '';
+                document.getElementById('payInfoProposta').textContent = proposta.numeroProposta || '(sem numero)';
+                document.getElementById('payInfoCliente').textContent = (proposta.cliente || '-') + ' · ' + (proposta.vendedor || '-');
+                document.getElementById('payValorTotal').value = parseFloat(proposta.valor) || 0;
+                document.getElementById('payFormaPadrao').value = 'PIX';
+                document.getElementById('payVencAvista').value = finHoje();
+                document.getElementById('payPrimeiraData').value = finAddDays(finHoje(), 30);
+                document.getElementById('payEntradaData').value = finHoje();
+                document.getElementById('paySaldoData').value = finAddDays(finHoje(), 30);
+
+                payTipo = 'avista';
+                document.querySelectorAll('.pay-tipo-btn').forEach((b, i) => { b.classList.toggle('active', i === 0); });
+                document.getElementById('payConfigAvista').style.display = 'block';
+                document.getElementById('payConfigParcelado').style.display = 'none';
+                document.getElementById('payConfigEntrada').style.display = 'none';
+
+                payParcelas = [];
+                document.getElementById('payParcelasGrid').innerHTML = '<div style="text-align:center;padding:14px;color:var(--text-secondary);font-size:0.85em">Clique em "Gerar Parcelas" para visualizar.</div>';
+
+                document.getElementById('paymentConfigModal').classList.add('active');
+            }
+
+            function fecharPaymentModal() {
+                document.getElementById('paymentConfigModal').classList.remove('active');
+            }
+
+            function payTrocarTipo(tipo, btn) {
+                payTipo = tipo;
+                document.querySelectorAll('.pay-tipo-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                document.getElementById('payConfigAvista').style.display = tipo === 'avista' ? 'block' : 'none';
+                document.getElementById('payConfigParcelado').style.display = tipo === 'parcelado' ? 'block' : 'none';
+                document.getElementById('payConfigEntrada').style.display = tipo === 'entrada' ? 'block' : 'none';
+            }
+
+            function payGerarParcelas() {
+                const total = parseFloat(document.getElementById('payValorTotal').value) || 0;
+                const forma = document.getElementById('payFormaPadrao').value;
+
+                if (total <= 0) { alert('Informe um valor total > 0'); return; }
+
+                payParcelas = [];
+
+                if (payTipo === 'avista') {
+                    payParcelas.push({ valor: total, vencimento: document.getElementById('payVencAvista').value, formaPagamento: forma });
+                } else if (payTipo === 'parcelado') {
+                    const n = Math.max(1, parseInt(document.getElementById('payNumParcelas').value) || 1);
+                    const intervalo = parseInt(document.getElementById('payIntervalo').value) || 30;
+                    let dataAtual = document.getElementById('payPrimeiraData').value;
+                    const valorParcela = Math.round((total / n) * 100) / 100;
+                    let acumulado = 0;
+                    for (let i = 0; i < n; i++) {
+                        const valor = (i === n - 1) ? Math.round((total - acumulado) * 100) / 100 : valorParcela;
+                        acumulado += valor;
+                        payParcelas.push({ valor: valor, vencimento: dataAtual, formaPagamento: forma });
+                        dataAtual = finAddDays(dataAtual, intervalo);
+                    }
+                } else if (payTipo === 'entrada') {
+                    const entradaV = parseFloat(document.getElementById('payEntradaValor').value) || 0;
+                    if (entradaV <= 0 || entradaV >= total) { alert('Entrada deve ser > 0 e < total'); return; }
+                    const saldoV = Math.round((total - entradaV) * 100) / 100;
+                    document.getElementById('paySaldoValor').value = saldoV;
+                    payParcelas.push({ valor: entradaV, vencimento: document.getElementById('payEntradaData').value, formaPagamento: forma });
+                    payParcelas.push({ valor: saldoV, vencimento: document.getElementById('paySaldoData').value, formaPagamento: forma });
+                }
+
+                payRenderParcelasGrid();
+            }
+
+            function payRenderParcelasGrid() {
+                const grid = document.getElementById('payParcelasGrid');
+                if (payParcelas.length === 0) { grid.innerHTML = ''; return; }
+
+                let html = '<div style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;font-weight:600">Parcelas geradas (' + payParcelas.length + ')</div>';
+                html += '<div style="display:grid;grid-template-columns:50px 1fr 1fr 1.2fr;gap:8px;padding:6px;font-size:0.75em;color:var(--text-secondary);font-weight:600">';
+                html += '<div>Nº</div><div>Valor</div><div>Vencimento</div><div>Forma</div>';
+                html += '</div>';
+                payParcelas.forEach((p, i) => {
+                    html += '<div class="pay-parcela-row">';
+                    html += '<div class="pay-parcela-num">' + (i + 1) + '</div>';
+                    html += '<input type="number" step="0.01" value="' + p.valor + '" oninput="payParcelas[' + i + '].valor=parseFloat(this.value)||0">';
+                    html += '<input type="text" value="' + p.vencimento + '" oninput="payParcelas[' + i + '].vencimento=this.value" placeholder="DD/MM/AAAA">';
+                    html += '<select onchange="payParcelas[' + i + '].formaPagamento=this.value">';
+                    ['PIX','Boleto','Transferência','Cartão','Cheque','Espécie','Outros'].forEach(f => {
+                        html += '<option value="' + f + '"' + (p.formaPagamento === f ? ' selected' : '') + '>' + f + '</option>';
+                    });
+                    html += '</select>';
+                    html += '</div>';
+                });
+                const soma = payParcelas.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+                html += '<div style="text-align:right;padding:8px;font-weight:600;color:var(--accent)">Soma: ' + finFmtBRL(soma) + '</div>';
+                grid.innerHTML = html;
+            }
+
+            async function salvarPagamento() {
+                if (payParcelas.length === 0) { alert('Gere as parcelas primeiro.'); return; }
+                const numeroProposta = document.getElementById('payNumeroProposta').value;
+                const cliente = document.getElementById('payCliente').value;
+                const vendedor = document.getElementById('payVendedor').value;
+                if (!numeroProposta) { alert('Numero da proposta ausente'); return; }
+
+                try {
+                    const r = await finApi('addPaymentPlan', {
+                        numeroProposta: numeroProposta,
+                        cliente: cliente,
+                        vendedor: vendedor,
+                        parcelas: payParcelas,
+                        formaPagamentoPadrao: document.getElementById('payFormaPadrao').value,
+                        replace: true
+                    });
+                    if (r && r.ok) {
+                        alert('✅ Pagamento registrado: ' + r.added + ' parcela(s).');
+                        fecharPaymentModal();
+                        await finRefresh();
+                    } else {
+                        alert('Erro: ' + (r && r.error ? r.error : 'falha desconhecida'));
+                    }
+                } catch (e) { alert('Erro ao salvar: ' + e.message); }
+            }
+
+            // ============================================================
+            // MODAL DE EDICAO DE PARCELA
+            // ============================================================
+            function abrirParcelaEdit(rowIndex) {
+                const p = finParcelas.find(x => x.rowIndex == rowIndex);
+                if (!p) return;
+                document.getElementById('parcEditRowIndex').value = rowIndex;
+                document.getElementById('parcEditValor').value = p.valor || 0;
+                document.getElementById('parcEditForma').value = p.formaPagamento || 'PIX';
+                document.getElementById('parcEditVencimento').value = p.vencimento || '';
+                document.getElementById('parcEditDataPagto').value = p.dataPagamento || '';
+                document.getElementById('parcEditComprovante').value = p.comprovante || '';
+                document.getElementById('parcEditObservacao').value = p.observacao || '';
+                document.getElementById('parcelaEditModal').classList.add('active');
+            }
+
+            function fecharParcelaEditModal() {
+                document.getElementById('parcelaEditModal').classList.remove('active');
+            }
+
+            async function salvarParcelaEdit() {
+                const rowIndex = parseInt(document.getElementById('parcEditRowIndex').value);
+                const fields = {
+                    valor: parseFloat(document.getElementById('parcEditValor').value) || 0,
+                    formaPagamento: document.getElementById('parcEditForma').value,
+                    vencimento: document.getElementById('parcEditVencimento').value,
+                    dataPagamento: document.getElementById('parcEditDataPagto').value,
+                    comprovante: document.getElementById('parcEditComprovante').value,
+                    observacao: document.getElementById('parcEditObservacao').value
+                };
+                try {
+                    const r = await finApi('updatePayment', { rowIndex: rowIndex, fields: fields });
+                    if (r && r.ok) {
+                        fecharParcelaEditModal();
+                        await finRefresh();
+                    } else {
+                        alert('Erro: ' + (r && r.error ? r.error : 'falha'));
+                    }
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            async function parcelaMarcarPago() {
+                const rowIndex = parseInt(document.getElementById('parcEditRowIndex').value);
+                await finMarcarPago(rowIndex);
+                fecharParcelaEditModal();
+            }
+
+            // ============================================================
+            // HOOKS: trocarTab + salvarEdicao (Fechada -> pagamento)
+            // ============================================================
+            const _origTrocarTab = trocarTab;
+            window.trocarTab = function(tabId) {
+                _origTrocarTab(tabId);
+                if (tabId === 'financeiro') {
+                    if (Date.now() - finLastLoad > 60000 || finParcelas.length === 0) finRefresh();
+                    else renderizarFinanceiro();
+                }
+            };
+
+            const _origSalvarEdicao = salvarEdicao;
+            window.salvarEdicao = function() {
+                const id = document.getElementById('editId').value;
+                const pAntes = (window.propostas || []).find(x => x.id == id);
+                const statusAntes = pAntes ? pAntes.status : null;
+                _origSalvarEdicao();
+                const statusNovo = document.getElementById('editStatusPreview').textContent;
+                if (statusNovo === 'Fechada' && statusAntes !== 'Fechada') {
+                    const pDepois = (window.propostas || []).find(x => x.id == id);
+                    if (pDepois) {
+                        setTimeout(() => {
+                            if (confirm('🎉 Proposta marcada como FECHADA!\n\nDeseja configurar o pagamento agora?')) {
+                                abrirPaymentModalParaProposta(pDepois);
+                            }
+                        }, 300);
+                    }
+                }
+            };
+
+            console.log('Modulo Financeiro carregado.');
         </script>
     </div><!-- /crmContent -->
 </body>
