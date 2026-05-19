@@ -587,9 +587,98 @@
             border-radius: 14px;
             color: #fff;
             box-shadow: var(--shadow-card);
+            position: relative;
         }
         .fin-kpi-label { font-size: 0.85em; opacity: 0.92; margin-bottom: 6px; }
         .fin-kpi-value { font-size: 1.6em; font-weight: 700; letter-spacing: -0.5px; }
+        .fin-kpi-hint { font-size: 0.7em; opacity: 0.7; margin-top: 6px; letter-spacing: 0.02em; }
+        .fin-kpi-clickable {
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .fin-kpi-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+        }
+        .fin-kpi-clickable.active {
+            transform: translateY(-2px);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.4), 0 8px 28px rgba(0,0,0,0.4);
+        }
+        .fin-kpi-clickable.active .fin-kpi-hint::before { content: '▴ '; }
+        .fin-kpi-clickable.active .fin-kpi-hint { opacity: 1; }
+        .fin-kpi-clickable.active .fin-kpi-hint::after { content: ' (clique p/ fechar)'; }
+
+        .fin-drilldown-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px;
+            animation: slideDownFade 0.3s ease-out;
+        }
+        @keyframes slideDownFade {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fin-drilldown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .fin-drilldown-title {
+            font-weight: 700;
+            font-size: 1.05em;
+            color: var(--text-primary);
+        }
+        .fin-drilldown-sub {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .fin-drilldown-close {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .fin-drilldown-close:hover { color: var(--text-primary); border-color: var(--accent); }
+        .fin-drilldown-item {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 0.8fr 1fr 0.8fr 90px;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.9em;
+        }
+        .fin-drilldown-item:hover {
+            border-color: var(--accent);
+            transform: translateX(2px);
+        }
+        .fin-drilldown-item .ddi-cliente { font-weight: 600; }
+        .fin-drilldown-item .ddi-sub { font-size: 0.75em; color: var(--text-secondary); margin-top: 1px; }
+        .fin-drilldown-item .ddi-valor { font-weight: 700; color: var(--accent); }
+        .fin-drilldown-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        @media (max-width: 768px) {
+            .fin-drilldown-item {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+        }
 
         .fin-view-btn {
             padding: 8px 16px;
@@ -2641,23 +2730,30 @@
 
                 <!-- KPIs -->
                 <div id="finKPIs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px">
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+                    <div class="fin-kpi-card fin-kpi-clickable" data-kpi="aReceber" style="background:linear-gradient(135deg,#22c55e,#16a34a)" onclick="finExpandKPI('aReceber', this)">
                         <div class="fin-kpi-label">💰 A Receber (30d)</div>
                         <div class="fin-kpi-value" id="finKpiAReceber">R$ 0</div>
+                        <div class="fin-kpi-hint">clique p/ ver lista ▾</div>
                     </div>
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#06b6d4,#0284c7)">
+                    <div class="fin-kpi-card fin-kpi-clickable" data-kpi="recebido" style="background:linear-gradient(135deg,#06b6d4,#0284c7)" onclick="finExpandKPI('recebido', this)">
                         <div class="fin-kpi-label">✅ Recebido no Mês</div>
                         <div class="fin-kpi-value" id="finKpiRecebido">R$ 0</div>
+                        <div class="fin-kpi-hint">clique p/ ver lista ▾</div>
                     </div>
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#ef4444,#b91c1c)">
+                    <div class="fin-kpi-card fin-kpi-clickable" data-kpi="atrasado" style="background:linear-gradient(135deg,#ef4444,#b91c1c)" onclick="finExpandKPI('atrasado', this)">
                         <div class="fin-kpi-label">🔴 Inadimplência</div>
                         <div class="fin-kpi-value" id="finKpiAtrasado">R$ 0</div>
+                        <div class="fin-kpi-hint">clique p/ ver lista ▾</div>
                     </div>
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#f59e0b,#b45309)">
+                    <div class="fin-kpi-card fin-kpi-clickable" data-kpi="previsto" style="background:linear-gradient(135deg,#f59e0b,#b45309)" onclick="finExpandKPI('previsto', this)">
                         <div class="fin-kpi-label">🟡 Previsto Próx. Mês</div>
                         <div class="fin-kpi-value" id="finKpiPrevisto">R$ 0</div>
+                        <div class="fin-kpi-hint">clique p/ ver lista ▾</div>
                     </div>
                 </div>
+
+                <!-- Drill-down expandido do KPI clicado -->
+                <div id="finKpiDrilldown" style="display:none;margin-bottom:20px"></div>
 
                 <!-- Filtros -->
                 <div class="filters" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
@@ -5040,6 +5136,108 @@ Data: ${h.data}`;
                 document.getElementById('finKpiRecebido').textContent = finFmtBRL(k.recebidoMes);
                 document.getElementById('finKpiAtrasado').textContent = finFmtBRL(k.atrasado);
                 document.getElementById('finKpiPrevisto').textContent = finFmtBRL(k.previstoProxMes);
+                // Reaplica drilldown se algum KPI estiver expandido
+                if (finKpiAtivo) finExpandKPI(finKpiAtivo, null, true);
+            }
+
+            // ============================================================
+            // DRILLDOWN dos KPIs (click para expandir lista)
+            // ============================================================
+            let finKpiAtivo = null;
+
+            function finFiltrarPorKPI(tipo) {
+                const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+                const em30 = new Date(hoje); em30.setDate(hoje.getDate() + 30);
+                const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
+                const proxMes = new Date(anoAtual, mesAtual + 1, 1);
+                const fimProxMes = new Date(anoAtual, mesAtual + 2, 0);
+
+                return finParcelas.filter(p => {
+                    const venc = finParseDataBR(p.vencimento);
+                    const pag = finParseDataBR(p.dataPagamento);
+                    if (tipo === 'aReceber') return p.status === 'Pendente' && venc && venc >= hoje && venc <= em30;
+                    if (tipo === 'recebido') return p.status === 'Pago' && pag && pag.getMonth() === mesAtual && pag.getFullYear() === anoAtual;
+                    if (tipo === 'atrasado') return p.status === 'Atrasado';
+                    if (tipo === 'previsto') return p.status === 'Pendente' && venc && venc >= proxMes && venc <= fimProxMes;
+                    return false;
+                });
+            }
+
+            function finExpandKPI(tipo, cardEl, forceRefresh) {
+                const drill = document.getElementById('finKpiDrilldown');
+                // Click no mesmo KPI ativo -> fechar
+                if (finKpiAtivo === tipo && !forceRefresh) {
+                    drill.style.display = 'none';
+                    drill.innerHTML = '';
+                    document.querySelectorAll('.fin-kpi-clickable').forEach(c => c.classList.remove('active'));
+                    finKpiAtivo = null;
+                    return;
+                }
+
+                // Atualizar active state
+                document.querySelectorAll('.fin-kpi-clickable').forEach(c => c.classList.remove('active'));
+                const targetCard = cardEl || document.querySelector('.fin-kpi-clickable[data-kpi="' + tipo + '"]');
+                if (targetCard) targetCard.classList.add('active');
+
+                finKpiAtivo = tipo;
+
+                const titulos = {
+                    aReceber: { titulo: '💰 A Receber — Próximos 30 dias', sub: 'Parcelas pendentes com vencimento até daqui 30 dias', emoji: '💰' },
+                    recebido: { titulo: '✅ Recebido no Mês Atual', sub: 'Parcelas marcadas como pagas neste mês', emoji: '✅' },
+                    atrasado: { titulo: '🔴 Inadimplência — Em Atraso', sub: 'Parcelas com vencimento ultrapassado e sem pagamento', emoji: '🔴' },
+                    previsto: { titulo: '🟡 Previsto no Próximo Mês', sub: 'Parcelas pendentes com vencimento no mês seguinte', emoji: '🟡' }
+                };
+                const info = titulos[tipo];
+                const arr = finFiltrarPorKPI(tipo);
+                arr.sort((a, b) => {
+                    const da = finParseDataBR(a.vencimento) || new Date(8640000000000000);
+                    const db = finParseDataBR(b.vencimento) || new Date(8640000000000000);
+                    return da - db;
+                });
+                const soma = arr.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+
+                let html = '<div class="fin-drilldown-card">';
+                html += '<div class="fin-drilldown-header">';
+                html += '<div><div class="fin-drilldown-title">' + info.titulo + '</div>';
+                html += '<div class="fin-drilldown-sub">' + arr.length + ' parcela(s) · ' + finFmtBRL(soma) + ' — ' + info.sub + '</div></div>';
+                html += '<button class="fin-drilldown-close" onclick="finFecharDrilldown()">✕ Fechar</button>';
+                html += '</div>';
+
+                if (arr.length === 0) {
+                    html += '<div class="fin-drilldown-empty">Nenhuma parcela nesta categoria no momento.</div>';
+                } else {
+                    arr.forEach(p => {
+                        const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
+                        const venc = finParseDataBR(p.vencimento);
+                        let diasInfo = '';
+                        if (venc) {
+                            const diff = Math.round((venc - hoje2) / 86400000);
+                            if (p.status === 'Atrasado') diasInfo = ' · atraso de ' + Math.abs(diff) + ' dia(s)';
+                            else if (p.status === 'Pendente' && diff >= 0) diasInfo = ' · vence em ' + diff + ' dia(s)';
+                        }
+                        html += '<div class="fin-drilldown-item" onclick="abrirParcelaEdit(' + p.rowIndex + ')">';
+                        html += '<div><div class="ddi-cliente">' + esc(p.cliente || '-') + '</div><div class="ddi-sub">' + esc(p.numeroProposta || '-') + ' · parc. ' + (p.parcelaNum || '?') + '/' + (p.totalParcelas || '?') + '</div></div>';
+                        html += '<div>' + esc(p.vendedor || '-') + '</div>';
+                        html += '<div>' + esc(p.formaPagamento || '-') + '</div>';
+                        html += '<div><div>' + esc(p.vencimento || '-') + '</div><div class="ddi-sub">' + (tipo === 'recebido' ? 'pago em ' + esc(p.dataPagamento || '-') : diasInfo.replace(/^ · /, '')) + '</div></div>';
+                        html += '<div class="ddi-valor">' + finFmtBRL(p.valor) + '</div>';
+                        html += '<div style="text-align:right"><span class="fin-status-badge fin-status-' + p.status + '">' + p.status + '</span></div>';
+                        html += '</div>';
+                    });
+                }
+                html += '</div>';
+
+                drill.innerHTML = html;
+                drill.style.display = 'block';
+                if (!forceRefresh) drill.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            function finFecharDrilldown() {
+                const drill = document.getElementById('finKpiDrilldown');
+                drill.style.display = 'none';
+                drill.innerHTML = '';
+                document.querySelectorAll('.fin-kpi-clickable').forEach(c => c.classList.remove('active'));
+                finKpiAtivo = null;
             }
 
             function finTrocarView(view, btn) {
