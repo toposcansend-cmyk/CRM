@@ -2746,7 +2746,7 @@
                         <div class="fin-kpi-hint">clique p/ ver lista ▾</div>
                     </div>
                     <div class="fin-kpi-card fin-kpi-clickable" data-kpi="previsto" style="background:linear-gradient(135deg,#f59e0b,#b45309)" onclick="finExpandKPI('previsto', this)">
-                        <div class="fin-kpi-label">🟡 Previsto Próx. Mês</div>
+                        <div class="fin-kpi-label">🟡 Previsto 90d</div>
                         <div class="fin-kpi-value" id="finKpiPrevisto">R$ 0</div>
                         <div class="fin-kpi-hint">clique p/ ver lista ▾</div>
                     </div>
@@ -5135,7 +5135,7 @@ Data: ${h.data}`;
                 document.getElementById('finKpiAReceber').textContent = finFmtBRL(k.aReceber30);
                 document.getElementById('finKpiRecebido').textContent = finFmtBRL(k.recebidoMes);
                 document.getElementById('finKpiAtrasado').textContent = finFmtBRL(k.atrasado);
-                document.getElementById('finKpiPrevisto').textContent = finFmtBRL(k.previstoProxMes);
+                document.getElementById('finKpiPrevisto').textContent = finFmtBRL(k.previsto90d != null ? k.previsto90d : k.previstoProxMes);
                 // Reaplica drilldown se algum KPI estiver expandido
                 if (finKpiAtivo) finExpandKPI(finKpiAtivo, null, true);
             }
@@ -5148,9 +5148,9 @@ Data: ${h.data}`;
             function finFiltrarPorKPI(tipo) {
                 const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
                 const em30 = new Date(hoje); em30.setDate(hoje.getDate() + 30);
+                const inicio31 = new Date(hoje); inicio31.setDate(hoje.getDate() + 31);
+                const em90 = new Date(hoje); em90.setDate(hoje.getDate() + 90);
                 const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
-                const proxMes = new Date(anoAtual, mesAtual + 1, 1);
-                const fimProxMes = new Date(anoAtual, mesAtual + 2, 0);
 
                 return finParcelas.filter(p => {
                     const venc = finParseDataBR(p.vencimento);
@@ -5158,7 +5158,7 @@ Data: ${h.data}`;
                     if (tipo === 'aReceber') return p.status === 'Pendente' && venc && venc >= hoje && venc <= em30;
                     if (tipo === 'recebido') return p.status === 'Pago' && pag && pag.getMonth() === mesAtual && pag.getFullYear() === anoAtual;
                     if (tipo === 'atrasado') return p.status === 'Atrasado';
-                    if (tipo === 'previsto') return p.status === 'Pendente' && venc && venc >= proxMes && venc <= fimProxMes;
+                    if (tipo === 'previsto') return p.status === 'Pendente' && venc && venc >= inicio31 && venc <= em90;
                     return false;
                 });
             }
@@ -5185,7 +5185,7 @@ Data: ${h.data}`;
                     aReceber: { titulo: '💰 A Receber — Próximos 30 dias', sub: 'Parcelas pendentes com vencimento até daqui 30 dias', emoji: '💰' },
                     recebido: { titulo: '✅ Recebido no Mês Atual', sub: 'Parcelas marcadas como pagas neste mês', emoji: '✅' },
                     atrasado: { titulo: '🔴 Inadimplência — Em Atraso', sub: 'Parcelas com vencimento ultrapassado e sem pagamento', emoji: '🔴' },
-                    previsto: { titulo: '🟡 Previsto no Próximo Mês', sub: 'Parcelas pendentes com vencimento no mês seguinte', emoji: '🟡' }
+                    previsto: { titulo: '🟡 Previsto 90 dias (dias 31-90)', sub: 'Parcelas pendentes com vencimento entre 31 e 90 dias a partir de hoje', emoji: '🟡' }
                 };
                 const info = titulos[tipo];
                 const arr = finFiltrarPorKPI(tipo);
