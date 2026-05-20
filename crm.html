@@ -3058,8 +3058,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Projeto Destino</label>
-                    <input type="text" id="tpProjeto" list="tpProjetosList" placeholder="Cliente ou nº proposta (digite para buscar)" autocomplete="off">
+                    <label>Projeto Destino <span style="font-weight:400;color:var(--text-secondary);font-size:0.85em">(somente oportunidades fechadas — 100%)</span></label>
+                    <input type="text" id="tpProjeto" list="tpProjetosList" placeholder="Digite para buscar entre projetos fechados..." autocomplete="off">
                     <datalist id="tpProjetosList"></datalist>
                 </div>
 
@@ -5563,7 +5563,10 @@ Data: ${h.data}`;
                 const dl = document.getElementById('tpProjetosList');
                 if (!dl || !window.propostas) return;
                 const opcoes = new Set();
+                // Apenas oportunidades FECHADAS (100%) — sao os projetos executados
                 window.propostas.forEach(p => {
+                    const isFechada = p.status === 'Fechada' || String(p.probabilidade || '').replace('%','').trim() === '100';
+                    if (!isFechada) return;
                     const label = (p.cliente || '') + (p.numeroProposta ? ' - ' + p.numeroProposta : '');
                     if (label.trim()) opcoes.add(label.trim());
                 });
