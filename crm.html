@@ -773,6 +773,13 @@
         .tp-proj-header:hover { background: var(--glass-bg); }
         .tp-proj-header .pj-nome { font-weight: 700; font-size: 1.05em; color: var(--text-primary); }
         .tp-proj-header .pj-sub { font-size: 0.75em; color: var(--text-secondary); margin-top: 3px; }
+        .tp-proj-header .pj-venda {
+            font-size: 0.82em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            letter-spacing: 0.01em;
+        }
+        .tp-proj-header .pj-venda b { color: var(--text-primary); }
         .tp-proj-header .pj-custo { font-weight: 700; color: var(--accent); font-size: 1.05em; }
         .tp-proj-header .pj-pago { color: #22c55e; font-weight: 600; }
         .tp-proj-header .pj-restante { font-weight: 700; }
@@ -5756,6 +5763,31 @@ Data: ${h.data}`;
                 container.innerHTML = html;
             }
 
+            // Encontra o valor de venda da proposta correspondente ao projeto
+            function tpAcharVendaProjeto(projetoLabel) {
+                if (!window.propostas || !projetoLabel) return null;
+                const lbl = String(projetoLabel).trim();
+                // 1) match exato "Cliente - NumeroProposta"
+                let hit = window.propostas.find(p => {
+                    const candidate = (p.cliente || '') + (p.numeroProposta ? ' - ' + p.numeroProposta : '');
+                    return candidate.trim() === lbl;
+                });
+                if (hit) return parseFloat(hit.valor) || 0;
+                // 2) extrai numeroProposta apos o ultimo " - " e busca
+                const parts = lbl.split(' - ');
+                if (parts.length >= 2) {
+                    const num = parts[parts.length - 1].trim();
+                    hit = window.propostas.find(p => String(p.numeroProposta || '').trim() === num && p.status === 'Fechada');
+                    if (hit) return parseFloat(hit.valor) || 0;
+                }
+                // 3) fallback: match por cliente exato + Fechada (pega o mais recente)
+                hit = window.propostas
+                    .filter(p => String(p.cliente || '').trim().toLowerCase() === lbl.toLowerCase() && p.status === 'Fechada')
+                    .sort((a, b) => (b.rowIndex || 0) - (a.rowIndex || 0))[0];
+                if (hit) return parseFloat(hit.valor) || 0;
+                return null;
+            }
+
             function tpRenderProjetos(container) {
                 // Agrupa items por projeto
                 const grupos = {};
@@ -5776,7 +5808,8 @@ Data: ${h.data}`;
                     ...g,
                     nParceiros: g.parceiros.size,
                     nServicos: g.items.length,
-                    avMedia: g.avCount > 0 ? Math.round((g.avSum / g.avCount) * 10) / 10 : 0
+                    avMedia: g.avCount > 0 ? Math.round((g.avSum / g.avCount) * 10) / 10 : 0,
+                    valorVenda: tpAcharVendaProjeto(g.projeto)
                 }));
 
                 // Filtro de busca
@@ -5794,10 +5827,16 @@ Data: ${h.data}`;
                 const totalAc = arr.reduce((s, g) => s + g.acordado, 0);
                 const totalPg = arr.reduce((s, g) => s + g.pago, 0);
                 const totalRt = arr.reduce((s, g) => s + g.restante, 0);
+                const totalVenda = arr.reduce((s, g) => s + (g.valorVenda || 0), 0);
+                const totalMargem = totalVenda - totalAc;
+                const totalMargemPct = totalVenda > 0 ? Math.round((totalMargem / totalVenda) * 100) : 0;
+                const corMargemTotal = totalMargem >= 0 ? '#22c55e' : '#ef4444';
 
-                let html = '<div style="background:var(--bg-tertiary);padding:12px 16px;border-radius:10px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">';
+                let html = '<div style="background:var(--bg-tertiary);padding:12px 16px;border-radius:10px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">';
                 html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Projetos</div><div style="font-weight:700;font-size:1.2em">' + arr.length + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">💵 Venda Total</div><div style="font-weight:700;font-size:1.2em;color:#0ea5e9">' + finFmtBRL(totalVenda) + '</div></div>';
                 html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Custo Total</div><div style="font-weight:700;font-size:1.2em;color:var(--accent)">' + finFmtBRL(totalAc) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">📈 Margem</div><div style="font-weight:700;font-size:1.2em;color:' + corMargemTotal + '">' + finFmtBRL(totalMargem) + ' <span style="font-size:0.75em;opacity:0.85">(' + totalMargemPct + '%)</span></div></div>';
                 html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Já Pago</div><div style="font-weight:700;font-size:1.2em;color:#22c55e">' + finFmtBRL(totalPg) + '</div></div>';
                 html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">A Pagar</div><div style="font-weight:700;font-size:1.2em;color:#f59e0b">' + finFmtBRL(totalRt) + '</div></div>';
                 html += '</div>';
@@ -5818,6 +5857,16 @@ Data: ${h.data}`;
                     html += '<div class="tp-proj-card">';
                     html += '<div class="tp-proj-header" onclick="tpToggleProjeto(\'' + g.projeto.replace(/'/g, "\\'") + '\')">';
                     html += '<div><div class="pj-nome">' + esc(g.projeto) + '</div>';
+                    // Linha de venda + margem (se houver match com proposta)
+                    if (g.valorVenda != null && g.valorVenda > 0) {
+                        const margem = g.valorVenda - g.acordado;
+                        const margemPct = g.valorVenda > 0 ? Math.round((margem / g.valorVenda) * 100) : 0;
+                        const corMargem = margem >= 0 ? '#22c55e' : '#ef4444';
+                        html += '<div class="pj-venda">💵 Venda: <b>' + finFmtBRL(g.valorVenda) + '</b>';
+                        html += '  ·  Margem: <b style="color:' + corMargem + '">' + finFmtBRL(margem) + ' (' + margemPct + '%)</b></div>';
+                    } else {
+                        html += '<div class="pj-venda" style="opacity:0.55">💵 Venda: — <span style="font-size:0.85em">(projeto não encontrado nas Fechadas)</span></div>';
+                    }
                     html += '<div class="pj-sub">' + g.nParceiros + ' parceiro(s) · ' + g.nServicos + ' serviço(s)' + (g.avMedia > 0 ? ' · ⭐ ' + g.avMedia.toFixed(1) : '') + '</div></div>';
                     html += '<div class="pj-custo">' + finFmtBRL(g.acordado) + '</div>';
                     html += '<div class="pj-pago">' + finFmtBRL(g.pago) + '</div>';
