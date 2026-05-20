@@ -4394,8 +4394,20 @@
             // Puxar da nuvem imediatamente
             puxarDadosDaNuvem();
 
+            // Prefetch em background — Financeiro e TopoPartners
+            // Dispara apos 500ms para nao competir com puxarDadosDaNuvem (que e prioritario)
+            setTimeout(function() {
+                if (typeof finRefresh === 'function') finRefresh().catch(()=>{});
+                if (typeof tpRefresh === 'function') tpRefresh().catch(()=>{});
+            }, 500);
+
             // Refresh periodically (optional, every 5 mins)
             setInterval(puxarDadosDaNuvem, 300000);
+            // Refresh Financeiro e TopoPartners em background a cada 5 min (sem mostrar loading)
+            setInterval(function() {
+                if (typeof finRefresh === 'function') finRefresh({ skipCache: true }).catch(()=>{});
+                if (typeof tpRefresh === 'function') tpRefresh({ skipCache: true }).catch(()=>{});
+            }, 300000);
 
             // --- SISTEMA DE NOTIFICAÇÕES (SININHO) ---
             function toggleNotifications() {
@@ -5382,6 +5394,11 @@ Data: ${h.data}`;
             let finParcelas = [];
             let finView = 'lista';
             let finLastLoad = 0;
+            // Hidratacao inicial do cache (instantaneo, antes de qualquer fetch)
+            try {
+                const _fc = localStorage.getItem('crm_fin_parcelas_v1');
+                if (_fc) finParcelas = JSON.parse(_fc) || [];
+            } catch (e) {}
 
             async function finApi(action, payload) {
                 const body = Object.assign({ action: action, secret: FIN_SECRET }, payload || {});
@@ -5418,26 +5435,57 @@ Data: ${h.data}`;
                 return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
             }
 
-            async function finRefresh() {
+            // KPIs calculados client-side a partir das parcelas (evita 2a chamada API)
+            function finComputarKPIs(parcelas) {
+                const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+                const em30 = new Date(hoje); em30.setDate(hoje.getDate() + 30);
+                const inicio31 = new Date(hoje); inicio31.setDate(hoje.getDate() + 31);
+                const em90 = new Date(hoje); em90.setDate(hoje.getDate() + 90);
+                const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
+                let aReceber30 = 0, recebidoMes = 0, atrasado = 0, previsto90d = 0;
+                parcelas.forEach(p => {
+                    const v = parseFloat(p.valor) || 0;
+                    const venc = finParseDataBR(p.vencimento);
+                    const pag = finParseDataBR(p.dataPagamento);
+                    if (p.status === 'Pago' && pag && pag.getMonth() === mesAtual && pag.getFullYear() === anoAtual) recebidoMes += v;
+                    if (p.status === 'Pendente' && venc && venc >= hoje && venc <= em30) aReceber30 += v;
+                    if (p.status === 'Atrasado') atrasado += v;
+                    if (p.status === 'Pendente' && venc && venc >= inicio31 && venc <= em90) previsto90d += v;
+                });
+                return { aReceber30, recebidoMes, atrasado, previsto90d };
+            }
+
+            async function finRefresh(opts) {
+                opts = opts || {};
                 const loading = document.getElementById('finLoading');
-                if (loading) loading.textContent = 'Carregando dados financeiros...';
+                // 1) Render IMEDIATO do cache (stale-while-revalidate)
+                if (!opts.skipCache) {
+                    try {
+                        const cached = localStorage.getItem('crm_fin_parcelas_v1');
+                        if (cached) {
+                            finParcelas = JSON.parse(cached) || [];
+                            finRenderKPIs(finComputarKPIs(finParcelas));
+                            renderizarFinanceiro();
+                        }
+                    } catch (e) { /* cache corrompido — ignora */ }
+                }
+                // Se nao tem cache E ainda esta carregando, mostra loading
+                if (loading && finParcelas.length === 0) loading.textContent = 'Carregando dados financeiros...';
+                // 2) Fetch em background (1 unica chamada — KPIs sao calculados client-side)
                 try {
-                    const [list, kpis] = await Promise.all([
-                        finApi('listPayments', { filter: 'todas' }),
-                        finApi('getFinanceKPIs', {})
-                    ]);
+                    const list = await finApi('listPayments', { filter: 'todas' });
                     if (list && list.ok) {
                         finParcelas = list.parcelas || [];
                         finLastLoad = Date.now();
+                        try { localStorage.setItem('crm_fin_parcelas_v1', JSON.stringify(finParcelas)); } catch (e) {}
                     } else {
                         console.warn('listPayments falhou:', list);
-                        finParcelas = [];
                     }
-                    if (kpis && kpis.ok) finRenderKPIs(kpis.kpis);
+                    finRenderKPIs(finComputarKPIs(finParcelas));
                     renderizarFinanceiro();
                 } catch (e) {
                     console.error('finRefresh err:', e);
-                    if (loading) loading.innerHTML = '⚠️ Erro ao carregar. Verifique o deploy do GAS Financeiro.<br><small>' + e.message + '</small>';
+                    if (loading && finParcelas.length === 0) loading.innerHTML = '⚠️ Erro ao carregar.<br><small>' + e.message + '</small>';
                 }
             }
 
@@ -5556,27 +5604,62 @@ Data: ${h.data}`;
             let tpItems = [];
             let tpLastLoad = 0;
             let tpAvaliacaoAtual = 0;
+            try {
+                const _tc = localStorage.getItem('crm_tp_items_v1');
+                if (_tc) tpItems = JSON.parse(_tc) || [];
+            } catch (e) {}
 
-            async function tpRefresh() {
+            function tpComputarKPIs(items) {
+                let totalAcordado = 0, totalPago = 0, totalRestante = 0;
+                let porStatus = { Pago: 0, Parcial: 0, Pendente: 0 };
+                let avSum = 0, avCount = 0;
+                items.forEach(r => {
+                    const ac = parseFloat(r.valorAcordado) || 0;
+                    const pg = parseFloat(r.valorPago) || 0;
+                    totalAcordado += ac;
+                    totalPago += pg;
+                    totalRestante += Math.max(0, ac - pg);
+                    porStatus[r.status] = (porStatus[r.status] || 0) + 1;
+                    const av = parseFloat(r.avaliacao);
+                    if (!isNaN(av) && av > 0) { avSum += av; avCount++; }
+                });
+                return {
+                    totalAcordado, totalPago, totalRestante,
+                    totalRegistros: items.length, porStatus,
+                    avaliacaoMedia: avCount > 0 ? Math.round((avSum / avCount) * 10) / 10 : 0
+                };
+            }
+
+            async function tpRefresh(opts) {
+                opts = opts || {};
                 const loading = document.getElementById('tpLoading');
-                if (loading) loading.textContent = 'Carregando TopoPartners...';
+                // 1) Render IMEDIATO do cache
+                if (!opts.skipCache) {
+                    try {
+                        const cached = localStorage.getItem('crm_tp_items_v1');
+                        if (cached) {
+                            tpItems = JSON.parse(cached) || [];
+                            tpRenderKPIs(tpComputarKPIs(tpItems));
+                            renderizarTopoPartners();
+                        }
+                    } catch (e) {}
+                }
+                if (loading && tpItems.length === 0) loading.textContent = 'Carregando TopoPartners...';
+                // 2) Fetch em background (1 unica chamada)
                 try {
-                    const [list, kpis] = await Promise.all([
-                        finApi('listTopoPartners', {}),
-                        finApi('getTopoPartnersKPIs', {})
-                    ]);
+                    const list = await finApi('listTopoPartners', {});
                     if (list && list.ok) {
                         tpItems = list.items || [];
                         tpLastLoad = Date.now();
+                        try { localStorage.setItem('crm_tp_items_v1', JSON.stringify(tpItems)); } catch (e) {}
                     } else {
                         console.warn('listTopoPartners falhou:', list);
-                        tpItems = [];
                     }
-                    if (kpis && kpis.ok) tpRenderKPIs(kpis.kpis);
+                    tpRenderKPIs(tpComputarKPIs(tpItems));
                     renderizarTopoPartners();
                 } catch (e) {
                     console.error('tpRefresh err:', e);
-                    if (loading) loading.innerHTML = '⚠️ Erro ao carregar.<br><small>' + e.message + '</small>';
+                    if (loading && tpItems.length === 0) loading.innerHTML = '⚠️ Erro ao carregar.<br><small>' + e.message + '</small>';
                 }
             }
 
@@ -5882,7 +5965,7 @@ Data: ${h.data}`;
                     }
                     if (r && r.ok) {
                         fecharModalTopoPartner();
-                        await tpRefresh();
+                        await tpRefresh({ skipCache: true });
                     } else {
                         alert('Erro: ' + (r && r.error ? r.error : 'falha desconhecida'));
                     }
@@ -5897,7 +5980,7 @@ Data: ${h.data}`;
                     const r = await finApi('deleteTopoPartner', { rowIndex: parseInt(rowIndex) });
                     if (r && r.ok) {
                         fecharModalTopoPartner();
-                        await tpRefresh();
+                        await tpRefresh({ skipCache: true });
                     } else {
                         alert('Erro: ' + (r && r.error ? r.error : 'falha'));
                     }
@@ -6056,7 +6139,7 @@ Data: ${h.data}`;
                 try {
                     const r = await finApi('markPaid', { rowIndex: rowIndex });
                     if (r && r.ok) {
-                        await finRefresh();
+                        await finRefresh({ skipCache: true });
                     } else {
                         alert('Erro: ' + (r && r.error ? r.error : 'falha desconhecida'));
                     }
@@ -6185,7 +6268,7 @@ Data: ${h.data}`;
                     if (r && r.ok) {
                         alert('✅ Pagamento registrado: ' + r.added + ' parcela(s).');
                         fecharPaymentModal();
-                        await finRefresh();
+                        await finRefresh({ skipCache: true });
                     } else {
                         alert('Erro: ' + (r && r.error ? r.error : 'falha desconhecida'));
                     }
@@ -6226,7 +6309,7 @@ Data: ${h.data}`;
                     const r = await finApi('updatePayment', { rowIndex: rowIndex, fields: fields });
                     if (r && r.ok) {
                         fecharParcelaEditModal();
-                        await finRefresh();
+                        await finRefresh({ skipCache: true });
                     } else {
                         alert('Erro: ' + (r && r.error ? r.error : 'falha'));
                     }
@@ -6246,12 +6329,20 @@ Data: ${h.data}`;
             window.trocarTab = function(tabId) {
                 _origTrocarTab(tabId);
                 if (tabId === 'financeiro') {
-                    if (Date.now() - finLastLoad > 60000 || finParcelas.length === 0) finRefresh();
-                    else renderizarFinanceiro();
+                    // Sempre re-render imediato (cache ja em memoria)
+                    finRenderKPIs(finComputarKPIs(finParcelas));
+                    renderizarFinanceiro();
+                    // E refresh em background se passou > 60s desde ultimo fetch
+                    if (Date.now() - finLastLoad > 60000) {
+                        finRefresh({ skipCache: true }).catch(()=>{});
+                    }
                 }
                 if (tabId === 'topopartners') {
-                    if (Date.now() - tpLastLoad > 60000 || tpItems.length === 0) tpRefresh();
-                    else renderizarTopoPartners();
+                    tpRenderKPIs(tpComputarKPIs(tpItems));
+                    renderizarTopoPartners();
+                    if (Date.now() - tpLastLoad > 60000) {
+                        tpRefresh({ skipCache: true }).catch(()=>{});
+                    }
                 }
             };
 
