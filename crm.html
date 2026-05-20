@@ -748,6 +748,90 @@
             .tp-header-row { display: none; }
         }
 
+        /* ==================== TOPOPARTNERS — Custos por Projeto ==================== */
+        .tp-proj-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all 0.18s;
+        }
+        .tp-proj-card:hover {
+            border-color: var(--accent);
+        }
+        .tp-proj-header {
+            display: grid;
+            grid-template-columns: 1.7fr 0.9fr 0.9fr 0.9fr 0.7fr 80px;
+            gap: 10px;
+            padding: 14px 16px;
+            background: var(--bg-tertiary);
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.92em;
+        }
+        .tp-proj-header:hover { background: var(--glass-bg); }
+        .tp-proj-header .pj-nome { font-weight: 700; font-size: 1.05em; color: var(--text-primary); }
+        .tp-proj-header .pj-sub { font-size: 0.75em; color: var(--text-secondary); margin-top: 3px; }
+        .tp-proj-header .pj-custo { font-weight: 700; color: var(--accent); font-size: 1.05em; }
+        .tp-proj-header .pj-pago { color: #22c55e; font-weight: 600; }
+        .tp-proj-header .pj-restante { font-weight: 700; }
+        .tp-proj-header .pj-restante.zero { color: #22c55e; }
+        .tp-proj-header .pj-restante.positivo { color: #f59e0b; }
+        .tp-proj-toggle {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.15s;
+        }
+        .tp-proj-toggle:hover { background: var(--accent); color: #fff; }
+        .tp-proj-detalhe {
+            padding: 12px 16px 16px;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--glass-border);
+            animation: slideDownFade 0.25s ease-out;
+        }
+        .tp-proj-svc-row {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 0.7fr 0.8fr 0.8fr 0.8fr 70px;
+            gap: 8px;
+            padding: 8px 10px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            margin-bottom: 5px;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+        .tp-proj-svc-row:hover { background: var(--bg-tertiary); }
+        .tp-proj-svc-row .svc-titulo { font-weight: 600; }
+        .tp-proj-svc-sub { font-size: 0.75em; color: var(--text-secondary); margin-top: 1px; }
+
+        .tp-proj-header-cols {
+            display: grid;
+            grid-template-columns: 1.7fr 0.9fr 0.9fr 0.9fr 0.7fr 80px;
+            gap: 10px;
+            padding: 10px 16px;
+            font-size: 0.72em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .tp-proj-header, .tp-proj-header-cols, .tp-proj-svc-row {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+            .tp-proj-header-cols { display: none; }
+        }
+
         .fin-view-btn {
             padding: 8px 16px;
             background: var(--bg-tertiary);
@@ -2347,8 +2431,8 @@
                 <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
                 <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
                 <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
-                <button class="tab-btn" onclick="trocarTab('insights')">Insights</button>
-                <button class="tab-btn" onclick="trocarTab('kpi')">KPIs</button>
+                <button class="tab-btn" onclick="trocarTab('insights')" style="display:none">Insights</button>
+                <button class="tab-btn" onclick="trocarTab('kpi')" style="display:none">KPIs</button>
                 <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
                 <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
                 <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
@@ -3012,8 +3096,14 @@
                     </div>
                 </div>
 
-                <!-- Filtros -->
-                <div class="filters" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                <!-- Toggle de visualizacao -->
+                <div style="display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap">
+                    <button class="fin-view-btn active" onclick="tpTrocarView('lista', this)">📋 Lista de Serviços</button>
+                    <button class="fin-view-btn" onclick="tpTrocarView('projetos', this)">📊 Custos por Projeto</button>
+                </div>
+
+                <!-- Filtros (apenas visiveis no modo Lista) -->
+                <div class="filters" id="tpFiltrosLista" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
                     <select id="tpFilterStatus" onchange="renderizarTopoPartners()">
                         <option value="todos">Todos Status</option>
                         <option value="Pendente">⏳ Pendente</option>
@@ -3023,6 +3113,17 @@
                     <input type="text" id="tpFilterParceiro" placeholder="Filtrar parceiro..." onkeyup="renderizarTopoPartners()" style="min-width:160px">
                     <input type="text" id="tpFilterProjeto" placeholder="Filtrar projeto..." onkeyup="renderizarTopoPartners()" style="min-width:160px">
                     <input type="text" id="tpBusca" placeholder="Buscar serviço/descrição..." onkeyup="renderizarTopoPartners()" style="flex:1;min-width:200px">
+                </div>
+
+                <!-- Filtros do modo Projetos (oculto por default) -->
+                <div class="filters" id="tpFiltrosProjetos" style="display:none;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <select id="tpProjOrderBy" onchange="renderizarTopoPartners()">
+                        <option value="custo">Ordenar por: Custo Total ↓</option>
+                        <option value="restante">Ordenar por: A Pagar ↓</option>
+                        <option value="servicos">Ordenar por: Nº Serviços ↓</option>
+                        <option value="nome">Ordenar por: Nome A-Z</option>
+                    </select>
+                    <input type="text" id="tpProjBusca" placeholder="Buscar projeto..." onkeyup="renderizarTopoPartners()" style="flex:1;min-width:200px">
                 </div>
 
                 <!-- Lista -->
@@ -5516,6 +5617,18 @@ Data: ${h.data}`;
                 });
             }
 
+            let tpView = 'lista';
+            let tpProjetosExpandidos = new Set();
+
+            function tpTrocarView(v, btn) {
+                tpView = v;
+                document.querySelectorAll('#topopartners .fin-view-btn').forEach(b => b.classList.remove('active'));
+                if (btn) btn.classList.add('active');
+                document.getElementById('tpFiltrosLista').style.display = (v === 'lista') ? 'flex' : 'none';
+                document.getElementById('tpFiltrosProjetos').style.display = (v === 'projetos') ? 'flex' : 'none';
+                renderizarTopoPartners();
+            }
+
             function renderizarTopoPartners() {
                 const container = document.getElementById('tpListaContainer');
                 if (!container) return;
@@ -5523,6 +5636,7 @@ Data: ${h.data}`;
                     container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary)">🤝 Nenhum parceiro cadastrado ainda.<br><small>Clique em <b>➕ Novo Serviço</b> para começar.</small></div>';
                     return;
                 }
+                if (tpView === 'projetos') return tpRenderProjetos(container);
                 const arr = tpFiltrar();
                 arr.sort((a, b) => {
                     const da = finParseDataBR(a.dataOperacao) || new Date(0);
@@ -5557,6 +5671,113 @@ Data: ${h.data}`;
                     });
                 }
                 container.innerHTML = html;
+            }
+
+            function tpRenderProjetos(container) {
+                // Agrupa items por projeto
+                const grupos = {};
+                tpItems.forEach(r => {
+                    const k = (r.projeto && String(r.projeto).trim()) || '(sem projeto)';
+                    if (!grupos[k]) grupos[k] = { projeto: k, items: [], acordado: 0, pago: 0, restante: 0, parceiros: new Set(), avSum: 0, avCount: 0 };
+                    const g = grupos[k];
+                    g.items.push(r);
+                    g.acordado += parseFloat(r.valorAcordado) || 0;
+                    g.pago += parseFloat(r.valorPago) || 0;
+                    g.restante += parseFloat(r.valorRestante) || 0;
+                    g.parceiros.add(r.parceiro);
+                    const av = parseFloat(r.avaliacao);
+                    if (!isNaN(av) && av > 0) { g.avSum += av; g.avCount++; }
+                });
+
+                let arr = Object.values(grupos).map(g => ({
+                    ...g,
+                    nParceiros: g.parceiros.size,
+                    nServicos: g.items.length,
+                    avMedia: g.avCount > 0 ? Math.round((g.avSum / g.avCount) * 10) / 10 : 0
+                }));
+
+                // Filtro de busca
+                const busca = document.getElementById('tpProjBusca').value.toLowerCase().trim();
+                if (busca) arr = arr.filter(g => g.projeto.toLowerCase().includes(busca));
+
+                // Ordenacao
+                const ord = document.getElementById('tpProjOrderBy').value;
+                if (ord === 'custo') arr.sort((a, b) => b.acordado - a.acordado);
+                else if (ord === 'restante') arr.sort((a, b) => b.restante - a.restante);
+                else if (ord === 'servicos') arr.sort((a, b) => b.nServicos - a.nServicos);
+                else arr.sort((a, b) => a.projeto.localeCompare(b.projeto));
+
+                // Totais para o sumario
+                const totalAc = arr.reduce((s, g) => s + g.acordado, 0);
+                const totalPg = arr.reduce((s, g) => s + g.pago, 0);
+                const totalRt = arr.reduce((s, g) => s + g.restante, 0);
+
+                let html = '<div style="background:var(--bg-tertiary);padding:12px 16px;border-radius:10px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Projetos</div><div style="font-weight:700;font-size:1.2em">' + arr.length + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Custo Total</div><div style="font-weight:700;font-size:1.2em;color:var(--accent)">' + finFmtBRL(totalAc) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Já Pago</div><div style="font-weight:700;font-size:1.2em;color:#22c55e">' + finFmtBRL(totalPg) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">A Pagar</div><div style="font-weight:700;font-size:1.2em;color:#f59e0b">' + finFmtBRL(totalRt) + '</div></div>';
+                html += '</div>';
+
+                if (arr.length === 0) {
+                    html += '<div style="text-align:center;padding:40px;color:var(--text-secondary)">Nenhum projeto com os filtros aplicados.</div>';
+                    container.innerHTML = html;
+                    return;
+                }
+
+                html += '<div class="tp-proj-header-cols">';
+                html += '<div>Projeto</div><div>Custo Total</div><div>Pago</div><div>A Pagar</div><div>Serviços</div><div></div>';
+                html += '</div>';
+
+                arr.forEach(g => {
+                    const aberto = tpProjetosExpandidos.has(g.projeto);
+                    const restCls = g.restante > 0 ? 'positivo' : 'zero';
+                    html += '<div class="tp-proj-card">';
+                    html += '<div class="tp-proj-header" onclick="tpToggleProjeto(\'' + g.projeto.replace(/'/g, "\\'") + '\')">';
+                    html += '<div><div class="pj-nome">' + esc(g.projeto) + '</div>';
+                    html += '<div class="pj-sub">' + g.nParceiros + ' parceiro(s) · ' + g.nServicos + ' serviço(s)' + (g.avMedia > 0 ? ' · ⭐ ' + g.avMedia.toFixed(1) : '') + '</div></div>';
+                    html += '<div class="pj-custo">' + finFmtBRL(g.acordado) + '</div>';
+                    html += '<div class="pj-pago">' + finFmtBRL(g.pago) + '</div>';
+                    html += '<div class="pj-restante ' + restCls + '">' + finFmtBRL(g.restante) + '</div>';
+                    html += '<div style="text-align:center;font-weight:700">' + g.nServicos + '</div>';
+                    html += '<button class="tp-proj-toggle">' + (aberto ? '▴ Fechar' : '▾ Abrir') + '</button>';
+                    html += '</div>';
+
+                    if (aberto) {
+                        html += '<div class="tp-proj-detalhe">';
+                        g.items.sort((a, b) => {
+                            const da = finParseDataBR(a.dataOperacao) || new Date(0);
+                            const db = finParseDataBR(b.dataOperacao) || new Date(0);
+                            return db - da;
+                        });
+                        g.items.forEach(r => {
+                            const stars = r.avaliacao && parseInt(r.avaliacao) > 0
+                                ? '★'.repeat(parseInt(r.avaliacao))
+                                : '';
+                            html += '<div class="tp-proj-svc-row" onclick="abrirModalTopoPartner(' + r.rowIndex + ')">';
+                            html += '<div><div class="svc-titulo">' + esc(r.parceiro) + '</div><div class="tp-proj-svc-sub">' + esc(r.servico || '-') + '</div></div>';
+                            html += '<div><div>' + esc(r.dataOperacao || '-') + '</div><div class="tp-proj-svc-sub">' + (r.previsaoPagamento ? 'prev: ' + esc(r.previsaoPagamento) : '') + '</div></div>';
+                            html += '<div style="font-weight:700;color:var(--accent)">' + finFmtBRL(r.valorAcordado) + '</div>';
+                            html += '<div style="color:#22c55e">' + finFmtBRL(r.valorPago) + '</div>';
+                            html += '<div style="font-weight:700;color:' + (r.valorRestante > 0 ? '#f59e0b' : '#22c55e') + '">' + finFmtBRL(r.valorRestante) + '</div>';
+                            html += '<div><span class="fin-status-badge fin-status-' + (r.status === 'Pago' ? 'Pago' : (r.status === 'Parcial' ? 'Pendente' : 'Atrasado')) + '">' + r.status + '</span>';
+                            if (stars) html += '<div style="color:#fbbf24;font-size:0.75em;margin-top:3px">' + stars + '</div>';
+                            html += '</div>';
+                            html += '<div style="text-align:center"><span style="color:var(--accent);font-size:1.1em">✏️</span></div>';
+                            html += '</div>';
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                });
+
+                container.innerHTML = html;
+            }
+
+            function tpToggleProjeto(projeto) {
+                if (tpProjetosExpandidos.has(projeto)) tpProjetosExpandidos.delete(projeto);
+                else tpProjetosExpandidos.add(projeto);
+                renderizarTopoPartners();
             }
 
             function tpPopularProjetos() {
