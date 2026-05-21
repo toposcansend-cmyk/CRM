@@ -2443,7 +2443,7 @@
                 <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
                 <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
                 <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
-                <button class="tab-btn" onclick="trocarTab('topopartners')">🤝 TopoPartners</button>
+                <button class="tab-btn" onclick="trocarTab('topopartners')">💼 Custos de Operação</button>
             </div>
         </div>
 
@@ -3068,13 +3068,13 @@
         </div>
 
         <!-- ==================== MODAL DE EDICAO DE PARCELA ==================== -->
-        <!-- ==================== ABA TOPOPARTNERS ==================== -->
+        <!-- ==================== ABA CUSTOS DE OPERACAO ==================== -->
         <div id="topopartners" class="section">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px">
-                    <h2 style="margin:0">🤝 TopoPartners</h2>
+                    <h2 style="margin:0">💼 Custos de Operação</h2>
                     <div style="display:flex;gap:8px">
-                        <button class="btn btn-primary" onclick="abrirModalTopoPartner()" style="padding:8px 16px;font-size:0.9em">➕ Novo Serviço</button>
+                        <button class="btn btn-primary" onclick="abrirModalTopoPartner()" style="padding:8px 16px;font-size:0.9em">➕ Novo Custo</button>
                         <button class="btn btn-primary" onclick="tpRefresh()" style="padding:8px 16px;font-size:0.9em;background:var(--bg-tertiary);color:var(--accent)">🔄 Atualizar</button>
                     </div>
                 </div>
@@ -3111,15 +3111,23 @@
 
                 <!-- Filtros (apenas visiveis no modo Lista) -->
                 <div class="filters" id="tpFiltrosLista" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <select id="tpFilterCategoria" onchange="renderizarTopoPartners()">
+                        <option value="todas">Todas Categorias</option>
+                        <option value="Parceiro/Serviço">🤝 Parceiro/Serviço</option>
+                        <option value="Equipamento">📦 Equipamento</option>
+                        <option value="Veículo">🚗 Veículo</option>
+                        <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                        <option value="Outros">📋 Outros</option>
+                    </select>
                     <select id="tpFilterStatus" onchange="renderizarTopoPartners()">
                         <option value="todos">Todos Status</option>
                         <option value="Pendente">⏳ Pendente</option>
                         <option value="Parcial">🟡 Parcial</option>
                         <option value="Pago">✅ Pago</option>
                     </select>
-                    <input type="text" id="tpFilterParceiro" placeholder="Filtrar parceiro..." onkeyup="renderizarTopoPartners()" style="min-width:160px">
+                    <input type="text" id="tpFilterParceiro" placeholder="Filtrar fornecedor..." onkeyup="renderizarTopoPartners()" style="min-width:160px">
                     <input type="text" id="tpFilterProjeto" placeholder="Filtrar projeto..." onkeyup="renderizarTopoPartners()" style="min-width:160px">
-                    <input type="text" id="tpBusca" placeholder="Buscar serviço/descrição..." onkeyup="renderizarTopoPartners()" style="flex:1;min-width:200px">
+                    <input type="text" id="tpBusca" placeholder="Buscar item/descrição..." onkeyup="renderizarTopoPartners()" style="flex:1;min-width:200px">
                 </div>
 
                 <!-- Filtros do modo Projetos (oculto por default) -->
@@ -3142,26 +3150,38 @@
             </div>
         </div>
 
-        <!-- ==================== MODAL DE CADASTRO/EDICAO TopoPartner ==================== -->
+        <!-- ==================== MODAL DE CADASTRO/EDICAO Custo de Operacao ==================== -->
         <div id="topoPartnerModal" class="modal">
             <div class="modal-content" style="max-width:720px">
-                <h2 id="tpModalTitulo">🤝 Novo Serviço de Parceiro</h2>
+                <h2 id="tpModalTitulo">💼 Novo Custo de Operação</h2>
                 <input type="hidden" id="tpEditRowIndex">
                 <input type="hidden" id="tpEditId">
 
+                <!-- Categoria — define todo o comportamento das demais labels -->
+                <div class="form-group">
+                    <label>Categoria *</label>
+                    <select id="tpCategoria" onchange="tpAjustarLabelsPorCategoria()">
+                        <option value="Parceiro/Serviço">🤝 Parceiro / Serviço</option>
+                        <option value="Equipamento">📦 Equipamento</option>
+                        <option value="Veículo">🚗 Veículo (aluguel/operação)</option>
+                        <option value="Cartão de Crédito">💳 Cartão de Crédito</option>
+                        <option value="Outros">📋 Outros (genérico)</option>
+                    </select>
+                </div>
+
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
                     <div class="form-group">
-                        <label>Parceiro *</label>
+                        <label id="tpParceiroLabel">Parceiro *</label>
                         <input type="text" id="tpParceiro" placeholder="Nome do parceiro" required>
                     </div>
                     <div class="form-group">
-                        <label>Data da Operação</label>
+                        <label id="tpDataOperacaoLabel">Data da Operação</label>
                         <input type="text" id="tpDataOperacao" placeholder="DD/MM/AAAA">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label>Serviço Executado *</label>
+                    <label id="tpServicoLabel">Serviço Executado *</label>
                     <input type="text" id="tpServico" placeholder="Ex: Voo com drone, processamento de nuvem, escaneamento..." required>
                 </div>
 
@@ -3196,7 +3216,7 @@
                         <label>Previsão de Pagamento</label>
                         <input type="text" id="tpPrevisaoPagamento" placeholder="DD/MM/AAAA">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" id="tpAvaliacaoGroup">
                         <label>Avaliação do Serviço</label>
                         <div id="tpAvaliacaoStars" style="display:flex;gap:8px;font-size:1.6em;cursor:pointer;padding:6px 0">
                             <span data-val="1" onclick="tpSetAvaliacao(1)">☆</span>
@@ -5689,13 +5709,34 @@ Data: ${h.data}`;
                 }
             }
 
+            // Configuracao de labels por categoria — para o modal e para a lista
+            const TP_CATEGORIA_CONFIG = {
+                'Parceiro/Serviço': { emoji: '🤝', parceiroLabel: 'Parceiro *', servicoLabel: 'Serviço Executado *', mostrarAvaliacao: true, placeholderParceiro: 'Nome do parceiro', placeholderServico: 'Ex: Voo com drone, processamento de nuvem...' },
+                'Equipamento':     { emoji: '📦', parceiroLabel: 'Fornecedor / Loja *', servicoLabel: 'Modelo / Item *', mostrarAvaliacao: false, placeholderParceiro: 'Ex: Drone Store, Mercado Livre, etc', placeholderServico: 'Ex: Drone DJI Mavic 3, GPS RTK, etc' },
+                'Veículo':          { emoji: '🚗', parceiroLabel: 'Locadora *',           servicoLabel: 'Veículo (modelo/placa) *', mostrarAvaliacao: false, placeholderParceiro: 'Ex: Localiza, Movida, etc', placeholderServico: 'Ex: Strada 2024 - ABC-1234' },
+                'Cartão de Crédito':{ emoji: '💳', parceiroLabel: 'Cartão / Banco *',     servicoLabel: 'Descrição da Compra *', mostrarAvaliacao: false, placeholderParceiro: 'Ex: Cartão Bradesco Black', placeholderServico: 'Ex: Combustível, hotel, almoço cliente...' },
+                'Outros':           { emoji: '📋', parceiroLabel: 'Fornecedor *',         servicoLabel: 'Item / Descrição *', mostrarAvaliacao: false, placeholderParceiro: 'Quem vendeu / forneceu', placeholderServico: 'Descreva o item' }
+            };
+
+            function tpAjustarLabelsPorCategoria() {
+                const cat = document.getElementById('tpCategoria').value;
+                const cfg = TP_CATEGORIA_CONFIG[cat] || TP_CATEGORIA_CONFIG['Outros'];
+                document.getElementById('tpParceiroLabel').textContent = cfg.parceiroLabel;
+                document.getElementById('tpServicoLabel').textContent = cfg.servicoLabel;
+                document.getElementById('tpParceiro').placeholder = cfg.placeholderParceiro;
+                document.getElementById('tpServico').placeholder = cfg.placeholderServico;
+                document.getElementById('tpAvaliacaoGroup').style.display = cfg.mostrarAvaliacao ? '' : 'none';
+            }
+
             function tpFiltrar() {
+                const categoria = document.getElementById('tpFilterCategoria').value;
                 const status = document.getElementById('tpFilterStatus').value;
                 const parceiro = document.getElementById('tpFilterParceiro').value.toLowerCase().trim();
                 const projeto = document.getElementById('tpFilterProjeto').value.toLowerCase().trim();
                 const busca = document.getElementById('tpBusca').value.toLowerCase().trim();
 
                 return tpItems.filter(r => {
+                    if (categoria !== 'todas' && (r.categoria || 'Parceiro/Serviço') !== categoria) return false;
                     if (status !== 'todos' && r.status !== status) return false;
                     if (parceiro && !String(r.parceiro || '').toLowerCase().includes(parceiro)) return false;
                     if (projeto && !String(r.projeto || '').toLowerCase().includes(projeto)) return false;
@@ -5723,7 +5764,7 @@ Data: ${h.data}`;
                 const container = document.getElementById('tpListaContainer');
                 if (!container) return;
                 if (tpItems.length === 0) {
-                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary)">🤝 Nenhum parceiro cadastrado ainda.<br><small>Clique em <b>➕ Novo Serviço</b> para começar.</small></div>';
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary)">💼 Nenhum custo de operação cadastrado ainda.<br><small>Clique em <b>➕ Novo Custo</b> para começar.</small></div>';
                     return;
                 }
                 if (tpView === 'projetos') return tpRenderProjetos(container);
@@ -5746,8 +5787,9 @@ Data: ${h.data}`;
                         const stars = r.avaliacao && parseInt(r.avaliacao) > 0
                             ? '★'.repeat(parseInt(r.avaliacao)) + '☆'.repeat(5 - parseInt(r.avaliacao))
                             : '';
+                        const cfg = TP_CATEGORIA_CONFIG[r.categoria] || TP_CATEGORIA_CONFIG['Parceiro/Serviço'];
                         html += '<div class="tp-row ' + cls + '" onclick="abrirModalTopoPartner(' + r.rowIndex + ')">';
-                        html += '<div><div class="tp-parceiro">' + esc(r.parceiro) + '</div><div class="tp-sub">' + esc(r.servico || '-') + '</div></div>';
+                        html += '<div><div class="tp-parceiro">' + cfg.emoji + ' ' + esc(r.parceiro) + '</div><div class="tp-sub">' + esc(r.servico || '-') + ' · <span style="opacity:0.7">' + esc(r.categoria || 'Parceiro/Serviço') + '</span></div></div>';
                         html += '<div>' + esc(r.projeto || '-') + '</div>';
                         html += '<div>' + esc(r.dataOperacao || '-') + '</div>';
                         html += '<div class="tp-valor">' + finFmtBRL(r.valorAcordado) + '</div>';
@@ -5941,9 +5983,10 @@ Data: ${h.data}`;
                 if (rowIndex) {
                     const r = tpItems.find(x => x.rowIndex == rowIndex);
                     if (!r) return;
-                    document.getElementById('tpModalTitulo').textContent = '✏️ Editar Serviço de Parceiro';
+                    document.getElementById('tpModalTitulo').textContent = '✏️ Editar Custo de Operação';
                     document.getElementById('tpEditRowIndex').value = rowIndex;
                     document.getElementById('tpEditId').value = r.id || '';
+                    document.getElementById('tpCategoria').value = r.categoria || 'Parceiro/Serviço';
                     document.getElementById('tpParceiro').value = r.parceiro || '';
                     document.getElementById('tpServico').value = r.servico || '';
                     document.getElementById('tpProjeto').value = r.projeto || '';
@@ -5956,9 +5999,10 @@ Data: ${h.data}`;
                     tpSetAvaliacao(parseInt(r.avaliacao) || 0);
                     document.getElementById('tpBtnExcluir').style.display = 'block';
                 } else {
-                    document.getElementById('tpModalTitulo').textContent = '🤝 Novo Serviço de Parceiro';
+                    document.getElementById('tpModalTitulo').textContent = '💼 Novo Custo de Operação';
                     document.getElementById('tpEditRowIndex').value = '';
                     document.getElementById('tpEditId').value = '';
+                    document.getElementById('tpCategoria').value = 'Parceiro/Serviço';
                     document.getElementById('tpParceiro').value = '';
                     document.getElementById('tpServico').value = '';
                     document.getElementById('tpProjeto').value = '';
@@ -5971,6 +6015,7 @@ Data: ${h.data}`;
                     tpSetAvaliacao(0);
                     document.getElementById('tpBtnExcluir').style.display = 'none';
                 }
+                tpAjustarLabelsPorCategoria();
                 tpAtualizarRestante();
                 document.getElementById('topoPartnerModal').classList.add('active');
             }
@@ -5999,10 +6044,11 @@ Data: ${h.data}`;
             async function salvarTopoPartner() {
                 const parceiro = document.getElementById('tpParceiro').value.trim();
                 const servico = document.getElementById('tpServico').value.trim();
-                if (!parceiro || !servico) { alert('Parceiro e Serviço são obrigatórios.'); return; }
+                if (!parceiro || !servico) { alert('Os campos obrigatórios estão vazios.'); return; }
 
                 const rowIndex = document.getElementById('tpEditRowIndex').value;
                 const payload = {
+                    categoria: document.getElementById('tpCategoria').value,
                     parceiro: parceiro,
                     servico: servico,
                     projeto: document.getElementById('tpProjeto').value.trim(),
