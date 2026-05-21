@@ -474,6 +474,31 @@
             color: var(--text-secondary);
         }
 
+        th.th-sort {
+            transition: all 0.15s;
+            user-select: none;
+            white-space: nowrap;
+        }
+        th.th-sort:hover {
+            color: var(--accent);
+            background: var(--glass-bg);
+        }
+        th.th-sort.active {
+            color: var(--accent);
+        }
+        th.th-sort .sort-arrow {
+            display: inline-block;
+            margin-left: 4px;
+            opacity: 0.4;
+            font-size: 0.85em;
+            transition: opacity 0.15s;
+        }
+        th.th-sort .sort-arrow::before { content: '⇅'; }
+        th.th-sort:hover .sort-arrow { opacity: 0.85; }
+        th.th-sort.active .sort-arrow { opacity: 1; }
+        th.th-sort.active.asc .sort-arrow::before { content: '▲'; }
+        th.th-sort.active.desc .sort-arrow::before { content: '▼'; }
+
         tr {
             transition: background 0.2s ease;
         }
@@ -2465,14 +2490,14 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Cliente</th>
-                            <th>Vendedor</th>
-                            <th>Contato</th>
-                            <th>Servico</th>
-                            <th>Data Proposta</th>
-                            <th>Fechamento previsto</th>
-                            <th>Valor</th>
-                            <th>Status</th>
+                            <th class="th-sort" data-col="cliente" onclick="ordenarLista('cliente')">Cliente <span class="sort-arrow"></span></th>
+                            <th class="th-sort" data-col="vendedor" onclick="ordenarLista('vendedor')">Vendedor <span class="sort-arrow"></span></th>
+                            <th class="th-sort" data-col="contato" onclick="ordenarLista('contato')">Contato <span class="sort-arrow"></span></th>
+                            <th class="th-sort" data-col="servico" onclick="ordenarLista('servico')">Servico <span class="sort-arrow"></span></th>
+                            <th class="th-sort" data-col="dataProposta" onclick="ordenarLista('dataProposta')">Data Proposta <span class="sort-arrow"></span></th>
+                            <th class="th-sort" data-col="fechamentoPrevisto" onclick="ordenarLista('fechamentoPrevisto')">Fechamento previsto <span class="sort-arrow"></span></th>
+                            <th class="th-sort" data-col="valor" onclick="ordenarLista('valor')">Valor <span class="sort-arrow"></span></th>
+                            <th class="th-sort" data-col="status" onclick="ordenarLista('status')">Status <span class="sort-arrow"></span></th>
                         </tr>
                     </thead>
                     <tbody id="propostasTable"></tbody>
@@ -3497,7 +3522,73 @@
                 verificarAlertas(f_stats);
             }
 
+            // ============================================================
+            // ORDENAÇÃO CLICAVEL NOS HEADERS DA TABELA DE OPORTUNIDADES
+            // ============================================================
+            let listaSortState = { col: null, dir: 'asc' };
+
+            function ordenarLista(col) {
+                if (listaSortState.col === col) {
+                    // mesmo header: alterna asc -> desc -> nenhum (reset)
+                    if (listaSortState.dir === 'asc') listaSortState.dir = 'desc';
+                    else if (listaSortState.dir === 'desc') listaSortState = { col: null, dir: 'asc' };
+                    else listaSortState.dir = 'asc';
+                } else {
+                    listaSortState = { col: col, dir: 'asc' };
+                }
+                atualizarSortArrows();
+                filtrar();
+            }
+
+            function atualizarSortArrows() {
+                document.querySelectorAll('th.th-sort').forEach(th => {
+                    th.classList.remove('active', 'asc', 'desc');
+                    if (th.dataset.col === listaSortState.col) {
+                        th.classList.add('active', listaSortState.dir);
+                    }
+                });
+            }
+
+            // Status ordering (funil de venda): Lead < Enviada < Pendente < Standby < Fechada < Perdida
+            const STATUS_ORDER = { 'Lead': 1, 'Enviada': 2, 'Pendente': 3, 'Standby': 4, 'Fechada': 5, 'Perdida': 6 };
+
+            function _sortValue(p, col) {
+                let v = p[col];
+                if (col === 'valor') return parseFloat(v) || 0;
+                if (col === 'dataProposta' || col === 'fechamentoPrevisto') {
+                    if (!v) return null;
+                    const m = String(v).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+                    if (m) {
+                        let y = parseInt(m[3]); if (y < 100) y += 2000;
+                        return new Date(y, parseInt(m[2]) - 1, parseInt(m[1])).getTime();
+                    }
+                    const d = new Date(v); return isNaN(d.getTime()) ? null : d.getTime();
+                }
+                if (col === 'status') return STATUS_ORDER[v] || 99;
+                return String(v || '').toLowerCase();
+            }
+
+            function aplicarOrdenacao(arr) {
+                if (!listaSortState.col) return arr;
+                const col = listaSortState.col;
+                const dirMul = listaSortState.dir === 'desc' ? -1 : 1;
+                return arr.slice().sort((a, b) => {
+                    const va = _sortValue(a, col);
+                    const vb = _sortValue(b, col);
+                    // Vazios sempre por último, independente da direção
+                    const aEmpty = va === null || va === undefined || va === '';
+                    const bEmpty = vb === null || vb === undefined || vb === '';
+                    if (aEmpty && bEmpty) return 0;
+                    if (aEmpty) return 1;
+                    if (bEmpty) return -1;
+                    if (va < vb) return -1 * dirMul;
+                    if (va > vb) return 1 * dirMul;
+                    return 0;
+                });
+            }
+
             function renderizarLista(f) {
+                f = aplicarOrdenacao(f);
                 const tableContainer = document.getElementById('propostasTable');
                 const cardsContainer = document.getElementById('propostasCards');
 
