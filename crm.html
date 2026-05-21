@@ -5446,7 +5446,6 @@ Data: ${h.data}`;
             function finComputarKPIs(parcelas) {
                 const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
                 const em30 = new Date(hoje); em30.setDate(hoje.getDate() + 30);
-                const inicio31 = new Date(hoje); inicio31.setDate(hoje.getDate() + 31);
                 const em90 = new Date(hoje); em90.setDate(hoje.getDate() + 90);
                 const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
                 let aReceber30 = 0, recebidoMes = 0, atrasado = 0, previsto90d = 0;
@@ -5457,7 +5456,8 @@ Data: ${h.data}`;
                     if (p.status === 'Pago' && pag && pag.getMonth() === mesAtual && pag.getFullYear() === anoAtual) recebidoMes += v;
                     if (p.status === 'Pendente' && venc && venc >= hoje && venc <= em30) aReceber30 += v;
                     if (p.status === 'Atrasado') atrasado += v;
-                    if (p.status === 'Pendente' && venc && venc >= inicio31 && venc <= em90) previsto90d += v;
+                    // Previsto 90d = TUDO pendente ate 90d (inclui os 30d)
+                    if (p.status === 'Pendente' && venc && venc >= hoje && venc <= em90) previsto90d += v;
                 });
                 return { aReceber30, recebidoMes, atrasado, previsto90d };
             }
@@ -5513,7 +5513,6 @@ Data: ${h.data}`;
             function finFiltrarPorKPI(tipo) {
                 const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
                 const em30 = new Date(hoje); em30.setDate(hoje.getDate() + 30);
-                const inicio31 = new Date(hoje); inicio31.setDate(hoje.getDate() + 31);
                 const em90 = new Date(hoje); em90.setDate(hoje.getDate() + 90);
                 const mesAtual = hoje.getMonth(), anoAtual = hoje.getFullYear();
 
@@ -5523,7 +5522,8 @@ Data: ${h.data}`;
                     if (tipo === 'aReceber') return p.status === 'Pendente' && venc && venc >= hoje && venc <= em30;
                     if (tipo === 'recebido') return p.status === 'Pago' && pag && pag.getMonth() === mesAtual && pag.getFullYear() === anoAtual;
                     if (tipo === 'atrasado') return p.status === 'Atrasado';
-                    if (tipo === 'previsto') return p.status === 'Pendente' && venc && venc >= inicio31 && venc <= em90;
+                    // Previsto 90d = TUDO pendente ate 90d (inclui o que ja esta nos 30d)
+                    if (tipo === 'previsto') return p.status === 'Pendente' && venc && venc >= hoje && venc <= em90;
                     return false;
                 });
             }
@@ -5550,7 +5550,7 @@ Data: ${h.data}`;
                     aReceber: { titulo: '💰 A Receber — Próximos 30 dias', sub: 'Parcelas pendentes com vencimento até daqui 30 dias', emoji: '💰' },
                     recebido: { titulo: '✅ Recebido no Mês Atual', sub: 'Parcelas marcadas como pagas neste mês', emoji: '✅' },
                     atrasado: { titulo: '🔴 Inadimplência — Em Atraso', sub: 'Parcelas com vencimento ultrapassado e sem pagamento', emoji: '🔴' },
-                    previsto: { titulo: '🟡 Previsto 90 dias (dias 31-90)', sub: 'Parcelas pendentes com vencimento entre 31 e 90 dias a partir de hoje', emoji: '🟡' }
+                    previsto: { titulo: '🟡 Previsto 90 dias', sub: 'Todas as parcelas pendentes com vencimento nos próximos 90 dias (inclui as de até 30d)', emoji: '🟡' }
                 };
                 const info = titulos[tipo];
                 const arr = finFiltrarPorKPI(tipo);
@@ -5823,22 +5823,27 @@ Data: ${h.data}`;
                 else if (ord === 'servicos') arr.sort((a, b) => b.nServicos - a.nServicos);
                 else arr.sort((a, b) => a.projeto.localeCompare(b.projeto));
 
-                // Totais para o sumario
+                // Totais para o sumario — margem REAL ja descontando 11% de imposto sobre a venda
+                const TAX_RATE = 0.11;
                 const totalAc = arr.reduce((s, g) => s + g.acordado, 0);
                 const totalPg = arr.reduce((s, g) => s + g.pago, 0);
                 const totalRt = arr.reduce((s, g) => s + g.restante, 0);
                 const totalVenda = arr.reduce((s, g) => s + (g.valorVenda || 0), 0);
-                const totalMargem = totalVenda - totalAc;
+                const totalImposto = totalVenda * TAX_RATE;
+                const totalLiquido = totalVenda - totalImposto;
+                const totalMargem = totalLiquido - totalAc;
                 const totalMargemPct = totalVenda > 0 ? Math.round((totalMargem / totalVenda) * 100) : 0;
                 const corMargemTotal = totalMargem >= 0 ? '#22c55e' : '#ef4444';
 
-                let html = '<div style="background:var(--bg-tertiary);padding:12px 16px;border-radius:10px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">';
-                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Projetos</div><div style="font-weight:700;font-size:1.2em">' + arr.length + '</div></div>';
-                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">💵 Venda Total</div><div style="font-weight:700;font-size:1.2em;color:#0ea5e9">' + finFmtBRL(totalVenda) + '</div></div>';
-                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Custo Total</div><div style="font-weight:700;font-size:1.2em;color:var(--accent)">' + finFmtBRL(totalAc) + '</div></div>';
-                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">📈 Margem</div><div style="font-weight:700;font-size:1.2em;color:' + corMargemTotal + '">' + finFmtBRL(totalMargem) + ' <span style="font-size:0.75em;opacity:0.85">(' + totalMargemPct + '%)</span></div></div>';
-                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Já Pago</div><div style="font-weight:700;font-size:1.2em;color:#22c55e">' + finFmtBRL(totalPg) + '</div></div>';
-                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">A Pagar</div><div style="font-weight:700;font-size:1.2em;color:#f59e0b">' + finFmtBRL(totalRt) + '</div></div>';
+                let html = '<div style="background:var(--bg-tertiary);padding:12px 16px;border-radius:10px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Projetos</div><div style="font-weight:700;font-size:1.15em">' + arr.length + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">💵 Venda Bruta</div><div style="font-weight:700;font-size:1.15em;color:#0ea5e9">' + finFmtBRL(totalVenda) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Imposto 11%</div><div style="font-weight:700;font-size:1.15em;color:#ef4444">−' + finFmtBRL(totalImposto) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Líquido</div><div style="font-weight:700;font-size:1.15em">' + finFmtBRL(totalLiquido) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Custo Parceiros</div><div style="font-weight:700;font-size:1.15em;color:var(--accent)">' + finFmtBRL(totalAc) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">📈 Margem Real</div><div style="font-weight:700;font-size:1.15em;color:' + corMargemTotal + '">' + finFmtBRL(totalMargem) + ' <span style="font-size:0.75em;opacity:0.85">(' + totalMargemPct + '%)</span></div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">Já Pago</div><div style="font-weight:700;font-size:1.15em;color:#22c55e">' + finFmtBRL(totalPg) + '</div></div>';
+                html += '<div><div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">A Pagar</div><div style="font-weight:700;font-size:1.15em;color:#f59e0b">' + finFmtBRL(totalRt) + '</div></div>';
                 html += '</div>';
 
                 if (arr.length === 0) {
@@ -5857,13 +5862,18 @@ Data: ${h.data}`;
                     html += '<div class="tp-proj-card">';
                     html += '<div class="tp-proj-header" onclick="tpToggleProjeto(\'' + g.projeto.replace(/'/g, "\\'") + '\')">';
                     html += '<div><div class="pj-nome">' + esc(g.projeto) + '</div>';
-                    // Linha de venda + margem (se houver match com proposta)
+                    // Linha de venda + margem real (com desconto de 11% de imposto)
                     if (g.valorVenda != null && g.valorVenda > 0) {
-                        const margem = g.valorVenda - g.acordado;
+                        const TAX_RATE = 0.11;
+                        const imposto = g.valorVenda * TAX_RATE;
+                        const vendaLiquida = g.valorVenda - imposto;
+                        const margem = vendaLiquida - g.acordado;
                         const margemPct = g.valorVenda > 0 ? Math.round((margem / g.valorVenda) * 100) : 0;
                         const corMargem = margem >= 0 ? '#22c55e' : '#ef4444';
                         html += '<div class="pj-venda">💵 Venda: <b>' + finFmtBRL(g.valorVenda) + '</b>';
-                        html += '  ·  Margem: <b style="color:' + corMargem + '">' + finFmtBRL(margem) + ' (' + margemPct + '%)</b></div>';
+                        html += '  ·  <span style="opacity:0.85">Imposto 11%: <b style="color:#ef4444">−' + finFmtBRL(imposto) + '</b></span>';
+                        html += '  ·  Líquido: <b>' + finFmtBRL(vendaLiquida) + '</b>';
+                        html += '  ·  📈 Margem Real: <b style="color:' + corMargem + '">' + finFmtBRL(margem) + ' (' + margemPct + '%)</b></div>';
                     } else {
                         html += '<div class="pj-venda" style="opacity:0.55">💵 Venda: — <span style="font-size:0.85em">(projeto não encontrado nas Fechadas)</span></div>';
                     }
