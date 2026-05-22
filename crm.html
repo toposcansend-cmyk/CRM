@@ -1016,12 +1016,59 @@
             background: rgba(239,68,68,0.18) !important;
         }
         .eng-bar-label {
-            position: absolute; right: 8px; top: 50%;
+            position: absolute; right: 10px; top: 50%;
             transform: translateY(-50%);
-            font-size: 0.72em; font-weight: 700; color: #fff;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            font-size: 0.78em; font-weight: 700; color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
             pointer-events: none;
+            z-index: 1;
         }
+
+        /* ===== Barra ARRASTÁVEL (drag thumb) ===== */
+        .eng-bar-wrap.eng-bar-draggable {
+            cursor: ew-resize;
+            touch-action: none;
+            user-select: none;
+            height: 20px;
+            transition: box-shadow 0.15s;
+        }
+        .eng-bar-wrap.eng-bar-draggable:hover {
+            box-shadow: 0 0 0 2px rgba(0,212,255,0.3);
+        }
+        .eng-bar-wrap.eng-bar-draggable.dragging {
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.65);
+            cursor: grabbing;
+        }
+        .eng-bar-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--accent);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+            transition: transform 0.12s ease-out, box-shadow 0.12s, border-color 0.12s;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .eng-bar-wrap.eng-bar-draggable:hover .eng-bar-thumb {
+            transform: translate(-50%, -50%) scale(1.15);
+            border-color: #fff;
+        }
+        .eng-bar-wrap.eng-bar-draggable.dragging .eng-bar-thumb {
+            transform: translate(-50%, -50%) scale(1.35);
+            box-shadow: 0 4px 14px rgba(0,212,255,0.6);
+            border-color: #fff;
+        }
+        .eng-bar-wrap.eng-bar-draggable.locked {
+            cursor: not-allowed;
+        }
+        .eng-bar-wrap.eng-bar-draggable.locked .eng-bar-thumb {
+            display: none;
+        }
+        .eng-bar-fill { pointer-events: none; }
 
         /* ===== Pílulas de status ===== */
         .eng-pills-row {
@@ -6997,16 +7044,20 @@ Data: ${h.data}`;
 
             function engRenderListaLinear(itens) {
                 itens.sort((a, b) => (a.ordemFase || 0) - (b.ordemFase || 0));
-                let html = '<div class="eng-tarefas-lista">';
+                let html = '<div style="font-size:0.75em;color:var(--text-secondary);margin-bottom:8px">💡 <b>Arraste o botão branco</b> na barra para ajustar o progresso. <b>Click no ✏️</b> para edição completa.</div>';
+                html += '<div class="eng-tarefas-lista">';
                 itens.forEach(r => {
                     const col = engHueColor(r.percentual, r.status);
                     const pctNum = parseInt(r.percentual) || 0;
                     const isBloqueado = r.status === 'Bloqueado';
                     const isRetirada = r.status === 'Retirada';
+                    const isNA = r.status === 'N/A';
+                    const isLocked = isRetirada || isNA;
                     let fillStyle;
                     if (isBloqueado) fillStyle = 'background:repeating-linear-gradient(45deg, #dc2626, #dc2626 8px, #991b1b 8px, #991b1b 16px);width:100%;';
                     else if (isRetirada) fillStyle = 'background:repeating-linear-gradient(45deg, #4b5563, #4b5563 8px, #1f2937 8px, #1f2937 16px);width:100%;';
-                    else fillStyle = 'background:' + col.bg + ';width:' + Math.max(pctNum, 3) + '%;';
+                    else if (isNA) fillStyle = 'background:rgba(120,120,120,0.18);width:100%;';
+                    else fillStyle = 'background:' + col.bg + ';width:' + Math.max(pctNum, 2) + '%;';
                     if (r.status === 'Em andamento' && pctNum > 0 && pctNum < 100) fillStyle += 'animation:engShimmerAnim 2.2s infinite;';
 
                     html += '<div class="eng-tarefa-card">';
@@ -7016,15 +7067,105 @@ Data: ${h.data}`;
                     html += '</div>';
                     html += '<div class="eng-tarefa-meta">👤 ' + esc(r.responsavel || '—') + '<div class="eng-tarefa-sub">' + esc(r.status) + '</div></div>';
                     html += '<div class="eng-tarefa-meta">📅 ' + esc(r.previsaoEntrega || '—') + (r.dataConclusao ? '<div class="eng-tarefa-sub">✓ ' + esc(r.dataConclusao) + '</div>' : '') + '</div>';
-                    html += '<button class="eng-tarefa-btn-edit" onclick="event.stopPropagation(); engEditarTarefa(' + r.rowIndex + ')" title="Editar">✏️</button>';
+                    html += '<button class="eng-tarefa-btn-edit" onclick="event.stopPropagation(); engEditarTarefa(' + r.rowIndex + ')" title="Editar tudo">✏️</button>';
                     html += '</div>';
-                    html += '<div class="eng-bar-wrap"><div class="eng-bar-fill" style="' + fillStyle + '"></div>';
-                    html += '<div class="eng-bar-label">' + pctNum + '%</div></div>';
+                    const draggableCls = isLocked ? 'eng-bar-draggable locked' : 'eng-bar-draggable';
+                    html += '<div class="eng-bar-wrap ' + draggableCls + '" data-rowindex="' + r.rowIndex + '" data-pct="' + pctNum + '" data-status="' + esc(r.status) + '">';
+                    html += '<div class="eng-bar-fill" style="' + fillStyle + '"></div>';
+                    if (!isLocked) html += '<div class="eng-bar-thumb" style="left:' + pctNum + '%"></div>';
+                    html += '<div class="eng-bar-label">' + pctNum + '%</div>';
+                    html += '</div>';
                     html += '</div>';
                 });
                 html += '</div>';
                 document.getElementById('engDetalheTabela').innerHTML = html;
             }
+
+            // ============================================================
+            // DRAG INTERATIVO DAS BARRAS DE PROGRESSO
+            // (delegação global — funciona em qualquer barra renderizada)
+            // ============================================================
+            let engBarDragState = null;
+
+            function engUpdateBarFromPointer(e) {
+                if (!engBarDragState) return;
+                const { bar } = engBarDragState;
+                const rect = bar.getBoundingClientRect();
+                const clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+                const x = clientX - rect.left;
+                const pct = Math.max(0, Math.min(100, Math.round((x / rect.width) * 100)));
+                bar.dataset.pct = pct;
+                const fill = bar.querySelector('.eng-bar-fill');
+                const thumb = bar.querySelector('.eng-bar-thumb');
+                const label = bar.querySelector('.eng-bar-label');
+                const currentStatus = bar.dataset.status;
+                const isSpecial = currentStatus === 'Bloqueado' || currentStatus === 'Retirada' || currentStatus === 'N/A';
+                if (fill && !isSpecial) {
+                    const col = engHueColor(pct, '');
+                    fill.style.width = Math.max(pct, 2) + '%';
+                    fill.style.background = col.bg;
+                } else if (fill && currentStatus === 'Bloqueado') {
+                    // Bloqueado: deixa width seguir o ponteiro mas mantem padrao diagonal
+                    fill.style.width = Math.max(pct, 2) + '%';
+                }
+                if (thumb) thumb.style.left = pct + '%';
+                if (label) label.textContent = pct + '%';
+            }
+
+            document.addEventListener('pointerdown', (e) => {
+                const bar = e.target.closest('.eng-bar-draggable');
+                if (!bar || bar.classList.contains('locked')) return;
+                e.preventDefault();
+                const rowIndex = parseInt(bar.dataset.rowindex);
+                if (!rowIndex) return;
+                engBarDragState = { bar, rowIndex, startPct: parseInt(bar.dataset.pct) || 0 };
+                bar.classList.add('dragging');
+                if (bar.setPointerCapture) {
+                    try { bar.setPointerCapture(e.pointerId); } catch (err) {}
+                }
+                engUpdateBarFromPointer(e);
+            });
+
+            document.addEventListener('pointermove', engUpdateBarFromPointer);
+
+            document.addEventListener('pointerup', async (e) => {
+                if (!engBarDragState) return;
+                const { bar, rowIndex, startPct } = engBarDragState;
+                bar.classList.remove('dragging');
+                const newPct = parseInt(bar.dataset.pct);
+                engBarDragState = null;
+                if (isNaN(newPct) || newPct === startPct) return;
+
+                const t = engItens.find(x => x.rowIndex == rowIndex);
+                if (!t) return;
+                let newStatus = t.status;
+                const isLocked = t.status === 'Bloqueado' || t.status === 'Retirada' || t.status === 'N/A';
+                if (!isLocked) {
+                    if (newPct === 0) newStatus = 'Não iniciado';
+                    else if (newPct >= 100) newStatus = 'Concluído';
+                    else if (newPct >= 80) newStatus = 'Em revisão';
+                    else newStatus = 'Em andamento';
+                }
+                // Optimistic update no estado local
+                t.percentual = newPct;
+                t.status = newStatus;
+                bar.dataset.status = newStatus;
+                engRenderKPIs(engComputarKPIs(engItens));
+                try {
+                    await finApi('updateProducao', { rowIndex: rowIndex, fields: { status: newStatus, percentual: newPct } });
+                    // Refresh em bg + re-render
+                    engRefresh({ skipCache: true });
+                    if (engProjetoAberto) engRenderDetalhe();
+                    renderizarEngenharia();
+                } catch (err) { console.error('Erro ao salvar drag:', err); }
+            });
+
+            // Suporte a pointercancel (touch interrompido)
+            document.addEventListener('pointercancel', () => {
+                if (!engBarDragState) return;
+                engBarDragState.bar.classList.remove('dragging');
+                engBarDragState = null;
+            });
 
             // ============================================================
             // SISTEMA DE COR HSL — vermelho (0%) → amarelo (50%) → verde (100%)
