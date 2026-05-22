@@ -3575,9 +3575,9 @@
                 <!-- Filtros -->
                 <div class="filters" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
                     <select id="engFilterStatus" onchange="renderizarEngenharia()">
-                        <option value="todos">Todos Status</option>
-                        <option value="ativos">⚙️ Apenas Ativos</option>
-                        <option value="concluidos">✅ Concluídos</option>
+                        <option value="ativos" selected>⚙️ Apenas Ativos</option>
+                        <option value="todos">Todos (inclui concluídos)</option>
+                        <option value="concluidos">✅ Apenas Concluídos</option>
                     </select>
                     <select id="engFilterResponsavel" onchange="renderizarEngenharia()">
                         <option value="">Todos Responsáveis</option>
@@ -6890,9 +6890,11 @@ Data: ${h.data}`;
                 const busca = document.getElementById('engBusca').value.toLowerCase().trim();
 
                 let grupos = engAgruparPorProjeto();
+                const totalAntesFiltro = grupos.length;
+                const totalConcluidos = grupos.filter(g => g.totais > 0 && g.concluidas === g.totais).length;
 
                 // Filtros
-                if (filterStatus === 'ativos') grupos = grupos.filter(g => g.concluidas < g.totais);
+                if (filterStatus === 'ativos') grupos = grupos.filter(g => !(g.totais > 0 && g.concluidas === g.totais));
                 if (filterStatus === 'concluidos') grupos = grupos.filter(g => g.totais > 0 && g.concluidas === g.totais);
                 if (filterResp) grupos = grupos.filter(g => g.responsaveis.has(filterResp));
                 if (busca) grupos = grupos.filter(g => g.projeto.toLowerCase().includes(busca));
@@ -6903,12 +6905,24 @@ Data: ${h.data}`;
                     return a.pctMedio - b.pctMedio;
                 });
 
-                if (grupos.length === 0) {
-                    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhum projeto com esses filtros.</div>';
-                    return;
+                let html = '';
+                // Banner indicando projetos ocultos
+                if (filterStatus === 'ativos' && totalConcluidos > 0) {
+                    html += '<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);padding:8px 14px;border-radius:8px;margin-bottom:12px;font-size:0.85em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">';
+                    html += '<span>✅ <b>' + totalConcluidos + '</b> projeto(s) concluído(s) — ocultos da lista ativa</span>';
+                    html += '<button onclick="document.getElementById(\'engFilterStatus\').value=\'concluidos\'; renderizarEngenharia();" style="background:rgba(34,197,94,0.2);border:1px solid rgba(34,197,94,0.5);color:#22c55e;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.85em">Ver concluídos</button>';
+                    html += '</div>';
                 }
 
-                let html = '';
+                if (grupos.length === 0) {
+                    if (filterStatus === 'ativos' && totalConcluidos === totalAntesFiltro) {
+                        html += '<div style="text-align:center;padding:30px;color:var(--text-secondary)">🎉 Todos os projetos estão concluídos! Use o filtro acima para vê-los.</div>';
+                    } else {
+                        html += '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhum projeto com esses filtros.</div>';
+                    }
+                    container.innerHTML = html;
+                    return;
+                }
                 grupos.forEach(g => {
                     const fasesArr = Array.from(g.fases);
                     const respsArr = Array.from(g.responsaveis);
