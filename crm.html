@@ -973,25 +973,204 @@
         .eng-matrix .eng-cell-task.na           { background: rgba(120,120,120,0.1); color: #666; }
         .eng-matrix .eng-cell-task small { display: block; font-size: 0.75em; opacity: 0.85; }
 
-        .eng-tarefas-lista {
-            display: grid;
-            gap: 6px;
+        .eng-tarefas-lista { display: grid; gap: 8px; }
+
+        /* ===== Barra de progresso HSL com gradiente (red 0% -> green 100%) ===== */
+        .eng-bar-wrap {
+            position: relative;
+            background: rgba(255,255,255,0.06);
+            border-radius: 999px;
+            overflow: hidden;
+            height: 14px;
+            border: 1px solid var(--glass-border);
         }
-        .eng-tarefa-row {
-            display: grid;
-            grid-template-columns: 1fr 1.4fr 1fr 110px 90px 100px 60px;
-            gap: 8px;
-            padding: 8px 10px;
+        .eng-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+            position: relative;
+        }
+        .eng-bar-fill.shimmer::after {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            animation: engShimmer 2.2s infinite;
+            border-radius: inherit;
+        }
+        @keyframes engShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes engShimmerAnim {
+            0%   { filter: brightness(1); }
+            50%  { filter: brightness(1.18); }
+            100% { filter: brightness(1); }
+        }
+        .eng-bar-fill.bloqueado {
+            background: repeating-linear-gradient(45deg, #dc2626, #dc2626 8px, #991b1b 8px, #991b1b 16px) !important;
+        }
+        .eng-bar-fill.retirada {
+            background: repeating-linear-gradient(45deg, #4b5563, #4b5563 8px, #1f2937 8px, #1f2937 16px) !important;
+        }
+        .eng-bar-fill.naoIniciado-empty {
+            background: rgba(239,68,68,0.18) !important;
+        }
+        .eng-bar-label {
+            position: absolute; right: 8px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.72em; font-weight: 700; color: #fff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            pointer-events: none;
+        }
+
+        /* ===== Pílulas de status ===== */
+        .eng-pills-row {
+            display: flex; flex-wrap: wrap; gap: 6px;
+            margin-top: 4px;
+        }
+        .eng-status-pill-btn {
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.78em;
+            font-weight: 600;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+        }
+        .eng-status-pill-btn:hover { transform: translateY(-1px); border-color: var(--accent); }
+        .eng-status-pill-btn.active {
+            color: #fff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transform: translateY(-1px);
+        }
+        .eng-status-pill-btn.active[data-st="Não iniciado"] { background: #6b7280; }
+        .eng-status-pill-btn.active[data-st="Em andamento"] { background: #f59e0b; }
+        .eng-status-pill-btn.active[data-st="Em revisão"]    { background: #a78bfa; }
+        .eng-status-pill-btn.active[data-st="Concluído"]     { background: #22c55e; }
+        .eng-status-pill-btn.active[data-st="Bloqueado"]     { background: #ef4444; }
+        .eng-status-pill-btn.active[data-st="Retirada"]      { background: #4b5563; text-decoration: line-through; }
+        .eng-status-pill-btn.active[data-st="N/A"]           { background: #9ca3af; }
+
+        /* ===== Tarefa-row v2 (linear list) com barra horizontal ===== */
+        .eng-tarefa-card {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
-            border-radius: 8px;
+            border-radius: 10px;
+            padding: 12px 14px;
+            transition: all 0.18s;
+        }
+        .eng-tarefa-card:hover {
+            border-color: rgba(0,212,255,0.4);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+        }
+        .eng-tarefa-card-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 110px 36px;
+            gap: 10px;
             align-items: center;
-            font-size: 0.88em;
+            margin-bottom: 8px;
         }
-        .eng-tarefa-row select, .eng-tarefa-row input { font-size: 0.85em; padding: 4px 6px; }
+        .eng-tarefa-titulo { font-weight: 600; color: var(--text-primary); font-size: 0.95em; }
+        .eng-tarefa-sub { font-size: 0.75em; color: var(--text-secondary); margin-top: 2px; }
+        .eng-tarefa-meta { font-size: 0.78em; color: var(--text-secondary); }
+        .eng-tarefa-btn-edit {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border);
+            color: var(--accent);
+            width: 36px; height: 36px; border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.15s;
+        }
+        .eng-tarefa-btn-edit:hover { background: var(--accent); color: #fff; }
+
         @media (max-width:768px) {
-            .eng-tarefa-row { grid-template-columns: 1fr; }
+            .eng-tarefa-card-row { grid-template-columns: 1fr; }
         }
+
+        /* ===== Slider customizado com fill colorido ===== */
+        .eng-slider-wrap {
+            position: relative;
+            height: 22px;
+            margin: 4px 0;
+        }
+        .eng-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 14px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 999px;
+            outline: none;
+            position: absolute;
+            top: 4px;
+            left: 0;
+            z-index: 2;
+            cursor: pointer;
+        }
+        .eng-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--accent);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+            margin-top: 0;
+        }
+        .eng-slider::-moz-range-thumb {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--accent);
+            cursor: pointer;
+        }
+        .eng-slider-track-fill {
+            position: absolute;
+            left: 0; top: 4px;
+            height: 14px;
+            border-radius: 999px;
+            pointer-events: none;
+            z-index: 1;
+            transition: width 0.15s, background 0.15s;
+        }
+
+        .eng-quick-btn {
+            padding: 4px 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+        .eng-quick-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+        /* ===== Matriz v2 — cor da celula vem do gradiente HSL ===== */
+        .eng-matrix .eng-cell-task {
+            padding: 4px;
+            min-width: 110px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .eng-matrix .eng-cell-task .eng-cell-bar {
+            border-radius: 6px;
+            padding: 6px 8px;
+            display: flex; flex-direction: column;
+            gap: 2px;
+            transition: all 0.2s;
+        }
+        .eng-matrix .eng-cell-task:hover .eng-cell-bar { transform: scale(1.04); }
+        .eng-cell-bar-pct { font-weight: 700; font-size: 0.95em; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .eng-cell-bar-st { font-size: 0.65em; opacity: 0.9; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.04em; }
 
         .fin-view-btn {
             padding: 8px 16px;
@@ -3428,6 +3607,81 @@
                 <div class="modal-buttons" style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
                     <button class="btn btn-primary" onclick="engCriarProjeto()" style="width:100%;padding:15px;font-size:1.1em">🚀 Criar Projeto</button>
                     <button class="btn btn-secondary" onclick="engFecharNovoProjeto()" style="padding:10px">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MODAL EDITAR TAREFA (inline rich) ==================== -->
+        <div id="engEditTaskModal" class="modal">
+            <div class="modal-content" style="max-width:600px">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px">
+                    <div>
+                        <h2 style="margin:0">✏️ Editar Tarefa</h2>
+                        <div id="engEditTaskHeader" style="font-size:0.85em;color:var(--text-secondary);margin-top:4px"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="engFecharEditTask()" style="padding:6px 12px;font-size:0.85em">✕</button>
+                </div>
+
+                <input type="hidden" id="engEditTaskRowIndex">
+
+                <!-- Status como pills clicaveis -->
+                <div class="form-group">
+                    <label style="font-size:0.78em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">Status</label>
+                    <div class="eng-pills-row" id="engEditTaskStatusPills"></div>
+                </div>
+
+                <!-- Slider de progresso com barra colorida HSL -->
+                <div class="form-group">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <label style="font-size:0.78em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin:0">Progresso</label>
+                        <div style="display:flex;gap:6px;font-size:0.75em">
+                            <button class="eng-quick-btn" onclick="engSetPct(0)">0%</button>
+                            <button class="eng-quick-btn" onclick="engSetPct(25)">25%</button>
+                            <button class="eng-quick-btn" onclick="engSetPct(50)">50%</button>
+                            <button class="eng-quick-btn" onclick="engSetPct(75)">75%</button>
+                            <button class="eng-quick-btn" onclick="engSetPct(90)">90%</button>
+                            <button class="eng-quick-btn" onclick="engSetPct(100)">100%</button>
+                        </div>
+                    </div>
+                    <div class="eng-slider-wrap">
+                        <input type="range" id="engEditTaskPct" min="0" max="100" value="0" oninput="engOnSliderChange()" class="eng-slider">
+                        <div class="eng-slider-track-fill" id="engSliderTrackFill"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+                        <span style="font-size:0.7em;color:var(--text-secondary)">0%</span>
+                        <span id="engEditTaskPctLabel" style="font-weight:700;font-size:1.2em" data-pct="0">0%</span>
+                        <span style="font-size:0.7em;color:var(--text-secondary)">100%</span>
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="form-group">
+                        <label style="font-size:0.78em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">Responsável</label>
+                        <select id="engEditTaskResp">
+                            <option value="">—</option>
+                            <option value="Guilherme">Guilherme</option>
+                            <option value="Marcelo">Marcelo</option>
+                            <option value="Allana">Allana</option>
+                            <option value="Rafaela">Rafaela</option>
+                            <option value="Jean">Jean</option>
+                            <option value="Luiza Morilhas">Luiza Morilhas</option>
+                            <option value="Gabriela Linhares">Gabriela Linhares</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size:0.78em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">Previsão Entrega</label>
+                        <input type="text" id="engEditTaskPrev" placeholder="DD/MM/AAAA">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="font-size:0.78em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">Observação</label>
+                    <textarea id="engEditTaskObs" placeholder="Notas, motivo de bloqueio, etc" style="min-height:50px"></textarea>
+                </div>
+
+                <div style="display:flex;gap:10px;margin-top:18px">
+                    <button class="btn btn-primary" onclick="engSalvarEditTask()" style="flex:1;padding:13px;font-size:1em">💾 Salvar</button>
+                    <button class="btn btn-secondary" onclick="engExcluirTask()" style="padding:13px 20px;background:#ef4444;color:#fff;font-size:0.9em">🗑️</button>
                 </div>
             </div>
         </div>
@@ -6641,7 +6895,8 @@ Data: ${h.data}`;
                     html += '<div style="text-align:right;min-width:80px"><div style="font-weight:700;font-size:1.4em;color:var(--accent)">' + g.pctMedio + '%</div>';
                     html += '<div style="font-size:0.7em;color:var(--text-secondary)">' + g.concluidas + '/' + g.totais + ' concluído</div></div>';
                     html += '</div>';
-                    html += '<div class="eng-progress-bar" style="margin-top:10px"><div class="eng-progress-fill" style="width:' + g.pctMedio + '%"></div></div>';
+                    const colCard = engHueColor(g.pctMedio, g.pctMedio >= 100 ? 'Concluído' : '');
+                    html += '<div class="eng-progress-bar" style="margin-top:10px"><div class="eng-progress-fill" style="width:' + g.pctMedio + '%;background:' + colCard.bg + '"></div></div>';
                     if (chips) html += '<div class="eng-fase-chips">' + chips + '</div>';
                     html += '</div>';
                 });
@@ -6688,7 +6943,6 @@ Data: ${h.data}`;
             }
 
             function engRenderMatriz(subitens, fases, itens) {
-                // Ordenar subitens e fases por 'ordemSubitem' e 'ordemFase' se disponivel
                 subitens.sort((a, b) => {
                     const oa = itens.find(x => x.subitem === a)?.ordemSubitem || 0;
                     const ob = itens.find(x => x.subitem === b)?.ordemSubitem || 0;
@@ -6702,7 +6956,8 @@ Data: ${h.data}`;
                     return 0;
                 });
 
-                let html = '<table class="eng-matrix"><thead><tr><th style="min-width:180px">Subitem</th>';
+                let html = '<div style="font-size:0.75em;color:var(--text-secondary);margin-bottom:8px">💡 <b>Click rápido</b> cicla status (Não iniciado → Em andamento → Em revisão → Concluído). <b>Shift+Click</b> abre edição completa.</div>';
+                html += '<table class="eng-matrix"><thead><tr><th style="min-width:180px">Subitem</th>';
                 fases.forEach(f => html += '<th>' + esc(f) + '</th>');
                 html += '<th style="min-width:80px">Geral</th></tr></thead><tbody>';
 
@@ -6712,11 +6967,20 @@ Data: ${h.data}`;
                     fases.forEach(fase => {
                         const tarefa = itens.find(x => x.subitem === sub && x.fase === fase);
                         if (!tarefa) {
-                            html += '<td class="eng-cell-task na" onclick="engCriarTarefaFromCell(\'' + sub.replace(/'/g,"\\'") + '\',\'' + fase.replace(/'/g,"\\'") + '\')" title="Clique para criar tarefa">—</td>';
+                            html += '<td class="eng-cell-task" onclick="engCriarTarefaFromCell(\'' + sub.replace(/'/g,"\\'") + '\',\'' + fase.replace(/'/g,"\\'") + '\')" title="Clique para criar tarefa"><div class="eng-cell-bar" style="background:rgba(255,255,255,0.04);border:1px dashed var(--glass-border)"><div class="eng-cell-bar-st" style="color:var(--text-secondary);text-align:center">+ criar</div></div></td>';
                         } else {
-                            const cls = ENG_STATUS_CLS[tarefa.status] || 'naoIniciado';
-                            html += '<td class="eng-cell-task ' + cls + '" onclick="engEditarTarefa(' + tarefa.rowIndex + ')" title="Clique para editar">';
-                            html += esc(tarefa.status) + '<small>' + (tarefa.percentual || 0) + '%' + (tarefa.responsavel ? ' · ' + esc(tarefa.responsavel) : '') + '</small>';
+                            const col = engHueColor(tarefa.percentual, tarefa.status);
+                            const cls = col.cls || '';
+                            const bgInline = col.isSpecial && cls === 'bloqueado'
+                                ? 'background:repeating-linear-gradient(45deg, #dc2626, #dc2626 6px, #991b1b 6px, #991b1b 12px)'
+                                : col.isSpecial && cls === 'retirada'
+                                ? 'background:repeating-linear-gradient(45deg, #4b5563, #4b5563 6px, #1f2937 6px, #1f2937 12px)'
+                                : 'background:' + col.bg;
+                            html += '<td class="eng-cell-task" onclick="engCicloStatus(' + tarefa.rowIndex + ', event)" title="Click: cicla status | Shift+Click: edição completa">';
+                            html += '<div class="eng-cell-bar ' + cls + '" style="' + bgInline + '">';
+                            html += '<div class="eng-cell-bar-pct" style="color:' + col.text + '">' + (tarefa.percentual || 0) + '%</div>';
+                            html += '<div class="eng-cell-bar-st" style="color:' + col.text + '">' + esc(tarefa.status) + '</div>';
+                            html += '</div>';
                             html += '</td>';
                             if (tarefa.status !== 'Retirada' && tarefa.status !== 'N/A') {
                                 somaPct += (parseFloat(tarefa.percentual) || 0); validas++;
@@ -6724,71 +6988,225 @@ Data: ${h.data}`;
                         }
                     });
                     const pctSub = validas > 0 ? Math.round(somaPct / validas) : 0;
-                    html += '<td style="font-weight:700;color:var(--accent)">' + pctSub + '%</td></tr>';
+                    const colGeral = engHueColor(pctSub, pctSub >= 100 ? 'Concluído' : '');
+                    html += '<td style="font-weight:700;color:' + colGeral.bg + '">' + pctSub + '%</td></tr>';
                 });
                 html += '</tbody></table>';
                 document.getElementById('engDetalheTabela').innerHTML = html;
             }
 
             function engRenderListaLinear(itens) {
-                // Ordenar por ordem de fase
                 itens.sort((a, b) => (a.ordemFase || 0) - (b.ordemFase || 0));
                 let html = '<div class="eng-tarefas-lista">';
-                html += '<div class="eng-tarefa-row" style="background:var(--bg-tertiary);font-size:0.72em;font-weight:600;color:var(--text-secondary);text-transform:uppercase">';
-                html += '<div>Fase</div><div>Subitem (opcional)</div><div>Responsável</div><div>Status</div><div>%</div><div>Previsão</div><div></div>';
-                html += '</div>';
                 itens.forEach(r => {
-                    const cls = ENG_STATUS_CLS[r.status] || 'naoIniciado';
-                    html += '<div class="eng-tarefa-row" onclick="engEditarTarefa(' + r.rowIndex + ')" style="cursor:pointer">';
-                    html += '<div><b>' + esc(r.fase || '-') + '</b></div>';
-                    html += '<div>' + esc(r.subitem || '-') + '</div>';
-                    html += '<div>' + esc(r.responsavel || '—') + '</div>';
-                    html += '<div><span class="eng-fase-chip eng-status-' + cls + '">' + esc(r.status) + '</span></div>';
-                    html += '<div style="font-weight:600">' + (r.percentual || 0) + '%</div>';
-                    html += '<div>' + esc(r.previsaoEntrega || '—') + '</div>';
-                    html += '<div style="text-align:right;color:var(--accent)">✏️</div>';
+                    const col = engHueColor(r.percentual, r.status);
+                    const pctNum = parseInt(r.percentual) || 0;
+                    const isBloqueado = r.status === 'Bloqueado';
+                    const isRetirada = r.status === 'Retirada';
+                    let fillStyle;
+                    if (isBloqueado) fillStyle = 'background:repeating-linear-gradient(45deg, #dc2626, #dc2626 8px, #991b1b 8px, #991b1b 16px);width:100%;';
+                    else if (isRetirada) fillStyle = 'background:repeating-linear-gradient(45deg, #4b5563, #4b5563 8px, #1f2937 8px, #1f2937 16px);width:100%;';
+                    else fillStyle = 'background:' + col.bg + ';width:' + Math.max(pctNum, 3) + '%;';
+                    if (r.status === 'Em andamento' && pctNum > 0 && pctNum < 100) fillStyle += 'animation:engShimmerAnim 2.2s infinite;';
+
+                    html += '<div class="eng-tarefa-card">';
+                    html += '<div class="eng-tarefa-card-row">';
+                    html += '<div><div class="eng-tarefa-titulo">' + esc(r.fase || '-') + '</div>';
+                    if (r.subitem) html += '<div class="eng-tarefa-sub">📍 ' + esc(r.subitem) + '</div>';
+                    html += '</div>';
+                    html += '<div class="eng-tarefa-meta">👤 ' + esc(r.responsavel || '—') + '<div class="eng-tarefa-sub">' + esc(r.status) + '</div></div>';
+                    html += '<div class="eng-tarefa-meta">📅 ' + esc(r.previsaoEntrega || '—') + (r.dataConclusao ? '<div class="eng-tarefa-sub">✓ ' + esc(r.dataConclusao) + '</div>' : '') + '</div>';
+                    html += '<button class="eng-tarefa-btn-edit" onclick="event.stopPropagation(); engEditarTarefa(' + r.rowIndex + ')" title="Editar">✏️</button>';
+                    html += '</div>';
+                    html += '<div class="eng-bar-wrap"><div class="eng-bar-fill" style="' + fillStyle + '"></div>';
+                    html += '<div class="eng-bar-label">' + pctNum + '%</div></div>';
                     html += '</div>';
                 });
                 html += '</div>';
                 document.getElementById('engDetalheTabela').innerHTML = html;
             }
 
-            // -------- Edicao inline de tarefa via prompt simples ----------
-            async function engEditarTarefa(rowIndex) {
+            // ============================================================
+            // SISTEMA DE COR HSL — vermelho (0%) → amarelo (50%) → verde (100%)
+            // ============================================================
+            function engHueColor(pct, status) {
+                // Status que sobrescrevem o gradiente
+                if (status === 'Em revisão')   return { bg: '#a78bfa', text: '#fff', isSpecial: true, cls: 'emRevisao' };
+                if (status === 'Bloqueado')    return { bg: 'transparent', text: '#fff', isSpecial: true, cls: 'bloqueado' };
+                if (status === 'Retirada')     return { bg: 'transparent', text: '#fca5a5', isSpecial: true, cls: 'retirada' };
+                if (status === 'N/A')          return { bg: 'rgba(120,120,120,0.15)', text: '#888', isSpecial: true, cls: 'na' };
+
+                // Gradiente HSL: hue 0 (red) → 120 (green)
+                const p = Math.max(0, Math.min(100, pct || 0));
+                // Curva nao-linear pra ficar mais bonita: amarelo ja aparece em ~40%
+                const hue = (p / 100) * 120;
+                // Saturacao alta para cores vivas; luminosidade um pouco menor em verde
+                const lum = p >= 95 ? 38 : 50;
+                const sat = p === 0 ? 70 : 80;
+                return { bg: `hsl(${hue}, ${sat}%, ${lum}%)`, text: '#fff', cls: '', isSpecial: false };
+            }
+
+            function engPctRecomendadoParaStatus(status, current) {
+                if (status === 'Concluído') return 100;
+                if (status === 'Não iniciado') return 0;
+                if (status === 'Em revisão') return current >= 80 ? current : 90;
+                if (status === 'Em andamento') return (current > 0 && current < 100) ? current : 50;
+                if (status === 'Bloqueado') return current || 50;
+                if (status === 'Retirada' || status === 'N/A') return 0;
+                return current || 0;
+            }
+
+            // ============================================================
+            // MODAL DE EDICAO DE TAREFA (substitui o prompt antigo)
+            // ============================================================
+            let engEditTaskState = { rowIndex: null, status: '', pct: 0, original: null };
+
+            function engEditarTarefa(rowIndex) {
                 const t = engItens.find(x => x.rowIndex == rowIndex);
                 if (!t) return;
-                const idx = ENG_STATUS_OPCOES.indexOf(t.status);
-                const promptStatus = prompt(
-                    '📝 Editar tarefa\n\n' +
-                    'Fase: ' + (t.fase || '-') + (t.subitem ? '\nSubitem: ' + t.subitem : '') + '\n\n' +
-                    'Status atual: ' + t.status + '\n\nNovo status (digite o número):\n' +
-                    ENG_STATUS_OPCOES.map((s, i) => (i + 1) + '. ' + s).join('\n'),
-                    String(idx >= 0 ? idx + 1 : 1)
-                );
-                if (promptStatus === null) return;
-                const novoStatusIdx = parseInt(promptStatus) - 1;
-                if (novoStatusIdx < 0 || novoStatusIdx >= ENG_STATUS_OPCOES.length) { alert('Status inválido'); return; }
-                const novoStatus = ENG_STATUS_OPCOES[novoStatusIdx];
+                engEditTaskState = {
+                    rowIndex: rowIndex,
+                    status: t.status,
+                    pct: parseInt(t.percentual) || 0,
+                    original: { status: t.status, percentual: t.percentual, responsavel: t.responsavel, previsaoEntrega: t.previsaoEntrega, observacao: t.observacao }
+                };
+                document.getElementById('engEditTaskRowIndex').value = rowIndex;
+                document.getElementById('engEditTaskHeader').textContent =
+                    (t.projeto || '-') + (t.subitem ? '  ·  📍 ' + t.subitem : '') + '  ·  ' + (t.fase || '-');
+                document.getElementById('engEditTaskResp').value = t.responsavel || '';
+                document.getElementById('engEditTaskPrev').value = t.previsaoEntrega || '';
+                document.getElementById('engEditTaskObs').value = t.observacao || '';
+                engRenderStatusPills();
+                engRenderSlider();
+                document.getElementById('engEditTaskModal').classList.add('active');
+            }
 
-                let novoPct;
-                if (novoStatus !== 'Concluído' && novoStatus !== 'Não iniciado' && novoStatus !== 'Retirada' && novoStatus !== 'N/A') {
-                    const promptPct = prompt('Percentual atual (0-100):', t.percentual || 50);
-                    if (promptPct === null) return;
-                    novoPct = Math.max(0, Math.min(100, parseInt(promptPct) || 0));
+            function engFecharEditTask() {
+                document.getElementById('engEditTaskModal').classList.remove('active');
+                engEditTaskState = { rowIndex: null, status: '', pct: 0, original: null };
+            }
+
+            function engRenderStatusPills() {
+                const container = document.getElementById('engEditTaskStatusPills');
+                const emojis = { 'Não iniciado':'⚫','Em andamento':'🟡','Em revisão':'🟣','Concluído':'✅','Bloqueado':'🔴','Retirada':'⬛','N/A':'⚪' };
+                container.innerHTML = ENG_STATUS_OPCOES.map(st => {
+                    const active = st === engEditTaskState.status ? ' active' : '';
+                    return '<button class="eng-status-pill-btn' + active + '" data-st="' + st + '" onclick="engSetStatusInModal(\'' + st + '\')">' + (emojis[st] || '') + ' ' + st + '</button>';
+                }).join('');
+            }
+
+            function engSetStatusInModal(st) {
+                engEditTaskState.status = st;
+                // Sugerir % adequado para o status
+                engEditTaskState.pct = engPctRecomendadoParaStatus(st, engEditTaskState.pct);
+                engRenderStatusPills();
+                engRenderSlider();
+            }
+
+            function engRenderSlider() {
+                const slider = document.getElementById('engEditTaskPct');
+                slider.value = engEditTaskState.pct;
+                const fill = document.getElementById('engSliderTrackFill');
+                const col = engHueColor(engEditTaskState.pct, engEditTaskState.status);
+                fill.style.width = engEditTaskState.pct + '%';
+                if (col.isSpecial && (col.cls === 'bloqueado' || col.cls === 'retirada')) {
+                    // padroes especiais
+                    fill.className = 'eng-slider-track-fill';
+                    fill.style.background = col.cls === 'bloqueado'
+                        ? 'repeating-linear-gradient(45deg, #dc2626, #dc2626 6px, #991b1b 6px, #991b1b 12px)'
+                        : 'repeating-linear-gradient(45deg, #4b5563, #4b5563 6px, #1f2937 6px, #1f2937 12px)';
+                } else {
+                    fill.className = 'eng-slider-track-fill';
+                    fill.style.background = col.bg;
                 }
-                const novoResp = prompt('Responsável (deixe vazio p/ manter "' + (t.responsavel || '—') + '"):', '');
-                const novaPrev = prompt('Previsão de entrega DD/MM/AAAA (vazio p/ manter "' + (t.previsaoEntrega || '—') + '"):', '');
+                const lbl = document.getElementById('engEditTaskPctLabel');
+                lbl.textContent = engEditTaskState.pct + '%';
+                lbl.style.color = (col.isSpecial && col.cls === 'retirada') ? '#fca5a5' : col.bg;
+                lbl.dataset.pct = engEditTaskState.pct;
+            }
 
-                const fields = { status: novoStatus };
-                if (novoPct !== undefined) fields.percentual = novoPct;
-                if (novoResp !== null && novoResp.trim() !== '') fields.responsavel = novoResp.trim();
-                if (novaPrev !== null && novaPrev.trim() !== '') fields.previsaoEntrega = novaPrev.trim();
+            function engOnSliderChange() {
+                const v = parseInt(document.getElementById('engEditTaskPct').value) || 0;
+                engEditTaskState.pct = v;
+                // Auto-ajustar status conforme arrasta
+                if (v === 0 && engEditTaskState.status !== 'Bloqueado' && engEditTaskState.status !== 'Retirada' && engEditTaskState.status !== 'N/A') {
+                    engEditTaskState.status = 'Não iniciado';
+                } else if (v >= 100 && engEditTaskState.status !== 'Retirada' && engEditTaskState.status !== 'N/A') {
+                    engEditTaskState.status = 'Concluído';
+                } else if (v >= 80 && (engEditTaskState.status === 'Não iniciado' || engEditTaskState.status === 'Em andamento')) {
+                    engEditTaskState.status = 'Em revisão';
+                } else if (v > 0 && v < 100 && (engEditTaskState.status === 'Não iniciado' || engEditTaskState.status === 'Concluído')) {
+                    engEditTaskState.status = 'Em andamento';
+                }
+                engRenderStatusPills();
+                engRenderSlider();
+            }
 
+            function engSetPct(v) {
+                engEditTaskState.pct = v;
+                engOnSliderChange();
+            }
+
+            async function engSalvarEditTask() {
+                const rowIndex = parseInt(document.getElementById('engEditTaskRowIndex').value);
+                if (!rowIndex) return;
+                const fields = {
+                    status: engEditTaskState.status,
+                    percentual: engEditTaskState.pct,
+                    responsavel: document.getElementById('engEditTaskResp').value,
+                    previsaoEntrega: document.getElementById('engEditTaskPrev').value.trim(),
+                    observacao: document.getElementById('engEditTaskObs').value
+                };
                 try {
                     const r = await finApi('updateProducao', { rowIndex: rowIndex, fields: fields });
-                    if (r && r.ok) await engRefresh({ skipCache: true });
-                    else alert('Erro: ' + (r && r.error ? r.error : 'falha'));
+                    if (r && r.ok) {
+                        engFecharEditTask();
+                        await engRefresh({ skipCache: true });
+                        if (engProjetoAberto) engRenderDetalhe(); // re-render do modal de detalhe se aberto
+                    } else {
+                        alert('Erro: ' + (r && r.error ? r.error : 'falha'));
+                    }
                 } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            async function engExcluirTask() {
+                const rowIndex = parseInt(document.getElementById('engEditTaskRowIndex').value);
+                if (!rowIndex) return;
+                if (!confirm('Excluir esta tarefa? Esta ação não pode ser desfeita.')) return;
+                try {
+                    const r = await finApi('deleteProducao', { rowIndex: rowIndex });
+                    if (r && r.ok) {
+                        engFecharEditTask();
+                        await engRefresh({ skipCache: true });
+                        if (engProjetoAberto) engRenderDetalhe();
+                    }
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            // ============================================================
+            // QUICK CYCLE — click rapido na celula da matriz cicla status
+            // ============================================================
+            const ENG_CYCLE = ['Não iniciado', 'Em andamento', 'Em revisão', 'Concluído'];
+            async function engCicloStatus(rowIndex, e) {
+                if (e && e.shiftKey) { engEditarTarefa(rowIndex); return; }
+                const t = engItens.find(x => x.rowIndex == rowIndex);
+                if (!t) return;
+                // Se status atual nao esta no cycle, comeca pelo primeiro
+                let idx = ENG_CYCLE.indexOf(t.status);
+                if (idx === -1) idx = 0;
+                else idx = (idx + 1) % ENG_CYCLE.length;
+                const novoStatus = ENG_CYCLE[idx];
+                const novoPct = engPctRecomendadoParaStatus(novoStatus, parseInt(t.percentual) || 0);
+                // Optimistic update local
+                t.status = novoStatus;
+                t.percentual = novoPct;
+                engRenderKPIs(engComputarKPIs(engItens));
+                if (engProjetoAberto) engRenderDetalhe();
+                renderizarEngenharia();
+                try {
+                    await finApi('updateProducao', { rowIndex: rowIndex, fields: { status: novoStatus, percentual: novoPct } });
+                    engRefresh({ skipCache: true });
+                } catch (err) { console.error(err); }
             }
 
             async function engCriarTarefaFromCell(subitem, fase) {
