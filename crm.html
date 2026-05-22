@@ -864,6 +864,135 @@
             .tp-proj-header-cols { display: none; }
         }
 
+        /* ==================== ENGENHARIA / PRODUCAO ==================== */
+        .eng-projeto-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .eng-projeto-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+        .eng-projeto-card .eng-proj-titulo {
+            font-weight: 700;
+            font-size: 1.08em;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        .eng-projeto-card .eng-proj-sub {
+            font-size: 0.78em;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        .eng-progress-bar {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 10px;
+            position: relative;
+        }
+        .eng-progress-fill {
+            background: linear-gradient(90deg, #06b6d4, #22c55e);
+            height: 100%;
+            transition: width 0.4s;
+        }
+        .eng-progress-label {
+            font-size: 0.78em;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .eng-fase-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 10px;
+        }
+        .eng-fase-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.72em;
+            font-weight: 600;
+        }
+        .eng-status-naoIniciado { background: rgba(100,116,139,0.2); color: #94a3b8; }
+        .eng-status-emAndamento { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .eng-status-emRevisao    { background: rgba(124,58,237,0.22); color: #a78bfa; }
+        .eng-status-concluido    { background: rgba(34,197,94,0.22); color: #22c55e; }
+        .eng-status-bloqueado    { background: rgba(239,68,68,0.22); color: #ef4444; }
+        .eng-status-retirada     { background: rgba(120,0,0,0.4); color: #fca5a5; text-decoration: line-through; }
+        .eng-status-na           { background: rgba(120,120,120,0.15); color: #888; }
+
+        .eng-matrix {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.85em;
+            min-width: 700px;
+        }
+        .eng-matrix th, .eng-matrix td {
+            border: 1px solid var(--glass-border);
+            padding: 6px 8px;
+            text-align: center;
+            background: var(--glass-bg);
+        }
+        .eng-matrix th {
+            background: var(--bg-tertiary);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 0.78em;
+            text-transform: uppercase;
+        }
+        .eng-matrix .eng-cell-subitem {
+            text-align: left;
+            font-weight: 600;
+            background: var(--bg-tertiary);
+            min-width: 180px;
+        }
+        .eng-matrix .eng-cell-task {
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+            min-width: 100px;
+        }
+        .eng-matrix .eng-cell-task:hover { transform: scale(1.02); border-color: var(--accent); }
+        .eng-matrix .eng-cell-task.concluido    { background: rgba(34,197,94,0.18); color: #22c55e; font-weight: 600; }
+        .eng-matrix .eng-cell-task.emAndamento { background: rgba(245,158,11,0.18); color: #f59e0b; font-weight: 600; }
+        .eng-matrix .eng-cell-task.emRevisao    { background: rgba(124,58,237,0.18); color: #a78bfa; font-weight: 600; }
+        .eng-matrix .eng-cell-task.naoIniciado { background: var(--glass-bg); color: var(--text-secondary); }
+        .eng-matrix .eng-cell-task.bloqueado    { background: rgba(239,68,68,0.2); color: #ef4444; }
+        .eng-matrix .eng-cell-task.retirada     { background: rgba(120,0,0,0.35); color: #fca5a5; }
+        .eng-matrix .eng-cell-task.na           { background: rgba(120,120,120,0.1); color: #666; }
+        .eng-matrix .eng-cell-task small { display: block; font-size: 0.75em; opacity: 0.85; }
+
+        .eng-tarefas-lista {
+            display: grid;
+            gap: 6px;
+        }
+        .eng-tarefa-row {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr 1fr 110px 90px 100px 60px;
+            gap: 8px;
+            padding: 8px 10px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            align-items: center;
+            font-size: 0.88em;
+        }
+        .eng-tarefa-row select, .eng-tarefa-row input { font-size: 0.85em; padding: 4px 6px; }
+        @media (max-width:768px) {
+            .eng-tarefa-row { grid-template-columns: 1fr; }
+        }
+
         .fin-view-btn {
             padding: 8px 16px;
             background: var(--bg-tertiary);
@@ -2469,6 +2598,7 @@
                 <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
                 <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
                 <button class="tab-btn" onclick="trocarTab('topopartners')">💼 Custos de Operação</button>
+                <button class="tab-btn" onclick="trocarTab('engenharia')">🛠️ Engenharia</button>
             </div>
         </div>
 
@@ -3176,6 +3306,151 @@
         </div>
 
         <!-- ==================== MODAL DE CADASTRO/EDICAO Custo de Operacao ==================== -->
+        <!-- ==================== ABA ENGENHARIA ==================== -->
+        <div id="engenharia" class="section">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <h2 style="margin:0">🛠️ Engenharia — Produção</h2>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-primary" onclick="engAbrirNovoProjeto()" style="padding:8px 16px;font-size:0.9em">➕ Novo Projeto</button>
+                        <button class="btn btn-primary" onclick="engRefresh()" style="padding:8px 16px;font-size:0.9em;background:var(--bg-tertiary);color:var(--accent)">🔄 Atualizar</button>
+                    </div>
+                </div>
+
+                <!-- KPIs -->
+                <div id="engKPIs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px">
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#06b6d4,#0284c7)">
+                        <div class="fin-kpi-label">📦 Projetos Ativos</div>
+                        <div class="fin-kpi-value" id="engKpiProjetos">0</div>
+                        <div class="fin-kpi-hint" id="engKpiTarefas">0 tarefas</div>
+                    </div>
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+                        <div class="fin-kpi-label">✅ Concluídas</div>
+                        <div class="fin-kpi-value" id="engKpiConcluidas">0</div>
+                        <div class="fin-kpi-hint" id="engKpiConcluidasPct">0%</div>
+                    </div>
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#f59e0b,#b45309)">
+                        <div class="fin-kpi-label">🟡 Em Andamento</div>
+                        <div class="fin-kpi-value" id="engKpiAndamento">0</div>
+                        <div class="fin-kpi-hint" id="engKpiAndamentoPct">0%</div>
+                    </div>
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#64748b,#334155)">
+                        <div class="fin-kpi-label">⚫ Aguardando</div>
+                        <div class="fin-kpi-value" id="engKpiAguardando">0</div>
+                        <div class="fin-kpi-hint" id="engKpiBloqueadas">0 bloqueadas</div>
+                    </div>
+                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)">
+                        <div class="fin-kpi-label">📊 Progresso Médio</div>
+                        <div class="fin-kpi-value" id="engKpiProgresso">0%</div>
+                        <div class="fin-kpi-hint">média entre tarefas ativas</div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="filters" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <select id="engFilterStatus" onchange="renderizarEngenharia()">
+                        <option value="todos">Todos Status</option>
+                        <option value="ativos">⚙️ Apenas Ativos</option>
+                        <option value="concluidos">✅ Concluídos</option>
+                    </select>
+                    <select id="engFilterResponsavel" onchange="renderizarEngenharia()">
+                        <option value="">Todos Responsáveis</option>
+                    </select>
+                    <input type="text" id="engBusca" placeholder="Buscar projeto..." onkeyup="renderizarEngenharia()" style="flex:1;min-width:200px">
+                </div>
+
+                <!-- Lista de projetos (cards) -->
+                <div id="engProjetosContainer">
+                    <div id="engLoading" style="text-align:center;padding:40px;color:var(--text-secondary)">
+                        Carregando produção...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MODAL NOVO PROJETO (templates) ==================== -->
+        <div id="engNovoProjetoModal" class="modal">
+            <div class="modal-content" style="max-width:720px">
+                <h2>🛠️ Novo Projeto de Engenharia</h2>
+
+                <div class="form-group">
+                    <label>Projeto Destino *</label>
+                    <input type="text" id="engNovoProjeto" list="engProjetosFechadosList" placeholder="Cliente - Nº Proposta (só Fechadas)" autocomplete="off">
+                    <datalist id="engProjetosFechadosList"></datalist>
+                </div>
+
+                <div class="form-group">
+                    <label>Template (Estrutura de Fases)</label>
+                    <select id="engTemplate" onchange="engRenderTemplatePreview()">
+                        <option value="aerolevantamento">🚁 Aerolevantamento Simples (3 fases)</option>
+                        <option value="scan-bim">🏗️ Scan to BIM (4 fases)</option>
+                        <option value="igrejas">⛪ Conjunto de Itens (matriz subitens × fases)</option>
+                        <option value="setores">🗺️ Por Setores (matriz setores × fases)</option>
+                        <option value="custom">⚙️ Personalizado (livre)</option>
+                    </select>
+                </div>
+
+                <!-- Configuração de subitens/setores quando aplicável -->
+                <div id="engSubitensConfig" class="form-group" style="display:none">
+                    <label id="engSubitensLabel">Lista de Subitens (1 por linha)</label>
+                    <textarea id="engSubitens" placeholder="Catedral Sant'Ana&#10;Igreja Nossa Senhora do Rosário&#10;..." style="min-height:120px;font-family:monospace;font-size:0.85em"></textarea>
+                </div>
+
+                <!-- Configuração de fases custom -->
+                <div id="engFasesConfig" class="form-group" style="display:none">
+                    <label>Lista de Fases (1 por linha, na ordem de execução)</label>
+                    <textarea id="engFases" placeholder="Coleta de campo&#10;Processamento&#10;Produto final" style="min-height:90px;font-family:monospace;font-size:0.85em"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Responsável Inicial (opcional)</label>
+                    <select id="engResponsavel">
+                        <option value="">— Sem responsável definido —</option>
+                        <option value="Guilherme">Guilherme</option>
+                        <option value="Marcelo">Marcelo</option>
+                        <option value="Allana">Allana</option>
+                        <option value="Rafaela">Rafaela</option>
+                        <option value="Jean">Jean</option>
+                        <option value="Luiza Morilhas">Luiza Morilhas</option>
+                        <option value="Gabriela Linhares">Gabriela Linhares</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Previsão de Entrega (geral)</label>
+                    <input type="text" id="engPrevisao" placeholder="DD/MM/AAAA">
+                </div>
+
+                <div id="engPreview" style="background:var(--bg-tertiary);padding:10px;border-radius:8px;margin-bottom:15px;font-size:0.85em;min-height:40px">
+                    <span style="color:var(--text-secondary)">Pré-visualização aparece aqui após preencher os campos.</span>
+                </div>
+
+                <div class="modal-buttons" style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+                    <button class="btn btn-primary" onclick="engCriarProjeto()" style="width:100%;padding:15px;font-size:1.1em">🚀 Criar Projeto</button>
+                    <button class="btn btn-secondary" onclick="engFecharNovoProjeto()" style="padding:10px">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== MODAL DETALHE PROJETO ==================== -->
+        <div id="engDetalheModal" class="modal">
+            <div class="modal-content" style="max-width:1100px;width:96%">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+                    <div>
+                        <h2 id="engDetalheTitulo" style="margin:0">Projeto</h2>
+                        <div id="engDetalheSub" style="font-size:0.85em;color:var(--text-secondary);margin-top:4px"></div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-secondary" onclick="engAddTarefa()" style="padding:8px 14px;font-size:0.85em">➕ Adicionar Tarefa</button>
+                        <button class="btn btn-secondary" onclick="engFecharDetalhe()" style="padding:8px 14px;font-size:0.85em">✕ Fechar</button>
+                    </div>
+                </div>
+
+                <div id="engDetalheProgresso" style="margin:14px 0"></div>
+                <div id="engDetalheTabela" style="overflow-x:auto"></div>
+            </div>
+        </div>
+
         <div id="topoPartnerModal" class="modal">
             <div class="modal-content" style="max-width:720px">
                 <h2 id="tpModalTitulo">💼 Novo Custo de Operação</h2>
@@ -4512,19 +4787,21 @@
             // Puxar da nuvem imediatamente
             puxarDadosDaNuvem();
 
-            // Prefetch em background — Financeiro e TopoPartners
+            // Prefetch em background — Financeiro, TopoPartners e Engenharia
             // Dispara apos 500ms para nao competir com puxarDadosDaNuvem (que e prioritario)
             setTimeout(function() {
                 if (typeof finRefresh === 'function') finRefresh().catch(()=>{});
                 if (typeof tpRefresh === 'function') tpRefresh().catch(()=>{});
+                if (typeof engRefresh === 'function') engRefresh().catch(()=>{});
             }, 500);
 
             // Refresh periodically (optional, every 5 mins)
             setInterval(puxarDadosDaNuvem, 300000);
-            // Refresh Financeiro e TopoPartners em background a cada 5 min (sem mostrar loading)
+            // Refresh Financeiro, TopoPartners e Engenharia em background a cada 5 min
             setInterval(function() {
                 if (typeof finRefresh === 'function') finRefresh({ skipCache: true }).catch(()=>{});
                 if (typeof tpRefresh === 'function') tpRefresh({ skipCache: true }).catch(()=>{});
+                if (typeof engRefresh === 'function') engRefresh({ skipCache: true }).catch(()=>{});
             }, 300000);
 
             // --- SISTEMA DE NOTIFICAÇÕES (SININHO) ---
@@ -6172,6 +6449,518 @@ Data: ${h.data}`;
                 } catch (e) { alert('Erro: ' + e.message); }
             }
 
+            // ============================================================
+            // MODULO ENGENHARIA / PRODUCAO
+            // ============================================================
+            let engItens = [];
+            let engLastLoad = 0;
+            let engProjetoAberto = null; // chave do projeto cujo modal de detalhe esta aberto
+            try {
+                const _ec = localStorage.getItem('crm_eng_itens_v1');
+                if (_ec) engItens = JSON.parse(_ec) || [];
+            } catch (e) {}
+
+            const ENG_STATUS_OPCOES = ['Não iniciado', 'Em andamento', 'Em revisão', 'Concluído', 'Bloqueado', 'Retirada', 'N/A'];
+            const ENG_STATUS_CLS = {
+                'Não iniciado': 'naoIniciado',
+                'Em andamento': 'emAndamento',
+                'Em revisão': 'emRevisao',
+                'Concluído': 'concluido',
+                'Bloqueado': 'bloqueado',
+                'Retirada': 'retirada',
+                'N/A': 'na'
+            };
+
+            // ----- Helpers de KPI ------
+            function engComputarKPIs(itens) {
+                const projetos = new Set();
+                let concluidas = 0, emAndamento = 0, naoIniciadas = 0, bloqueadas = 0;
+                let somaPct = 0, validasPct = 0;
+                itens.forEach(r => {
+                    projetos.add(r.projeto || r.numeroProposta);
+                    if (r.status === 'Concluído') concluidas++;
+                    else if (r.status === 'Em andamento' || r.status === 'Em revisão') emAndamento++;
+                    else if (r.status === 'Bloqueado') bloqueadas++;
+                    else if (r.status === 'Retirada' || r.status === 'N/A') {}
+                    else naoIniciadas++;
+                    if (r.status !== 'Retirada' && r.status !== 'N/A') {
+                        somaPct += (parseFloat(r.percentual) || 0); validasPct++;
+                    }
+                });
+                return {
+                    totalTarefas: itens.length, totalProjetos: projetos.size,
+                    concluidas, emAndamento, naoIniciadas, bloqueadas,
+                    mediaProgressoPct: validasPct > 0 ? Math.round(somaPct / validasPct) : 0
+                };
+            }
+
+            function engRenderKPIs(k) {
+                document.getElementById('engKpiProjetos').textContent = k.totalProjetos;
+                document.getElementById('engKpiTarefas').textContent = k.totalTarefas + ' tarefas';
+                document.getElementById('engKpiConcluidas').textContent = k.concluidas;
+                const pctCon = k.totalTarefas > 0 ? Math.round((k.concluidas / k.totalTarefas) * 100) : 0;
+                document.getElementById('engKpiConcluidasPct').textContent = pctCon + '%';
+                document.getElementById('engKpiAndamento').textContent = k.emAndamento;
+                const pctAnd = k.totalTarefas > 0 ? Math.round((k.emAndamento / k.totalTarefas) * 100) : 0;
+                document.getElementById('engKpiAndamentoPct').textContent = pctAnd + '%';
+                document.getElementById('engKpiAguardando').textContent = k.naoIniciadas;
+                document.getElementById('engKpiBloqueadas').textContent = k.bloqueadas + ' bloqueadas';
+                document.getElementById('engKpiProgresso').textContent = k.mediaProgressoPct + '%';
+            }
+
+            async function engRefresh(opts) {
+                opts = opts || {};
+                const loading = document.getElementById('engLoading');
+                if (!opts.skipCache) {
+                    try {
+                        const cached = localStorage.getItem('crm_eng_itens_v1');
+                        if (cached) {
+                            engItens = JSON.parse(cached) || [];
+                            engRenderKPIs(engComputarKPIs(engItens));
+                            renderizarEngenharia();
+                        }
+                    } catch (e) {}
+                }
+                if (loading && engItens.length === 0) loading.textContent = 'Carregando produção...';
+                try {
+                    const list = await finApi('listProducao', {});
+                    if (list && list.ok) {
+                        engItens = list.itens || [];
+                        engLastLoad = Date.now();
+                        try { localStorage.setItem('crm_eng_itens_v1', JSON.stringify(engItens)); } catch (e) {}
+                    }
+                    engRenderKPIs(engComputarKPIs(engItens));
+                    renderizarEngenharia();
+                } catch (e) {
+                    console.error('engRefresh err:', e);
+                    if (loading && engItens.length === 0) loading.innerHTML = '⚠️ Erro: ' + e.message;
+                }
+            }
+
+            function engAgruparPorProjeto() {
+                const grupos = {};
+                engItens.forEach(r => {
+                    const k = r.projeto || ('Proposta ' + r.numeroProposta);
+                    if (!grupos[k]) grupos[k] = {
+                        projeto: k, numeroProposta: r.numeroProposta,
+                        itens: [], subitens: new Set(), fases: new Set(), responsaveis: new Set(),
+                        somaPct: 0, validasPct: 0, concluidas: 0, totais: 0, bloqueadas: 0,
+                        previsaoMaisProxima: null
+                    };
+                    const g = grupos[k];
+                    g.itens.push(r);
+                    if (r.subitem) g.subitens.add(r.subitem);
+                    if (r.fase) g.fases.add(r.fase);
+                    if (r.responsavel) g.responsaveis.add(r.responsavel);
+                    if (r.status !== 'Retirada' && r.status !== 'N/A') {
+                        g.totais++;
+                        g.somaPct += (parseFloat(r.percentual) || 0); g.validasPct++;
+                        if (r.status === 'Concluído') g.concluidas++;
+                        if (r.status === 'Bloqueado') g.bloqueadas++;
+                    }
+                    const venc = finParseDataBR(r.previsaoEntrega);
+                    if (venc && (!g.previsaoMaisProxima || venc < g.previsaoMaisProxima)) g.previsaoMaisProxima = venc;
+                });
+                return Object.values(grupos).map(g => ({
+                    ...g,
+                    pctMedio: g.validasPct > 0 ? Math.round(g.somaPct / g.validasPct) : 0
+                }));
+            }
+
+            function renderizarEngenharia() {
+                // Popular filtro de responsavel
+                const respSel = document.getElementById('engFilterResponsavel');
+                const respsAtuais = new Set(['Guilherme', 'Marcelo', 'Allana', 'Rafaela', 'Jean', 'Luiza Morilhas', 'Gabriela Linhares']);
+                engItens.forEach(r => { if (r.responsavel) respsAtuais.add(r.responsavel); });
+                const selectedResp = respSel.value;
+                respSel.innerHTML = '<option value="">Todos Responsáveis</option>' +
+                    Array.from(respsAtuais).sort().map(r => '<option value="' + r + '"' + (r === selectedResp ? ' selected' : '') + '>' + r + '</option>').join('');
+
+                const container = document.getElementById('engProjetosContainer');
+                if (!container) return;
+
+                if (engItens.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary)">🛠️ Nenhum projeto em produção ainda.<br><small>Clique em <b>➕ Novo Projeto</b> para começar.</small></div>';
+                    return;
+                }
+
+                const filterStatus = document.getElementById('engFilterStatus').value;
+                const filterResp = document.getElementById('engFilterResponsavel').value;
+                const busca = document.getElementById('engBusca').value.toLowerCase().trim();
+
+                let grupos = engAgruparPorProjeto();
+
+                // Filtros
+                if (filterStatus === 'ativos') grupos = grupos.filter(g => g.concluidas < g.totais);
+                if (filterStatus === 'concluidos') grupos = grupos.filter(g => g.totais > 0 && g.concluidas === g.totais);
+                if (filterResp) grupos = grupos.filter(g => g.responsaveis.has(filterResp));
+                if (busca) grupos = grupos.filter(g => g.projeto.toLowerCase().includes(busca));
+
+                // Ordenar: bloqueados primeiro, depois com menor progresso
+                grupos.sort((a, b) => {
+                    if (a.bloqueadas !== b.bloqueadas) return b.bloqueadas - a.bloqueadas;
+                    return a.pctMedio - b.pctMedio;
+                });
+
+                if (grupos.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhum projeto com esses filtros.</div>';
+                    return;
+                }
+
+                let html = '';
+                grupos.forEach(g => {
+                    const fasesArr = Array.from(g.fases);
+                    const respsArr = Array.from(g.responsaveis);
+                    const previsaoStr = g.previsaoMaisProxima ? g.previsaoMaisProxima.toLocaleDateString('pt-BR') : '—';
+
+                    // Resumo das fases (até 6 chips)
+                    const chips = fasesArr.slice(0, 8).map(fase => {
+                        const tarefasFase = g.itens.filter(x => x.fase === fase);
+                        const concl = tarefasFase.filter(x => x.status === 'Concluído').length;
+                        const total = tarefasFase.length;
+                        const completo = total > 0 && concl === total;
+                        const cls = completo ? 'eng-status-concluido' :
+                                    tarefasFase.some(x => x.status === 'Em andamento' || x.status === 'Em revisão') ? 'eng-status-emAndamento' :
+                                    tarefasFase.some(x => x.status === 'Bloqueado') ? 'eng-status-bloqueado' :
+                                    'eng-status-naoIniciado';
+                        return '<span class="eng-fase-chip ' + cls + '">' + esc(fase) + ' ' + concl + '/' + total + '</span>';
+                    }).join('');
+
+                    const projetoKey = g.projeto.replace(/'/g, "\\'");
+                    html += '<div class="eng-projeto-card" onclick="engAbrirDetalhe(\'' + projetoKey + '\')">';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">';
+                    html += '<div style="flex:1;min-width:240px">';
+                    html += '<div class="eng-proj-titulo">' + esc(g.projeto) + '</div>';
+                    html += '<div class="eng-proj-sub">' + g.itens.length + ' tarefa(s)' +
+                            (g.subitens.size > 0 ? ' · ' + g.subitens.size + ' subitens' : '') +
+                            (respsArr.length > 0 ? ' · 👤 ' + esc(respsArr.join(', ')) : '') +
+                            ' · 📅 ' + previsaoStr +
+                            (g.bloqueadas > 0 ? ' · 🔴 ' + g.bloqueadas + ' bloqueada(s)' : '') +
+                            '</div>';
+                    html += '</div>';
+                    html += '<div style="text-align:right;min-width:80px"><div style="font-weight:700;font-size:1.4em;color:var(--accent)">' + g.pctMedio + '%</div>';
+                    html += '<div style="font-size:0.7em;color:var(--text-secondary)">' + g.concluidas + '/' + g.totais + ' concluído</div></div>';
+                    html += '</div>';
+                    html += '<div class="eng-progress-bar" style="margin-top:10px"><div class="eng-progress-fill" style="width:' + g.pctMedio + '%"></div></div>';
+                    if (chips) html += '<div class="eng-fase-chips">' + chips + '</div>';
+                    html += '</div>';
+                });
+                container.innerHTML = html;
+            }
+
+            // -------- Modal Detalhe ----------
+            function engAbrirDetalhe(projetoKey) {
+                engProjetoAberto = projetoKey;
+                engRenderDetalhe();
+                document.getElementById('engDetalheModal').classList.add('active');
+            }
+            function engFecharDetalhe() {
+                engProjetoAberto = null;
+                document.getElementById('engDetalheModal').classList.remove('active');
+            }
+
+            function engRenderDetalhe() {
+                if (!engProjetoAberto) return;
+                const itens = engItens.filter(r => (r.projeto || ('Proposta ' + r.numeroProposta)) === engProjetoAberto);
+                if (itens.length === 0) { engFecharDetalhe(); return; }
+                document.getElementById('engDetalheTitulo').textContent = engProjetoAberto;
+                const subitens = Array.from(new Set(itens.map(r => r.subitem || '').filter(Boolean)));
+                const fases = Array.from(new Set(itens.map(r => r.fase).filter(Boolean)));
+                const total = itens.filter(r => r.status !== 'Retirada' && r.status !== 'N/A').length;
+                const concl = itens.filter(r => r.status === 'Concluído').length;
+                const pctMedio = total > 0
+                    ? Math.round(itens.filter(r => r.status !== 'Retirada' && r.status !== 'N/A').reduce((s, r) => s + (parseFloat(r.percentual) || 0), 0) / total)
+                    : 0;
+                document.getElementById('engDetalheSub').textContent =
+                    itens.length + ' tarefas · ' + concl + '/' + total + ' concluídas · ' +
+                    subitens.length + ' subitens · ' + fases.length + ' fases';
+
+                let html = '<div class="eng-progress-bar"><div class="eng-progress-fill" style="width:' + pctMedio + '%"></div></div>';
+                html += '<div class="eng-progress-label"><span>Progresso geral</span><span>' + pctMedio + '%</span></div>';
+                document.getElementById('engDetalheProgresso').innerHTML = html;
+
+                // Decide modo: se tem subitens, mostra matriz; se nao, lista linear
+                if (subitens.length > 0 && fases.length > 0) {
+                    engRenderMatriz(subitens, fases, itens);
+                } else {
+                    engRenderListaLinear(itens);
+                }
+            }
+
+            function engRenderMatriz(subitens, fases, itens) {
+                // Ordenar subitens e fases por 'ordemSubitem' e 'ordemFase' se disponivel
+                subitens.sort((a, b) => {
+                    const oa = itens.find(x => x.subitem === a)?.ordemSubitem || 0;
+                    const ob = itens.find(x => x.subitem === b)?.ordemSubitem || 0;
+                    if (oa !== ob) return oa - ob;
+                    return a.localeCompare(b);
+                });
+                fases.sort((a, b) => {
+                    const oa = itens.find(x => x.fase === a)?.ordemFase || 0;
+                    const ob = itens.find(x => x.fase === b)?.ordemFase || 0;
+                    if (oa !== ob) return oa - ob;
+                    return 0;
+                });
+
+                let html = '<table class="eng-matrix"><thead><tr><th style="min-width:180px">Subitem</th>';
+                fases.forEach(f => html += '<th>' + esc(f) + '</th>');
+                html += '<th style="min-width:80px">Geral</th></tr></thead><tbody>';
+
+                subitens.forEach(sub => {
+                    html += '<tr><td class="eng-cell-subitem">' + esc(sub) + '</td>';
+                    let somaPct = 0, validas = 0;
+                    fases.forEach(fase => {
+                        const tarefa = itens.find(x => x.subitem === sub && x.fase === fase);
+                        if (!tarefa) {
+                            html += '<td class="eng-cell-task na" onclick="engCriarTarefaFromCell(\'' + sub.replace(/'/g,"\\'") + '\',\'' + fase.replace(/'/g,"\\'") + '\')" title="Clique para criar tarefa">—</td>';
+                        } else {
+                            const cls = ENG_STATUS_CLS[tarefa.status] || 'naoIniciado';
+                            html += '<td class="eng-cell-task ' + cls + '" onclick="engEditarTarefa(' + tarefa.rowIndex + ')" title="Clique para editar">';
+                            html += esc(tarefa.status) + '<small>' + (tarefa.percentual || 0) + '%' + (tarefa.responsavel ? ' · ' + esc(tarefa.responsavel) : '') + '</small>';
+                            html += '</td>';
+                            if (tarefa.status !== 'Retirada' && tarefa.status !== 'N/A') {
+                                somaPct += (parseFloat(tarefa.percentual) || 0); validas++;
+                            }
+                        }
+                    });
+                    const pctSub = validas > 0 ? Math.round(somaPct / validas) : 0;
+                    html += '<td style="font-weight:700;color:var(--accent)">' + pctSub + '%</td></tr>';
+                });
+                html += '</tbody></table>';
+                document.getElementById('engDetalheTabela').innerHTML = html;
+            }
+
+            function engRenderListaLinear(itens) {
+                // Ordenar por ordem de fase
+                itens.sort((a, b) => (a.ordemFase || 0) - (b.ordemFase || 0));
+                let html = '<div class="eng-tarefas-lista">';
+                html += '<div class="eng-tarefa-row" style="background:var(--bg-tertiary);font-size:0.72em;font-weight:600;color:var(--text-secondary);text-transform:uppercase">';
+                html += '<div>Fase</div><div>Subitem (opcional)</div><div>Responsável</div><div>Status</div><div>%</div><div>Previsão</div><div></div>';
+                html += '</div>';
+                itens.forEach(r => {
+                    const cls = ENG_STATUS_CLS[r.status] || 'naoIniciado';
+                    html += '<div class="eng-tarefa-row" onclick="engEditarTarefa(' + r.rowIndex + ')" style="cursor:pointer">';
+                    html += '<div><b>' + esc(r.fase || '-') + '</b></div>';
+                    html += '<div>' + esc(r.subitem || '-') + '</div>';
+                    html += '<div>' + esc(r.responsavel || '—') + '</div>';
+                    html += '<div><span class="eng-fase-chip eng-status-' + cls + '">' + esc(r.status) + '</span></div>';
+                    html += '<div style="font-weight:600">' + (r.percentual || 0) + '%</div>';
+                    html += '<div>' + esc(r.previsaoEntrega || '—') + '</div>';
+                    html += '<div style="text-align:right;color:var(--accent)">✏️</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                document.getElementById('engDetalheTabela').innerHTML = html;
+            }
+
+            // -------- Edicao inline de tarefa via prompt simples ----------
+            async function engEditarTarefa(rowIndex) {
+                const t = engItens.find(x => x.rowIndex == rowIndex);
+                if (!t) return;
+                const idx = ENG_STATUS_OPCOES.indexOf(t.status);
+                const promptStatus = prompt(
+                    '📝 Editar tarefa\n\n' +
+                    'Fase: ' + (t.fase || '-') + (t.subitem ? '\nSubitem: ' + t.subitem : '') + '\n\n' +
+                    'Status atual: ' + t.status + '\n\nNovo status (digite o número):\n' +
+                    ENG_STATUS_OPCOES.map((s, i) => (i + 1) + '. ' + s).join('\n'),
+                    String(idx >= 0 ? idx + 1 : 1)
+                );
+                if (promptStatus === null) return;
+                const novoStatusIdx = parseInt(promptStatus) - 1;
+                if (novoStatusIdx < 0 || novoStatusIdx >= ENG_STATUS_OPCOES.length) { alert('Status inválido'); return; }
+                const novoStatus = ENG_STATUS_OPCOES[novoStatusIdx];
+
+                let novoPct;
+                if (novoStatus !== 'Concluído' && novoStatus !== 'Não iniciado' && novoStatus !== 'Retirada' && novoStatus !== 'N/A') {
+                    const promptPct = prompt('Percentual atual (0-100):', t.percentual || 50);
+                    if (promptPct === null) return;
+                    novoPct = Math.max(0, Math.min(100, parseInt(promptPct) || 0));
+                }
+                const novoResp = prompt('Responsável (deixe vazio p/ manter "' + (t.responsavel || '—') + '"):', '');
+                const novaPrev = prompt('Previsão de entrega DD/MM/AAAA (vazio p/ manter "' + (t.previsaoEntrega || '—') + '"):', '');
+
+                const fields = { status: novoStatus };
+                if (novoPct !== undefined) fields.percentual = novoPct;
+                if (novoResp !== null && novoResp.trim() !== '') fields.responsavel = novoResp.trim();
+                if (novaPrev !== null && novaPrev.trim() !== '') fields.previsaoEntrega = novaPrev.trim();
+
+                try {
+                    const r = await finApi('updateProducao', { rowIndex: rowIndex, fields: fields });
+                    if (r && r.ok) await engRefresh({ skipCache: true });
+                    else alert('Erro: ' + (r && r.error ? r.error : 'falha'));
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            async function engCriarTarefaFromCell(subitem, fase) {
+                if (!engProjetoAberto) return;
+                if (!confirm('Criar tarefa "' + fase + '" para "' + subitem + '"?')) return;
+                const sample = engItens.find(r => (r.projeto || ('Proposta ' + r.numeroProposta)) === engProjetoAberto);
+                const payload = {
+                    projeto: engProjetoAberto,
+                    numeroProposta: sample ? sample.numeroProposta : '',
+                    subitem: subitem,
+                    fase: fase,
+                    status: 'Não iniciado',
+                    percentual: 0
+                };
+                try {
+                    const r = await finApi('addProducao', payload);
+                    if (r && r.ok) await engRefresh({ skipCache: true });
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            async function engAddTarefa() {
+                if (!engProjetoAberto) return;
+                const fase = prompt('Nome da fase / etapa:');
+                if (!fase || !fase.trim()) return;
+                const subitem = prompt('Subitem (opcional):') || '';
+                const sample = engItens.find(r => (r.projeto || ('Proposta ' + r.numeroProposta)) === engProjetoAberto);
+                try {
+                    const r = await finApi('addProducao', {
+                        projeto: engProjetoAberto,
+                        numeroProposta: sample ? sample.numeroProposta : '',
+                        subitem: subitem.trim(),
+                        fase: fase.trim(),
+                        status: 'Não iniciado',
+                        percentual: 0
+                    });
+                    if (r && r.ok) await engRefresh({ skipCache: true });
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            // -------- Modal Novo Projeto (templates) ----------
+            function engAbrirNovoProjeto() {
+                // Popular datalist de projetos fechados
+                const dl = document.getElementById('engProjetosFechadosList');
+                const opcoes = new Set();
+                if (window.propostas) {
+                    window.propostas.forEach(p => {
+                        const isFechada = p.status === 'Fechada' || String(p.probabilidade || '').replace('%','').trim() === '100';
+                        if (!isFechada) return;
+                        const label = (p.cliente || '') + (p.numeroProposta ? ' - ' + p.numeroProposta : '');
+                        if (label.trim()) opcoes.add(label.trim());
+                    });
+                }
+                dl.innerHTML = Array.from(opcoes).sort().map(o => '<option value="' + o.replace(/"/g, '&quot;') + '">').join('');
+                document.getElementById('engNovoProjeto').value = '';
+                document.getElementById('engTemplate').value = 'aerolevantamento';
+                document.getElementById('engSubitens').value = '';
+                document.getElementById('engFases').value = '';
+                document.getElementById('engPrevisao').value = '';
+                document.getElementById('engResponsavel').value = '';
+                engRenderTemplatePreview();
+                document.getElementById('engNovoProjetoModal').classList.add('active');
+            }
+            function engFecharNovoProjeto() {
+                document.getElementById('engNovoProjetoModal').classList.remove('active');
+            }
+
+            const ENG_TEMPLATES = {
+                'aerolevantamento': { fases: ['Coleta de campo', 'Processamento de dados', 'Produto final'], usaSubitens: false, exemploSubitens: '' },
+                'scan-bim':         { fases: ['Coleta de campo', 'Registro / Processamento', 'Modelagem BIM', 'Revisão e entrega'], usaSubitens: false, exemploSubitens: '' },
+                'igrejas':          { fases: ['Fotos', 'Nuvem de Pontos', 'Mesh', 'PLY', 'Upload', 'Modelo IFC'], usaSubitens: true,  exemploSubitens: 'Catedral Sant\'Ana\nIgreja Nossa Senhora do Rosário\nIgreja Imaculada Conceição', subitensLabel: 'Lista de Igrejas / Itens (1 por linha)' },
+                'setores':          { fases: ['Captura de campo', 'Processamento', 'Modelagem'], usaSubitens: true,  exemploSubitens: 'Setor 1\nSetor 2\nSetor 3', subitensLabel: 'Lista de Setores (1 por linha)' },
+                'custom':           { fases: [], usaSubitens: true, exemploSubitens: '(opcional)', subitensLabel: 'Subitens (1 por linha, opcional)', custom: true }
+            };
+
+            function engRenderTemplatePreview() {
+                const t = document.getElementById('engTemplate').value;
+                const cfg = ENG_TEMPLATES[t];
+                const subWrap = document.getElementById('engSubitensConfig');
+                const fasesWrap = document.getElementById('engFasesConfig');
+                if (cfg.usaSubitens) {
+                    subWrap.style.display = 'block';
+                    document.getElementById('engSubitensLabel').textContent = cfg.subitensLabel || 'Lista de Subitens (1 por linha)';
+                    if (!document.getElementById('engSubitens').value) document.getElementById('engSubitens').placeholder = cfg.exemploSubitens;
+                } else { subWrap.style.display = 'none'; }
+                if (cfg.custom) {
+                    fasesWrap.style.display = 'block';
+                    if (!document.getElementById('engFases').value) document.getElementById('engFases').placeholder = 'Etapa 1\nEtapa 2\nEtapa 3';
+                } else {
+                    fasesWrap.style.display = 'none';
+                }
+
+                // Preview
+                const subitens = document.getElementById('engSubitens').value.split('\n').map(s => s.trim()).filter(Boolean);
+                const fases = cfg.custom
+                    ? document.getElementById('engFases').value.split('\n').map(s => s.trim()).filter(Boolean)
+                    : cfg.fases;
+                let nTarefas;
+                if (cfg.usaSubitens && subitens.length > 0) nTarefas = subitens.length * fases.length;
+                else nTarefas = fases.length;
+                const preview = document.getElementById('engPreview');
+                if (fases.length === 0) {
+                    preview.innerHTML = '<span style="color:var(--text-secondary)">Preencha as fases para ver a pré-visualização.</span>';
+                } else {
+                    preview.innerHTML = '<b>' + fases.length + ' fase(s)</b>: ' + fases.map(f => '<span style="background:var(--glass-bg);padding:2px 8px;border-radius:6px;margin:2px;display:inline-block">' + esc(f) + '</span>').join('') +
+                        (cfg.usaSubitens && subitens.length > 0 ? '<br>📋 <b>' + subitens.length + ' subitens</b> · Total: <b style="color:var(--accent)">' + nTarefas + '</b> tarefas a criar.' : '<br>Total: <b style="color:var(--accent)">' + nTarefas + '</b> tarefas a criar.');
+                }
+            }
+
+            // Atualizar preview ao digitar subitens/fases
+            document.addEventListener('input', function(e) {
+                if (e.target && (e.target.id === 'engSubitens' || e.target.id === 'engFases')) {
+                    engRenderTemplatePreview();
+                }
+            });
+
+            async function engCriarProjeto() {
+                const projeto = document.getElementById('engNovoProjeto').value.trim();
+                if (!projeto) { alert('Selecione o projeto destino.'); return; }
+                const t = document.getElementById('engTemplate').value;
+                const cfg = ENG_TEMPLATES[t];
+                const fases = cfg.custom
+                    ? document.getElementById('engFases').value.split('\n').map(s => s.trim()).filter(Boolean)
+                    : cfg.fases;
+                if (fases.length === 0) { alert('Adicione pelo menos uma fase.'); return; }
+                const subitens = cfg.usaSubitens
+                    ? document.getElementById('engSubitens').value.split('\n').map(s => s.trim()).filter(Boolean)
+                    : [];
+                const responsavel = document.getElementById('engResponsavel').value;
+                const previsao = document.getElementById('engPrevisao').value.trim();
+
+                // Extrair numeroProposta do final do label
+                let numeroProposta = '';
+                const parts = projeto.split(' - ');
+                if (parts.length >= 2) numeroProposta = parts[parts.length - 1].trim();
+
+                const itens = [];
+                if (subitens.length > 0) {
+                    subitens.forEach((sub, si) => {
+                        fases.forEach((fase, fi) => {
+                            itens.push({
+                                projeto, numeroProposta, subitem: sub, fase: fase,
+                                responsavel: responsavel, status: 'Não iniciado', percentual: 0,
+                                previsaoEntrega: previsao,
+                                ordemSubitem: si + 1, ordemFase: fi + 1
+                            });
+                        });
+                    });
+                } else {
+                    fases.forEach((fase, fi) => {
+                        itens.push({
+                            projeto, numeroProposta, subitem: '', fase: fase,
+                            responsavel: responsavel, status: 'Não iniciado', percentual: 0,
+                            previsaoEntrega: previsao,
+                            ordemSubitem: 0, ordemFase: fi + 1
+                        });
+                    });
+                }
+
+                if (!confirm('Criar ' + itens.length + ' tarefa(s) para o projeto "' + projeto + '"?')) return;
+
+                try {
+                    const r = await finApi('bulkAddProducao', { itens: itens });
+                    if (r && r.ok) {
+                        alert('✅ ' + r.inserted + ' tarefas criadas.');
+                        engFecharNovoProjeto();
+                        await engRefresh({ skipCache: true });
+                    } else {
+                        alert('Erro: ' + (r && r.error ? r.error : 'falha'));
+                    }
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
             async function excluirTopoPartner() {
                 const rowIndex = document.getElementById('tpEditRowIndex').value;
                 if (!rowIndex) return;
@@ -6542,6 +7331,13 @@ Data: ${h.data}`;
                     renderizarTopoPartners();
                     if (Date.now() - tpLastLoad > 60000) {
                         tpRefresh({ skipCache: true }).catch(()=>{});
+                    }
+                }
+                if (tabId === 'engenharia') {
+                    if (typeof engComputarKPIs === 'function') engRenderKPIs(engComputarKPIs(engItens));
+                    if (typeof renderizarEngenharia === 'function') renderizarEngenharia();
+                    if (Date.now() - engLastLoad > 60000) {
+                        engRefresh({ skipCache: true }).catch(()=>{});
                     }
                 }
             };
