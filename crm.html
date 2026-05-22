@@ -1127,6 +1127,58 @@
         .eng-tarefa-titulo { font-weight: 600; color: var(--text-primary); font-size: 0.95em; }
         .eng-tarefa-sub { font-size: 0.75em; color: var(--text-secondary); margin-top: 2px; }
         .eng-tarefa-meta { font-size: 0.78em; color: var(--text-secondary); }
+
+        /* ===== Edição inline (click direto no campo) ===== */
+        .eng-editable {
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin: -2px -2px;
+            transition: background 0.12s, box-shadow 0.12s, border-color 0.12s;
+            border-bottom: 1px dashed rgba(0,212,255,0.25);
+            display: inline-block;
+            position: relative;
+            user-select: none;
+            line-height: 1.4;
+        }
+        .eng-editable:hover {
+            background: rgba(0,212,255,0.14);
+            border-bottom-color: rgba(0,212,255,0.7);
+            box-shadow: 0 0 0 1px rgba(0,212,255,0.35);
+        }
+        .eng-editable.editing {
+            background: #1a2333 !important;
+            border: 1px solid #00d4ff !important;
+            border-bottom: 1px solid #00d4ff !important;
+            box-shadow: 0 0 0 3px rgba(0,212,255,0.25), 0 4px 14px rgba(0,0,0,0.5) !important;
+            padding: 0 !important;
+            z-index: 50;
+        }
+        .eng-inline-input, .eng-inline-select {
+            background: #1a2333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: inherit;
+            font-family: inherit;
+            font-weight: inherit;
+            min-width: 140px;
+            outline: none;
+            display: block;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        .eng-inline-select { min-width: 160px; cursor: pointer; }
+        .eng-inline-input { min-width: 140px; }
+        .eng-editable-saving {
+            background: rgba(34,197,94,0.22) !important;
+            border-bottom-color: rgba(34,197,94,0.7) !important;
+        }
+        .eng-editable-error {
+            background: rgba(239,68,68,0.25) !important;
+            border-bottom-color: rgba(239,68,68,0.75) !important;
+        }
         .eng-tarefa-btn-edit {
             background: var(--bg-tertiary);
             border: 1px solid var(--glass-border);
@@ -7058,7 +7110,7 @@ Data: ${h.data}`;
 
             function engRenderListaLinear(itens) {
                 itens.sort((a, b) => (a.ordemFase || 0) - (b.ordemFase || 0));
-                let html = '<div style="font-size:0.75em;color:var(--text-secondary);margin-bottom:8px">💡 <b>Arraste o botão branco</b> na barra para ajustar o progresso. <b>Click no ✏️</b> para edição completa.</div>';
+                let html = '<div style="font-size:0.75em;color:var(--text-secondary);margin-bottom:8px">💡 <b>Clique em qualquer campo</b> (fase, 👤 responsável, 📅 data) para editar inline. <b>Arraste a barra</b> para ajustar o %. <b>✏️</b> abre edição completa.</div>';
                 html += '<div class="eng-tarefas-lista">';
                 itens.forEach(r => {
                     const col = engHueColor(r.percentual, r.status);
@@ -7074,14 +7126,15 @@ Data: ${h.data}`;
                     else fillStyle = 'background:' + col.bg + ';width:' + Math.max(pctNum, 2) + '%;';
                     if (r.status === 'Em andamento' && pctNum > 0 && pctNum < 100) fillStyle += 'animation:engShimmerAnim 2.2s infinite;';
 
+                    const rix = r.rowIndex;
                     html += '<div class="eng-tarefa-card">';
                     html += '<div class="eng-tarefa-card-row">';
-                    html += '<div><div class="eng-tarefa-titulo">' + esc(r.fase || '-') + '</div>';
-                    if (r.subitem) html += '<div class="eng-tarefa-sub">📍 ' + esc(r.subitem) + '</div>';
+                    html += '<div><div class="eng-tarefa-titulo"><span class="eng-editable" data-field="fase" data-rowindex="' + rix + '" title="Click para editar nome da fase">' + esc(r.fase || '-') + '</span></div>';
+                    if (r.subitem) html += '<div class="eng-tarefa-sub">📍 <span class="eng-editable" data-field="subitem" data-rowindex="' + rix + '" title="Click para editar subitem">' + esc(r.subitem) + '</span></div>';
                     html += '</div>';
-                    html += '<div class="eng-tarefa-meta">👤 ' + esc(r.responsavel || '—') + '<div class="eng-tarefa-sub">' + esc(r.status) + '</div></div>';
-                    html += '<div class="eng-tarefa-meta">📅 ' + esc(r.previsaoEntrega || '—') + (r.dataConclusao ? '<div class="eng-tarefa-sub">✓ ' + esc(r.dataConclusao) + '</div>' : '') + '</div>';
-                    html += '<button class="eng-tarefa-btn-edit" onclick="event.stopPropagation(); engEditarTarefa(' + r.rowIndex + ')" title="Editar tudo">✏️</button>';
+                    html += '<div class="eng-tarefa-meta">👤 <span class="eng-editable" data-field="responsavel" data-rowindex="' + rix + '" title="Click para trocar responsável">' + esc(r.responsavel || '—') + '</span><div class="eng-tarefa-sub">' + esc(r.status) + '</div></div>';
+                    html += '<div class="eng-tarefa-meta">📅 <span class="eng-editable" data-field="previsaoEntrega" data-rowindex="' + rix + '" title="Click para editar previsão">' + esc(r.previsaoEntrega || '—') + '</span>' + (r.dataConclusao ? '<div class="eng-tarefa-sub">✓ ' + esc(r.dataConclusao) + '</div>' : '') + '</div>';
+                    html += '<button class="eng-tarefa-btn-edit" onclick="event.stopPropagation(); engEditarTarefa(' + rix + ')" title="Editar tudo">✏️</button>';
                     html += '</div>';
                     const draggableCls = isLocked ? 'eng-bar-draggable locked' : 'eng-bar-draggable';
                     html += '<div class="eng-bar-wrap ' + draggableCls + '" data-rowindex="' + r.rowIndex + '" data-pct="' + pctNum + '" data-status="' + esc(r.status) + '">';
@@ -7180,6 +7233,144 @@ Data: ${h.data}`;
                 engBarDragState.bar.classList.remove('dragging');
                 engBarDragState = null;
             });
+
+            // ============================================================
+            // EDIÇÃO INLINE — click direto em fase/responsável/data
+            // ============================================================
+            const ENG_RESPONSAVEIS = ['', 'Guilherme', 'Marcelo', 'Allana', 'Rafaela', 'Jean', 'Luiza Morilhas', 'Gabriela Linhares'];
+            let engInlineActive = null; // { span, rowIndex, field, original, committing }
+
+            function engInlineFinalizar(span, novoValor) {
+                if (!engInlineActive || engInlineActive.span !== span) return;
+                if (engInlineActive.committing) return;
+                engInlineActive.committing = true;
+
+                const rowIndex = engInlineActive.rowIndex;
+                const field = engInlineActive.field;
+                const original = engInlineActive.original;
+                const t = engItens.find(x => x.rowIndex == rowIndex);
+                const v = (novoValor == null ? '' : String(novoValor)).trim();
+
+                // Restaura visualmente
+                span.classList.remove('editing');
+
+                if (!t || v === (original || '').trim()) {
+                    span.textContent = (t ? t[field] : original) || '—';
+                    engInlineActive = null;
+                    return;
+                }
+
+                // Optimistic update
+                t[field] = v;
+                span.textContent = v || '—';
+                span.classList.add('eng-editable-saving');
+                engInlineActive = null;
+
+                const fields = {}; fields[field] = v;
+                finApi('updateProducao', { rowIndex: rowIndex, fields: fields }).then(r => {
+                    span.classList.remove('eng-editable-saving');
+                    if (r && r.ok) {
+                        try { engRenderKPIs(engComputarKPIs(engItens)); } catch(e) {}
+                        engRefresh({ skipCache: true }).catch(()=>{});
+                    } else {
+                        t[field] = original;
+                        span.textContent = original || '—';
+                        span.classList.add('eng-editable-error');
+                        setTimeout(() => span.classList.remove('eng-editable-error'), 1400);
+                        alert('Erro ao salvar: ' + (r && r.error ? r.error : 'falha'));
+                    }
+                }).catch(err => {
+                    span.classList.remove('eng-editable-saving');
+                    t[field] = original;
+                    span.textContent = original || '—';
+                    span.classList.add('eng-editable-error');
+                    setTimeout(() => span.classList.remove('eng-editable-error'), 1400);
+                    alert('Erro ao salvar: ' + err.message);
+                });
+            }
+
+            function engInlineCancelar(span) {
+                if (!engInlineActive || engInlineActive.span !== span) return;
+                const original = engInlineActive.original;
+                span.classList.remove('editing');
+                span.textContent = original || '—';
+                engInlineActive = null;
+            }
+
+            window.engInlineAtivar = function(span) {
+                if (engInlineActive) {
+                    // se já tem outro ativo, commita ele primeiro
+                    const prevSpan = engInlineActive.span;
+                    const prevInput = prevSpan.querySelector('input, select');
+                    if (prevInput) engInlineFinalizar(prevSpan, prevInput.value);
+                    else engInlineActive = null;
+                }
+                if (!span || span.querySelector('input, select')) return;
+                const rowIndex = parseInt(span.dataset.rowindex);
+                const field = span.dataset.field;
+                const t = engItens.find(x => x.rowIndex == rowIndex);
+                if (!t) return;
+                const valorAtual = t[field] || '';
+                engInlineActive = { span, rowIndex, field, original: valorAtual, committing: false };
+                span.classList.add('editing');
+                span.textContent = '';
+
+                let input;
+                if (field === 'responsavel') {
+                    input = document.createElement('select');
+                    input.className = 'eng-inline-select';
+                    ENG_RESPONSAVEIS.forEach(opt => {
+                        const o = document.createElement('option');
+                        o.value = opt; o.textContent = opt || '— (vazio)';
+                        if (opt === valorAtual) o.selected = true;
+                        input.appendChild(o);
+                    });
+                    input.onchange = function() { engInlineFinalizar(span, input.value); };
+                    input.onblur = function() { engInlineFinalizar(span, input.value); };
+                    input.onkeydown = function(ev) {
+                        if (ev.key === 'Escape') { ev.preventDefault(); engInlineCancelar(span); }
+                    };
+                } else {
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'eng-inline-input';
+                    input.value = valorAtual;
+                    if (field === 'previsaoEntrega') input.placeholder = 'DD/MM/AAAA';
+                    if (field === 'fase' || field === 'subitem') input.placeholder = 'Nome...';
+                    input.onkeydown = function(ev) {
+                        if (ev.key === 'Enter') { ev.preventDefault(); engInlineFinalizar(span, input.value); }
+                        else if (ev.key === 'Escape') { ev.preventDefault(); engInlineCancelar(span); }
+                    };
+                    input.onblur = function() { engInlineFinalizar(span, input.value); };
+                }
+                // Bloqueia bubbling de eventos do input para não acionar drag/click outros
+                ['click','pointerdown','mousedown','touchstart'].forEach(ev => {
+                    input.addEventListener(ev, e => e.stopPropagation());
+                });
+                span.appendChild(input);
+                setTimeout(() => {
+                    input.focus();
+                    if (input.select) { try { input.select(); } catch(e) {} }
+                }, 20);
+            };
+
+            // Click direto (capture) para abrir o editor — não passa pelo bar-drag
+            document.addEventListener('click', function(e) {
+                const span = e.target.closest && e.target.closest('.eng-editable');
+                if (!span) return;
+                // ignora clicks dentro do input já aberto
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'OPTION') return;
+                e.preventDefault();
+                e.stopPropagation();
+                window.engInlineAtivar(span);
+            }, true);
+
+            // Bloqueia o início de drag da barra quando o ponteiro desce sobre um editable
+            document.addEventListener('pointerdown', function(e) {
+                if (e.target.closest && e.target.closest('.eng-editable')) {
+                    e.stopPropagation();
+                }
+            }, true);
 
             // ============================================================
             // SISTEMA DE COR HSL — vermelho (0%) → amarelo (50%) → verde (100%)
