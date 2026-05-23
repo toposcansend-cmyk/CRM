@@ -2867,7 +2867,7 @@
                 <span class="menu-label">Menu</span>
             </button>
             <div class="tabs-menu" id="tabsMenu">
-                <button class="tab-btn" onclick="trocarTab('central')">🎯 Central</button>
+                <button class="tab-btn" id="tabBtnCentral" onclick="trocarTab('central')" style="display:none">🎯 Central</button>
                 <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
                 <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
                 <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
@@ -7566,6 +7566,54 @@ Data: ${h.data}`;
                 document.addEventListener('DOMContentLoaded', () => {
                     const c = document.getElementById('central');
                     if (c) obs.observe(c, { attributes: true, attributeFilter: ['class'] });
+                });
+            })();
+
+            // ───────────────────────────────────────────────────────────
+            // CENTRAL: visibilidade PRIVADA (não pública)
+            // Desbloqueios:
+            //   • URL ?central=1 (memoriza no localStorage)
+            //   • Atalho Ctrl+Shift+G (toggle on/off)
+            //   • Console: localStorage.setItem('crm_central_unlocked','1')
+            // Trava de volta: URL ?central=0 ou Ctrl+Shift+G novamente
+            // ───────────────────────────────────────────────────────────
+            (function centralPrivacy() {
+                function aplicar() {
+                    const btn = document.getElementById('tabBtnCentral');
+                    if (!btn) return;
+                    const unlocked = localStorage.getItem('crm_central_unlocked') === '1';
+                    btn.style.display = unlocked ? '' : 'none';
+                    // Se a aba está ativa mas foi travada, volta pra Oportunidades
+                    const sec = document.getElementById('central');
+                    if (!unlocked && sec && sec.classList.contains('active')) {
+                        try { trocarTab('oportunidades'); } catch(e) {}
+                    }
+                }
+                // 1) URL param
+                try {
+                    const p = new URLSearchParams(location.search);
+                    if (p.get('central') === '1') { localStorage.setItem('crm_central_unlocked','1'); console.log('🎯 Central desbloqueada'); }
+                    else if (p.get('central') === '0') { localStorage.removeItem('crm_central_unlocked'); console.log('🔒 Central travada'); }
+                } catch(e) {}
+                // 2) Aplica visibilidade no load
+                if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
+                else aplicar();
+                // 3) Atalho Ctrl+Shift+G
+                document.addEventListener('keydown', function(e) {
+                    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'G' || e.key === 'g')) {
+                        e.preventDefault();
+                        const cur = localStorage.getItem('crm_central_unlocked') === '1';
+                        if (cur) localStorage.removeItem('crm_central_unlocked');
+                        else localStorage.setItem('crm_central_unlocked','1');
+                        aplicar();
+                        // Feedback visual rápido
+                        const msg = !cur ? '🎯 Central desbloqueada' : '🔒 Central travada';
+                        const t = document.createElement('div');
+                        t.textContent = msg;
+                        t.style.cssText = 'position:fixed;top:20px;right:20px;background:#1a2333;color:#fff;padding:12px 18px;border-radius:8px;border:1px solid #00d4ff;box-shadow:0 4px 14px rgba(0,0,0,0.3);z-index:9999;font-size:14px';
+                        document.body.appendChild(t);
+                        setTimeout(()=>t.remove(), 1800);
+                    }
                 });
             })();
 
