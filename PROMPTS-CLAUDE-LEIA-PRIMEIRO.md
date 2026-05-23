@@ -2,9 +2,9 @@
 
 ## O que mudou
 
-Os 3 prompts dos Claude Projects foram **unificados**. Cada um agora:
+Os **4 prompts** dos Claude Projects foram **unificados**. Cada um agora:
 
-✅ **Mantém sua especialidade primária** (Financeiro, Operação, Engenharia)
+✅ **Mantém sua especialidade primária** (Comercial, Financeiro, Operação, Engenharia)
 ✅ **Conhece TUDO** sobre as 4 áreas, 4 planilhas, todas as actions da API, equipe completa
 ✅ **Sabe operar fora do seu foco** quando você pedir (executa + cita o gerente especialista para deep-dive)
 ✅ Lista de alertas proativos **cross-funcional** (cada gerente puxa alertas de todas as áreas, priorizando a sua)
@@ -14,10 +14,11 @@ Resultado: **você pode falar com QUALQUER gerente sobre QUALQUER coisa**. Ele r
 
 ---
 
-## 📋 Os 3 arquivos
+## 📋 Os 4 arquivos
 
 | Arquivo | Cole no Project | Especialidade primária |
 |---|---|---|
+| `PROMPT-CLAUDE-COMERCIAL.md` | 🎯 Comercial / Vendas | Funil, propostas, fechamento, follow-up, meta mensal |
 | `PROMPT-CLAUDE-FINANCEIRO.md` | 💰 Financeiro | Recebimentos, parcelas, inadimplência, KPIs |
 | `PROMPT-CLAUDE-OPERACAO.md` | 💼 Operação / Custos | Saídas: parceiros, equipamentos, veículos, cartão, margem real |
 | `PROMPT-CLAUDE-ENGENHARIA.md` | 🛠️ Engenharia | Produção técnica, critical path, gargalos, modelistas |
