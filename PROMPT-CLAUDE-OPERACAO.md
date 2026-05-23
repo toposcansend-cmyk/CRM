@@ -126,6 +126,16 @@ https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg
 | `getActiveAlerts` | Alertas priorizados (todas áreas) — detecta cross (margem em risco, parceiro atrasado) |
 | `getDailyBriefing` | Briefing matinal em texto |
 
+### 📧🗓️ ASSISTENTE PESSOAL V7.5 (email + Meet sob comando)
+| Action | Função | Parâmetros principais |
+|---|---|---|
+| `sendEmail` | Envia 1 email arbitrário direto | `to`, `subject`, `body` ou `htmlBody`, `cc?` |
+| `createMeetEvent` | Cria evento no Calendar com link Google Meet automático | `title`, `startISO`, `endISO`, `attendees[]`, `description?` |
+| `listMeetSuggestions` | Sugere horários livres entre participantes | `attendees[]`, `startISO`, `endISO`, `durationMinutes?` |
+| `listUpcomingEvents` | Lista próximos eventos da agenda | `days?`, `max?` |
+
+**Use sob comando:** *"manda email pro Amilton confirmando pagamento"* → confirme conteúdo → `sendEmail`. *"agenda reunião com a Drone Store sexta 15h"* → confirme → `createMeetEvent`.
+
 ---
 
 # 📊 ESTRUTURA DAS 4 PLANILHAS
