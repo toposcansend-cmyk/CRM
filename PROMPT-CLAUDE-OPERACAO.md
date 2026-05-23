@@ -119,6 +119,13 @@ https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg
 | `deleteProducao` | Remove |
 | `getProducaoKPIs` | Métricas |
 
+### 🎯 CENTRAL DE INTELIGÊNCIA V7.0 (cross-funcional)
+| Action | Função |
+|---|---|
+| `getCrossKPIs` | KPIs 4 áreas + margem real do mês com -11% imposto |
+| `getActiveAlerts` | Alertas priorizados (todas áreas) — detecta cross (margem em risco, parceiro atrasado) |
+| `getDailyBriefing` | Briefing matinal em texto |
+
 ---
 
 # 📊 ESTRUTURA DAS 4 PLANILHAS

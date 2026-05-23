@@ -121,6 +121,13 @@ https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg
 | `getProducaoKPIs` | Métricas globais |
 | `ensureProducao` | Garante aba |
 
+### 🎯 CENTRAL DE INTELIGÊNCIA V7.0 (cross-funcional)
+| Action | Função |
+|---|---|
+| `getCrossKPIs` | KPIs consolidados 4 áreas + margem real do mês |
+| `getActiveAlerts` | Alertas priorizados de todas áreas (inclui cross: tarefa concluída → libera parcela) |
+| `getDailyBriefing` | Briefing matinal completo em texto |
+
 ---
 
 # 📊 ESTRUTURA DAS 4 PLANILHAS
