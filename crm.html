@@ -7537,7 +7537,7 @@ Data: ${h.data}`;
             }
 
             async function centralEnviarBriefingEmail() {
-                if (!confirm('Enviar briefing diário POR EMAIL para toposcan.send@gmail.com agora?')) return;
+                if (!confirm('Enviar briefing diário POR EMAIL para guilherme@toposcan.com.br + marcelo@toposcan.com.br agora?')) return;
                 try {
                     const r = await finApi('runDailyBriefNow', {});
                     if (r && r.ok) alert('✅ ' + r.message);
@@ -7546,7 +7546,7 @@ Data: ${h.data}`;
             }
 
             async function centralInstalarTriggers() {
-                if (!confirm('Instalar agentes automáticos?\n\n• Briefing diário 8h por email\n• Detecção de inadimplência 10h e 16h\n• Relatório semanal segunda 9h\n\nVai para toposcan.send@gmail.com. Confirma?')) return;
+                if (!confirm('Instalar agentes automáticos?\n\n• Briefing diário 8h por email\n• Detecção de inadimplência 10h e 16h\n• Relatório semanal segunda 9h\n\nDestinatários: guilherme@toposcan.com.br + marcelo@toposcan.com.br. Confirma?')) return;
                 try {
                     const r = await finApi('installTriggers', {});
                     if (r && r.ok) {

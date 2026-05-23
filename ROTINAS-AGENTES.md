@@ -40,8 +40,8 @@ Quando um deal vira `Fechada` via API ou frontend:
 | **detectInadimplencia** | 10h e 16h diários | Se houver parcela atrasada ou vencendo em 3d → email com lista de cobranças |
 | **weeklyStrategicReport** | Segunda 9h | Relatório semanal estratégico para revisão de meta |
 
-**Email destino:** `toposcan.send@gmail.com`
-(Mudar via Apps Script: `PropertiesService.getScriptProperties().setProperty('CENTRAL_EMAIL', 'novo@email.com')`)
+**Emails destino (V7.1):** `guilherme@toposcan.com.br` + `marcelo@toposcan.com.br`
+(Mudar via Apps Script: `PropertiesService.getScriptProperties().setProperty('CENTRAL_EMAIL', 'a@x.com,b@y.com')` — separar múltiplos por vírgula)
 
 ---
 
