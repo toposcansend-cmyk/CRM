@@ -2603,9 +2603,58 @@
             'admin@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'guilherme@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'marcelo@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
-            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
-            'rafaela@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
+            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
         };
+
+        // ═══════════════════════════════════════════════════════════════
+        // CONTROLE DE ACESSO POR USUÁRIO (V7.7)
+        // ═══════════════════════════════════════════════════════════════
+        // Define quais abas cada usuário pode ver. As abas listadas APARECEM;
+        // as não-listadas ficam escondidas. Central tem lógica adicional
+        // (precisa estar nesta lista E ter sido desbloqueada via ?central=1).
+        //
+        // Para adicionar um usuário: adiciona no AUTH_USERS acima + define aqui.
+        // Para mudar permissão: edita a lista de abas dele.
+        // ═══════════════════════════════════════════════════════════════
+        const TODAS_ABAS = ['central','oportunidades','pipeline','evolucao','insights','kpi','followup','orcamento','financeiro','topopartners','engenharia'];
+        const USER_PERMISSIONS = {
+            'admin@toposcan.com.br':      TODAS_ABAS,  // acesso total
+            'guilherme@toposcan.com.br':  TODAS_ABAS,  // dono — acesso total
+            'marcelo@toposcan.com.br':    TODAS_ABAS,  // sócio — acesso total
+            'allana@toposcan.com.br':     ['oportunidades','pipeline','evolucao','followup','orcamento']  // SDR/Hunter — só vendas
+        };
+
+        function aplicarPermissoes() {
+            const userEmail = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
+            const permitidas = USER_PERMISSIONS[userEmail] || [];
+
+            // Esconde botões de abas não permitidas
+            document.querySelectorAll('.tab-btn[onclick*="trocarTab"]').forEach(btn => {
+                const match = (btn.getAttribute('onclick') || '').match(/trocarTab\(['"]([^'"]+)['"]\)/);
+                if (!match) return;
+                const abaId = match[1];
+                if (!permitidas.includes(abaId)) {
+                    btn.style.display = 'none';
+                    btn.setAttribute('data-locked-by-permissions', '1');
+                } else {
+                    // Não força mostrar se a aba tem outra lógica de privacidade (ex: Central)
+                    if (btn.getAttribute('data-locked-by-permissions') === '1') {
+                        btn.style.display = '';
+                        btn.removeAttribute('data-locked-by-permissions');
+                    }
+                }
+            });
+
+            // Se a aba ativa atual não está permitida, troca pra primeira permitida
+            const ativa = document.querySelector('.section.active');
+            if (ativa && !permitidas.includes(ativa.id)) {
+                const primeira = permitidas.find(a => a !== 'central' && a !== 'insights' && a !== 'kpi') || permitidas[0];
+                if (primeira && typeof trocarTab === 'function') trocarTab(primeira);
+            }
+
+            // Log de auditoria (somente em console — não exibe ao usuário final)
+            console.log('[Permissões] Usuário:', userEmail, '· Abas liberadas:', permitidas.length, '/', TODAS_ABAS.length);
+        }
 
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
@@ -2634,6 +2683,9 @@
             const crm = document.getElementById('crmContent');
             if (login) login.classList.add('hidden');
             if (crm) crm.classList.add('active');
+
+            // Aplicar controle de acesso por usuário (V7.7)
+            try { aplicarPermissoes(); } catch (e) { console.warn('aplicarPermissoes falhou:', e); }
 
             // Re-render data and notifications specifically for the logged in user
             if (typeof filtrar === 'function') {
@@ -7581,11 +7633,16 @@ Data: ${h.data}`;
                 function aplicar() {
                     const btn = document.getElementById('tabBtnCentral');
                     if (!btn) return;
+                    // V7.7 — Checa permissão do usuário primeiro: se não tem acesso, NUNCA mostra
+                    // (mesmo com ?central=1 ou Ctrl+Shift+G)
+                    const userEmail = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
+                    const perms = (typeof USER_PERMISSIONS !== 'undefined' && USER_PERMISSIONS[userEmail]) || [];
+                    const temPermissao = perms.includes('central');
                     const unlocked = localStorage.getItem('crm_central_unlocked') === '1';
-                    btn.style.display = unlocked ? '' : 'none';
-                    // Se a aba está ativa mas foi travada, volta pra Oportunidades
+                    btn.style.display = (temPermissao && unlocked) ? '' : 'none';
+                    // Se a aba está ativa mas foi travada/sem permissão, volta pra Oportunidades
                     const sec = document.getElementById('central');
-                    if (!unlocked && sec && sec.classList.contains('active')) {
+                    if ((!temPermissao || !unlocked) && sec && sec.classList.contains('active')) {
                         try { trocarTab('oportunidades'); } catch(e) {}
                     }
                 }
