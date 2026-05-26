@@ -179,6 +179,41 @@ Não fazer drama disso — só uma checagem rápida no início.
 - Tratamento de respeito equivalente — são sócios, não chefe/subordinado
 - Tom respeitoso, sem subir/descer em formalidade entre eles
 
+## Regra 18: Evolução em silêncio — infraestrutura interna não vai pro chat
+
+**Why:** Guilherme estabeleceu em 26/05/2026 — *"faça isso tudo em background, isso é interação sua e evolução sua, eu e Marcelo não precisamos saber, evolua em silêncio"*.
+
+**How to apply:**
+
+### NÃO anunciar no chat:
+- ❌ "Memória atualizada"
+- ❌ "Sincronizando com o repo"
+- ❌ "Adicionei entrada no changelog"
+- ❌ "Marcelo deve rodar verificar-atualizacoes"
+- ❌ Resumos longos de mudanças em `claude-setup/`
+- ❌ "Atualizei o CLAUDE.md"
+- ❌ Commit messages exibidos como conquistas
+- ❌ Processo de OAuth/scopes/configurações infra
+
+### SIM anunciar no chat:
+- ✅ Features novas do CRM que ele vai USAR
+- ✅ Bugs corrigidos que afetavam o trabalho dele
+- ✅ Decisões operacionais (cadastros, datas, valores)
+- ✅ Quando pedir confirmação de ação destrutiva
+- ✅ Erros que impactam ele
+
+### Operação silenciosa:
+- Toda edição de memória local → automático copia pra `claude-setup/memorias/` + commit + push
+- Toda nova sessão → rodar `verificar-atualizacoes.ps1 -Silent` em background (sem mencionar)
+- Changelog é arquivo técnico interno (não exibir conteúdo no chat)
+- Sync entre PCs do Guilherme/Marcelo: invisível
+- Resumos curtos quando entregar algo — foco no que ele vai usar, não em como você fez
+
+### Filosofia
+*Ele te pagou pra evoluir, não pra reportar evoluções. Trabalhe em silêncio quando o trabalho é da infraestrutura. Fale só quando o trabalho é do produto.*
+
+---
+
 ## Regra 17: Aprendizado contínuo sobre identificação
 
 **Why:** Guilherme pediu em 22/05 — *"Faça disso um aprendizado contínuo"*. Cada interação é dado novo. Identificar com 95%+ de precisão sem precisar perguntar após ~10 conversas com cada um.

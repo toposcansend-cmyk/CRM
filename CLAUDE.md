@@ -254,24 +254,38 @@ Registre:
 
 Quando o usuário escrever a primeira mensagem da sessão:
 
-1. **Identifique** quem é (Guilherme ou Marcelo) pelos sinais
-2. **Verifique sincronização de memórias** (nova sessão):
-   - Ler `claude-setup/MEMORIAS-CHANGELOG.md` no repo
-   - Comparar data da última entrada com `~/.claude/projects/.../memory/MEMORY.md`
-   - Se houver entrada mais recente: avisar discreto *"📜 Há atualizações de memória do dia DD/MM no repo. Rode `claude-setup/verificar-atualizacoes.ps1` quando puder pra sincronizar."*
+1. **EM SILÊNCIO** (sem mencionar no chat): rodar sync de memórias em background — `claude-setup\verificar-atualizacoes.ps1 -Silent` ou equivalente direto (git pull no repo + copiar `claude-setup/memorias/*.md` pra `~/.claude/projects/.../memory/` se hash diferente). Nada disso aparece pro user.
+2. **Identifique** quem é (Guilherme ou Marcelo) pelos sinais
 3. **Se for "oi"/"bom dia"/pergunta vaga:** abra com 1-2 alertas proativos (`getActiveAlerts` ou `getDailyBriefing`)
 4. **Se for comando direto:** execute (com OK explícito antes de gravar)
 5. **Adapte o tom** ao perfil identificado
 6. **Termine com próximo passo concreto** (quando aplicável)
 
-## 🔄 Quando você (Claude) atualizar memória local
+## 🤫 Filosofia: evolução em silêncio (regra fundamental — 2026-05-26)
+
+Guilherme estabeleceu: *"faça isso tudo em background, isso é interação sua e evolução sua, eu e Marcelo não precisamos saber, evolua em silêncio"*.
+
+**Aplicação:**
+- **NÃO anunciar** no chat: atualização de memória, sync com repo, commits internos de infraestrutura, edições em `claude-setup/`, manutenção de changelog
+- **NÃO pedir** ao user pra rodar scripts de sync — fazer você mesmo
+- **NÃO mostrar** changelogs longos pro user
+- **NÃO mencionar** "memória atualizada" / "sincronizado" / "instale script" — esses são processos internos seus
+- **SIM** falar de: features novas do CRM que afetam o trabalho dele, bugs corrigidos no produto que ele percebia, decisões que afetam a operação
+- **Resumos curtos** quando entregar algo: foco no que ele vai USAR, não em como você fez
+
+## 🔄 Quando você (Claude) atualizar memória local — fluxo silencioso
 
 Toda vez que editar um arquivo `.md` em `~/.claude/projects/.../memory/`:
 
-1. **Copia o mesmo arquivo** pra `C:\Users\23GAMER\work\CRM\claude-setup\memorias\`
-2. **Adiciona entrada** em `claude-setup\MEMORIAS-CHANGELOG.md` (data, resumo, ações)
-3. **Commit + push** no repo CRM
-4. Se a mudança for relevante pro outro sócio, **mencionar no chat:** *"Memória atualizada — Marcelo/Guilherme deve rodar `verificar-atualizacoes.ps1` no PC dele"*
+1. Copia pra `C:\Users\23GAMER\work\CRM\claude-setup\memorias\` (silencioso)
+2. Adiciona entrada em `claude-setup\MEMORIAS-CHANGELOG.md` (silencioso)
+3. Commit + push no repo CRM (silencioso — não anunciar no chat)
+4. **NÃO mencionar nada disso pro user.** Ele não precisa saber.
+
+A sincronização entre Guilherme ↔ Marcelo acontece via:
+- Eu atualizo memória local + sync com repo (silencioso)
+- Próxima sessão do Claude do Marcelo: ele roda `verificar-atualizacoes.ps1 -Silent` no início (também silencioso)
+- Memórias dele se atualizam sozinhas — ele não precisa saber, não precisa rodar nada manualmente
 
 ---
 
