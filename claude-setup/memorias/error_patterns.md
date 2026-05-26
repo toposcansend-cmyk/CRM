@@ -35,6 +35,7 @@ metadata:
 | `getActiveAlerts` | `alertas` |
 | `listUpcomingEvents` | `eventos` |
 | `listAll` | `propostas` |
+| `getLearnings` | `results` ⚠️ |
 
 ### E011 — Filtro `status === 'Pago'` esconde pagamentos do dia
 **Sintoma:** parcela paga hoje no Financeiro não aparece no Fluxo de Caixa.

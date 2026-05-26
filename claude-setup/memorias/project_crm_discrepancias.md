@@ -42,12 +42,11 @@ Levantadas em 2026-05-19 ao cruzar [[project-crm-manual-operacional]] com o esta
   - `prob > 40` → Pendente
 - **Bug latente:** Standby (20%) cairia no fallback como **Lead**, não Standby. O novo modelo (manual) resolve isso ao ler status explícito.
 
-## 4. Rafaela ausente do Auth
+## 4. ~~Rafaela ausente do Auth~~ (RESOLVIDO via desligamento)
 
-- **Manual:** Equipe inclui **Rafaela** (Júnior em ramp-up).
-- **Repositório:** `AUTH_USERS` em `crm.html` linhas 1738-1743 só tem admin, guilherme, marcelo, allana. **Rafaela não pode logar.**
-
-**How to apply:** Adicionar `rafaela@toposcan.com.br` ao `AUTH_USERS` com o hash SHA-256 da senha quando autorizado pelo Guilherme.
+- ~~Manual incluía Rafaela vendedora júnior em ramp-up.~~
+- **Status 2026-05-26:** Rafaela vendedora **desligada**. Discrepância deixa de existir (não precisa adicionar ao AUTH_USERS).
+- O nome "Rafaela" agora identifica a **IA gerente Comercial** (Claude Project) — ver `project_rafaela_gerente_vendas.md`.
 
 ## 5. Frontend ainda usa modelo antigo
 
@@ -59,5 +58,5 @@ Levantadas em 2026-05-19 ao cruzar [[project-crm-manual-operacional]] com o esta
 1. **Auditoria:** rodar `listAll` na API nova do manual e comparar a resposta com o que o `crm.html` espera.
 2. **Sync do GAS:** baixar a versão V3+ do script.google.com e commitar no `google-apps-script.js` do repo.
 3. **Atualizar frontend:** ajustar `crm.html` para ler `status` e `observacao` como campos separados.
-4. **Adicionar Rafaela:** incluir no `AUTH_USERS`.
+4. ~~Adicionar Rafaela ao AUTH_USERS~~ — ✅ obsoleta (vendedora desligada, ver §4).
 5. **Documentar deployment IDs:** registrar quais GAS deployments estão ativos e qual é o canônico.

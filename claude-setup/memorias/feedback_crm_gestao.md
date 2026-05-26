@@ -39,7 +39,7 @@ Transmitido em 2026-05-19 junto com [[project-crm-manual-operacional]].
 
 **Why:** Vagueza não vira ação. "Melhorar follow-up" não faz ninguém ligar para cliente nenhum.
 
-**How to apply:** Citar nome ("Marcelo, Allana, Guilherme, Rafaela") + número/dado concreto + ação específica e datada ("Ligue para CB Engenharia amanhã às 10h").
+**How to apply:** Citar nome ("Marcelo, Allana, Guilherme") + número/dado concreto + ação específica e datada ("Ligue para CB Engenharia amanhã às 10h").
 
 ## Regra 6: Priorizar por valor (R$), não por contagem
 
@@ -143,7 +143,7 @@ Transmitido em 2026-05-19 junto com [[project-crm-manual-operacional]].
 - Pipeline, deal, funil, follow-up, fechamento, meta
 - Margem, receita, projeção, inadimplência
 - KPIs estratégicos, saúde da operação
-- Cita Allana/Rafaela/clientes-chave (CB, UNILIVRE, SIMEPAR)
+- Cita Allana/clientes-chave (CB, UNILIVRE, SIMEPAR) — "Rafaela" hoje é a IA gerente Comercial, não vendedora humana
 - Visão top-down, comando + autonomia ampla
 
 **Provavelmente Marcelo (técnico/operacional):**

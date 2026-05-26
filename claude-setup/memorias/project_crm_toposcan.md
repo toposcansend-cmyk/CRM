@@ -1,13 +1,13 @@
 ---
 name: project-crm-toposcan
-description: "CRM Toposcan no GitHub — arquitetura V7.5, 4 áreas integradas, Central de Inteligência, 4 gerentes Claude"
+description: "CRM Toposcan no GitHub — V7.12 (4 áreas + Aprendizados), 4 gerentes Claude nomeados (Rafaela/Beatriz/Vanessa/Fernanda)"
 metadata: 
   node_type: memory
   type: project
   originSessionId: caf65bea-eb8e-408d-84cd-d7819dde72d9
 ---
 
-# CRM Toposcan — Estado completo (V7.5 — 22/05/2026)
+# CRM Toposcan — Estado completo (V7.12 — 26/05/2026)
 
 **Repositório:** https://github.com/toposcansend-cmyk/CRM  
 **Deploy:** https://toposcansend-cmyk.github.io/CRM/  
@@ -27,16 +27,20 @@ metadata:
    - 05/22 **V7.5 Assistente Pessoal** (email + Meet sob comando) + auth completa
    - 05/23 **V7.6** monitor de triggers (`getTriggersHealth` + instrumentação `_recordTriggerRun`) + smoke test infra + backup Git memórias
    - 05/23 **V7.7** triggers diários removidos a pedido do Guilherme. Apenas 2 emails/semana: segunda 9h (plano) + sexta 16h (recap)
+   - 05/24 — V7.8 Fluxo de Caixa, V7.9 redesenho timeline, V7.10 pagos com badge, V7.11 sync memórias entre PCs
+   - 05/26 **V7.12** Aprendizados — aba `Aprendizados` (9 col) + 5 actions (`ensure/add/get/update/delete`) = memória institucional ilimitada das IAs gerentes (substitui o teto 30×500 do claude.ai nativo)
+   - 05/26 — **Os 4 gerentes Claude ganham nomes:** Rafaela (Comercial) · Beatriz (Engenharia) · Vanessa (Financeiro) · Fernanda (Operação)
 
 ## Arquitetura — 4 áreas integradas
 
-| Área | Frontend (tab) | Planilha (16 col) | Módulo Code.js |
-|---|---|---|---|
-| 🎯 Vendas | Oportunidades/Pipeline/Evolução | `CRM Consolidado` | V3.1 (agentFind/Update/etc) |
-| 💰 Financeiro | 💰 Financeiro | `Financeiro` (14 col) | V4.0 (~150 linhas) |
-| 💼 Operação | 💼 Custos de Operação | `TopoPartners` (categoria em P) | V5.0 |
-| 🛠️ Engenharia | 🛠️ Engenharia | `Producao` | V6.0 |
-| **🎯 Central** | **🎯 Central (privada)** | (consolidado das 4) | V7.0+V7.5 |
+| Área | Gerente IA | Frontend (tab) | Planilha | Módulo Code.js |
+|---|---|---|---|---|
+| 🎯 Vendas | **Rafaela** ([[project-rafaela-gerente-comercial]]) | Oportunidades/Pipeline/Evolução | `CRM Consolidado` (16 col) | V3.1 |
+| 🛠️ Engenharia | **Beatriz** ([[project-beatriz-gerente-engenharia]]) | 🛠️ Engenharia | `Producao` (16 col) | V6.0 |
+| 💰 Financeiro | **Vanessa** ([[project-vanessa-gerente-financeiro]]) | 💰 Financeiro / 💸 Fluxo de Caixa | `Financeiro` (14 col) | V4.0 + V7.8 |
+| 💼 Operação | **Fernanda** ([[project-fernanda-gerente-operacao]]) | 💼 Custos de Operação | `TopoPartners` (16 col) | V5.0 |
+| **🎯 Central** | (todos) | 🎯 Central (privada `?central=1`) | (consolidado) | V7.0+V7.5 |
+| **🧠 Memória** | Rafaela (principal) | (sem UI, só API) | `Aprendizados` (9 col) | V7.12 |
 
 **Chave universal:** `numeroProposta` amarra tudo (ex: `06202534.0`).
 
@@ -44,9 +48,9 @@ metadata:
 
 - **Spreadsheet ID:** `1190S57Jmbb-eJcMHJYaOZ7qIqMCUpOTV-SDlWoSrMO4`
 - **Script ID:** `1Pxlm30KKFm2z2Zcc8I4tLZfIa_Y5Yimh9GbD62cZWSdkSPANM59tJXBK`
-- **Code.js:** `C:\Users\23GAMER\.gemini\antigravity\scratch\clasp-crm\Code.js` (~2400 linhas)
-- **Deployment estável:** `AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A` (mantido entre versões)
-- **Atual:** V7.7 @24 (deployed 23/05/2026)
+- **Code.js:** `C:\Users\23GAMER\.gemini\antigravity\scratch\clasp-crm\Code.js` (~3303 linhas pós-V7.12)
+- **Deployment estável:** `AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A` (mantido entre versões — não criar deploy novo, sempre `clasp deploy -i <id>`)
+- **Atual:** V7.12 @32 (deployed 26/05/2026) — Aprendizados
 
 ## Frontend (crm.html)
 
@@ -66,33 +70,35 @@ metadata:
 
 ## Login SHA-256
 
-Usuários autenticados (mesma senha hash):
-- admin@toposcan.com.br · guilherme@toposcan.com.br · marcelo@toposcan.com.br · allana@toposcan.com.br · rafaela@toposcan.com.br
+Usuários humanos autenticados (mesma senha hash):
+- admin@toposcan.com.br · guilherme@toposcan.com.br · marcelo@toposcan.com.br · allana@toposcan.com.br
+- ~~rafaela@toposcan.com.br~~ — vendedora desligada; o nome "Rafaela" agora é a IA gerente Comercial (não loga no CRM, opera via webhook)
 
-## Os 4 Gerentes Claude (claude.ai/Projects)
+## Os 4 Gerentes Claude (claude.ai/Projects) — nomeados em 26/05/2026
 
-Cada um com identidade primária + conhecimento total cross-area + 4 actions de Email/Meet:
+Cada um com identidade primária + conhecimento total cross-area + 4 actions de Email/Meet + 5 actions de Aprendizados (V7.12):
 
-| Project ID | Identidade primária |
-|---|---|
-| `019e08c9-697e-731a-95d9-45ecb4a9fd62` | 🎯 Comercial (Vendas/Funil) |
-| `019e523e-a9f8-72c5-b115-1a9e7fb8f563` | 💰 Financeiro |
-| `019e45c7-5a18-77d5-bef4-6648502be4cd` | 💼 Operação |
-| `019e51fc-bf69-7765-892f-cdfe7daec5fd` | 🛠️ Engenharia (Super Gerente) |
+| Project ID | Nome IA | Identidade | Stakeholder principal |
+|---|---|---|---|
+| `019e08c9-697e-731a-95d9-45ecb4a9fd62` | **Rafaela** | 🎯 Comercial (Vendas/Funil) | Guilherme |
+| `019e51fc-bf69-7765-892f-cdfe7daec5fd` | **Beatriz** | 🛠️ Engenharia (Produção/Modelagem) | Marcelo |
+| `019e523e-a9f8-72c5-b115-1a9e7fb8f563` | **Vanessa** | 💰 Financeiro (A receber/Margem) | Ambos |
+| `019e45c7-5a18-77d5-bef4-6648502be4cd` | **Fernanda** | 💼 Operação (Parceiros/Equip/Veículos) | Marcelo |
 
 Prompts no repo: `PROMPT-CLAUDE-{COMERCIAL,FINANCEIRO,OPERACAO,ENGENHARIA}.md` (~500-600 linhas cada).
 
 **Padrão de reaplicação:** Chrome MCP injeta conteúdo do GitHub API em cada Project automaticamente. Ver `technical_patterns_gas_oauth_chrome.md`.
 
-## Agentes autônomos (Triggers Google)
+## Agentes autônomos (Triggers Google) — pós V7.7
 
 Rodando 24/7 sem intervenção, enviam pra **guilherme@toposcan.com.br + marcelo@toposcan.com.br**:
 
-- 8h diário — `dailyMorningBrief` (briefing + 5 alertas top)
-- 10h+16h diário — `detectInadimplencia` (se houver atraso)
-- Segunda 9h — `weeklyStrategicReport`
+- **Segunda 9h** — `mondayPlanningBrief` (Plano da semana, top 10 ações)
+- **Sexta 16h** — `fridayWeekRecap` (Recap: recebido, concluído, em aberto)
 
-**Quota:** 100 emails/dia. Gasto típico: 5-15/dia.
+⚠️ Triggers diários (dailyMorningBrief, detectInadimplencia, weeklyStrategicReport) **REMOVIDOS** em 23/05/2026 a pedido do Guilherme. Funções continuam no código como "morte cerebral", chamáveis via `runDailyBriefNow`/`runMondayPlanNow`/`runFridayRecapNow`.
+
+**Quota:** 100 emails/dia (workspace). Gasto típico: 4 emails/semana.
 
 ## Dados populados (snapshot 22/05)
 

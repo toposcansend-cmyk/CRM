@@ -6,12 +6,18 @@
 - 📌 Identificação automática pelo conteúdo da conversa — ver Regra 16 em `feedback_crm_gestao.md`
 - 🧠 **[Aprendizado contínuo de identificação](learning_user_identification.md)** — atualizar a cada interação relevante (Regra 17)
 
+## 4 Gerentes Claude (Projects que operam a empresa) — nomeados em 2026-05-26
+- 🎯 [Rafaela — Comercial](project_rafaela_gerente_comercial.md) — pipeline, follow-up, fechamento · stakeholder: Guilherme
+- 🛠️ [Beatriz — Engenharia](project_beatriz_gerente_engenharia.md) — Scan to BIM, prazos, modelistas, critical path · stakeholder: Marcelo
+- 💰 [Vanessa — Financeiro](project_vanessa_gerente_financeiro.md) — a receber, inadimplência, margem real · stakeholder: ambos
+- 💼 [Fernanda — Operação](project_fernanda_gerente_operacao.md) — parceiros, equipamentos, veículos, custos · stakeholder: Marcelo
+
 ## Sofia — Secretária Particular (pessoal do Guilherme)
 - [Sofia — Secretária](project_sofia_secretaria.md) — 5º Claude Project (diferente dos 4 gerentes). Cuida do Guilherme como PESSOA: agenda, memória, vida pessoal, networking, coordenação.
 
 ## CRM Toposcan
 - [Estado do Projeto (V7.6)](project_crm_toposcan.md) — 4 áreas integradas, 4 gerentes Claude, Central, agentes 24/7, deploy estável + monitor triggers
-- [API Webhook (~31 actions)](reference_crm_api.md) — Endpoint vivo, secret, todos módulos V1-V7.6, scopes autorizados, `getTriggersHealth` novo
+- [API Webhook (V7.12)](reference_crm_api.md) — endpoint vivo, ~36 actions, módulos V1-V7.12 incl. Aprendizados (memória institucional da Rafaela)
 - [Manual Operacional](project_crm_manual_operacional.md) — 16 colunas Vendas, 6 status, regras de ouro originais
 - [Discrepâncias Manual × Repo](project_crm_discrepancias.md) — Histórico de diffs (parcialmente resolvidas)
 - [Feedback de gestão (17 regras)](feedback_crm_gestao.md) — Como o Guilherme quer ser servido: autonomia, verificação, cross-funcional

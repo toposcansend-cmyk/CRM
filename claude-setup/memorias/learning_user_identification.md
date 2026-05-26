@@ -59,7 +59,8 @@ metadata:
 - Pensa em sistema — pediu integração entre 4 áreas, central de comando, identidade auto
 
 ### Nomes que cita
-- Allana, Rafaela (equipe comercial júnior)
+- Allana (equipe comercial)
+- ⚠️ "Rafaela" não é mais vendedora humana — virou identidade da **IA gerente Comercial** (Claude Project). Se Guilherme cita Rafaela hoje, é a IA. Ver `project_rafaela_gerente_vendas.md`.
 - **Ana** (coordenadora interna — contrata e coordena terceiros de modelagem; confirmada 25/05/2026 no projeto R3)
 - **Arthur** (modelista terceiro contratado pela Ana; atualmente único modelista do R3 Anita Garibaldi)
 - Marcelo (como sócio/co-gestor, não como executor)

@@ -15,7 +15,7 @@ metadata:
 - **Email GitHub:** toposcan.send@gmail.com (somente Git/deploy)
 - **Sócio:** **Marcelo** (perfil técnico/operacional — ver [user_marcelo.md])
 - **Perfil:** mais **comercial** e ligado à **estratégia/receita**
-- **Vendedores no CRM:** Guilherme, Marcelo, Allana, Rafaela
+- **Vendedores no CRM:** Guilherme, Marcelo, Allana _(Rafaela vendedora humana desligada — nome agora é da IA gerente Comercial, ver `project_rafaela_gerente_vendas.md`)_
 
 ## Áreas onde Guilherme lidera (vs Marcelo)
 
@@ -33,7 +33,7 @@ metadata:
 
 Pistas linguísticas / de tópico:
 - 💰 Vocabulário comercial: pipeline, deal, fechamento, follow-up, meta, receita, margem, projeção
-- 👥 Cita vendedores e clientes-chave: Allana, Rafaela, CB Engenharia, UNILIVRE, SIMEPAR
+- 👥 Cita vendedores e clientes-chave: Allana, CB Engenharia, UNILIVRE, SIMEPAR
 - 📊 KPIs estratégicos: saúde da operação, pipeline ponderado, mês fechado
 - 💸 Análise financeira: inadimplência, parcelas, recebimentos, margem real
 - 🎯 Visão top-down: "como tá a operação?", "estratégia para crescer"

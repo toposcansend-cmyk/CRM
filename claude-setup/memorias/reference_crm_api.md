@@ -7,7 +7,7 @@ metadata:
   originSessionId: caf65bea-eb8e-408d-84cd-d7819dde72d9
 ---
 
-# CRM Toposcan — API Webhook (V7.7 — atualizado 23/05/2026)
+# CRM Toposcan — API Webhook (V7.12 — atualizado 26/05/2026)
 
 ## Acesso direto ao código fonte (clasp)
 
@@ -89,6 +89,18 @@ https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg
 | `runFridayRecapNow` | **V7.7** — Dispara fridayWeekRecap agora (teste manual) |
 | `sendTestEmail` | Email de teste arbitrário (params: to, subject, text) |
 | `diagEmail` | Diagnóstico de envio (quota, scopes, sample) — **⚠️ envia 2 emails reais, consome 2/quota** |
+
+### 🧠 Aprendizados V7.12 (memoria institucional ilimitada — Rafaela)
+| Action | Função | Parâmetros |
+|---|---|---|
+| `ensureAprendizados` | Garante aba `Aprendizados` (9 col: id/data/categoria/titulo/conteudo/tags/clienteRelacionado/numeroProposta/criadoEm) | — |
+| `addLearning` | Insere lição (id auto `APR-NNNN`) | `titulo`*, `conteudo`*, `categoria?`, `data?`, `tags?`, `clienteRelacionado?`, `numeroProposta?` |
+| `getLearnings` | Busca com filtros opcionais (todos AND) | `id?`, `categoria?`, `tags?` (CSV — todas presentes), `cliente?` (substring), `numeroProposta?`, `search?` (em titulo/conteudo/tags), `limit?` |
+| `updateLearning` | Edita por id (campos editaveis: data/categoria/titulo/conteudo/tags/clienteRelacionado/numeroProposta) | `id`*, +campos |
+| `deleteLearning` | Remove por id | `id`* |
+
+**Categorias sugeridas:** `Cliente | Padrao | Regra | Webhook | Identidade | Fluxo | Equipe | Tecnico | Email | Financeiro` (não enforcado — campo livre)
+**Chave de retorno em list:** `results` (não `itens` nem `parcelas`)
 
 ### 📧🗓️ Assistente Pessoal V7.5 (email + Meet)
 | Action | Função | Parâmetros |

@@ -19,6 +19,35 @@
 
 ## Entradas
 
+### 2026-05-26 — V7.12 + nomeação das IAs gerentes (Guilherme)
+
+**Resumo:** Deploy V7.12 Aprendizados (aba `Aprendizados` + 5 actions = memória institucional ilimitada da Rafaela), e nomeação dos 4 gerentes Claude: Rafaela (Comercial) · Beatriz (Engenharia) · Vanessa (Financeiro) · Fernanda (Operação). Vendedora humana Rafaela limpada de todas as referências (desligada).
+
+**Memórias atualizadas:**
+- `MEMORY.md` — nova seção "4 Gerentes Claude" indexando os 4 nomes
+- `project_crm_toposcan.md` — V7.7 → V7.12, tabela de gerentes com nomes, login sem Rafaela
+- `reference_crm_api.md` — V7.12 + tabela completa das 5 actions de Aprendizados (chave de retorno `results`)
+- `error_patterns.md` — adicionado `getLearnings → results` na lista E010
+- `user_guilherme.md` — Rafaela vendedora removida do time
+- `project_crm_manual_operacional.md` — tabela de vendedores atualizada (3 humanos + nota Rafaela-IA)
+- `project_crm_discrepancias.md` — §4 "Rafaela ausente do Auth" marcada como resolvida (desligamento)
+- `learning_user_identification.md` — pistas de identificação atualizadas (Rafaela = IA, não humana)
+- `feedback_crm_gestao.md` — regra 5 e bloco de pistas Guilherme/Marcelo atualizados
+- `project_rafaela_gerente_comercial.md` — NOVO
+- `project_beatriz_gerente_engenharia.md` — NOVO
+- `project_vanessa_gerente_financeiro.md` — NOVO
+- `project_fernanda_gerente_operacao.md` — NOVO
+
+**Prompts dos Projects atualizados (mesmo commit):**
+- `PROMPT-CLAUDE-COMERCIAL.md` — identidade Rafaela-IA + V7.12 + 4 colegas
+- `PROMPT-CLAUDE-ENGENHARIA.md` — identidade Beatriz + V7.12 + 4 colegas
+- `PROMPT-CLAUDE-FINANCEIRO.md` — identidade Vanessa + V7.8 Fluxo de Caixa + V7.12 + 4 colegas
+- `PROMPT-CLAUDE-OPERACAO.md` — identidade Fernanda + V7.12 + 4 colegas
+
+⚠️ Para refletir nos Projects do claude.ai (UI), ainda é necessário reaplicar via Chrome MCP — ver `BRIEFING-CLAUDE-MOBILE.md`.
+
+---
+
 ### 2026-05-26 — V7.10/V7.11 (Guilherme)
 
 **Resumo:** Fluxo de Caixa completo (V7.10/V7.11) + bug fixes + drag-and-drop sem confirmação + feedback visual ao marcar pago

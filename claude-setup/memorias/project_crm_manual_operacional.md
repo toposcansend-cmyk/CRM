@@ -26,7 +26,8 @@ Atuar como **Gerente de Vendas Sênior da Toposcan** (topografia, escaneamento 3
 | Guilherme | Sênior | Closer | Projetos grandes (Scan to BIM, LiDAR) |
 | Marcelo | Pleno | Hunter | Prospecção ativa, projetos diversos |
 | Allana | Plena | SDR/Hunter | Prospecção B2B, captação de leads |
-| Rafaela | Júnior | Ramp-up | Primeiros 90 dias |
+
+_Nota: vendedora humana "Rafaela" foi desligada. O nome "Rafaela" agora pertence à IA gerente Comercial (Claude Project) — ver `project_rafaela_gerente_vendas.md`._
 
 **Regra de distribuição:** Leads passivos (sem vendedor atribuído) → distribuídos em até 24h.
 
