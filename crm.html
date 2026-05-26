@@ -7982,26 +7982,83 @@ Data: ${h.data}`;
                 } catch (e) { alert('Erro: ' + e.message); }
             }
 
+            // V7.11: ao marcar pago, transforma visualmente o card ANTES do refresh
+            // - Animação flash verde
+            // - Badge ✓ PAGO aparece
+            // - Botão "marcar pago" some
+            // - Card vira não-arrastável
+            // - Toast confirma sucesso
+            function fcTransformarCardPago(rowIndex, tipo) {
+                const sel = '.fc-card[data-tipo="' + tipo + '"][data-row="' + rowIndex + '"]';
+                const card = document.querySelector(sel);
+                if (!card) return;
+                // Anima
+                card.style.transition = 'all 0.4s ease';
+                card.style.background = tipo === 'entrada' ? 'rgba(34,197,94,0.45)' : 'rgba(124,45,18,0.45)';
+                card.style.transform = 'scale(1.05)';
+                card.style.boxShadow = '0 0 0 3px ' + (tipo === 'entrada' ? '#22c55e' : '#dc2626');
+                setTimeout(() => {
+                    card.style.transform = '';
+                    card.style.background = tipo === 'entrada' ? 'rgba(52,211,153,0.22)' : 'rgba(248,113,113,0.22)';
+                    card.style.boxShadow = '';
+                    card.classList.add('fc-paga');
+                    card.removeAttribute('draggable');
+                    card.style.cursor = 'default';
+                    // Adiciona badge se não existir
+                    const header = card.querySelector('div:first-child');
+                    if (header && !header.querySelector('.fc-badge-pago')) {
+                        const badge = document.createElement('div');
+                        badge.className = 'fc-badge-pago';
+                        badge.textContent = '✓ PAGO';
+                        const bgBadge = tipo === 'entrada' ? '#059669' : '#7c2d12';
+                        badge.style.cssText = 'background:' + bgBadge + ';color:#fff;padding:0 5px;border-radius:3px;font-size:0.85em;font-weight:700';
+                        header.appendChild(badge);
+                    }
+                    // Remove botão "marcar pago"
+                    const btn = card.querySelector('button');
+                    if (btn) btn.remove();
+                }, 400);
+            }
+
             async function fcMarcarParcelaPaga(rowIndex) {
-                if (!confirm('Marcar esta parcela como PAGA hoje?')) return;
+                // V7.11: feedback INSTANTÂNEO (sem confirm, sem espera)
+                fcTransformarCardPago(rowIndex, 'entrada');
                 try {
                     const r = await finApi('markPaid', { rowIndex: rowIndex });
-                    if (r && r.ok) fcRefresh();
-                    else alert('Erro: ' + (r && r.error || 'desconhecido'));
-                } catch (e) { alert('Erro: ' + e.message); }
+                    if (r && r.ok) {
+                        fcToast('✅ Parcela marcada como paga', '#34d399');
+                        fcRefresh({ skipCache: true });
+                    } else {
+                        fcToast('❌ Erro: ' + (r && r.error || 'desconhecido'), '#ef4444');
+                        // Reverte visual em caso de erro
+                        fcRefresh({ skipCache: true });
+                    }
+                } catch (e) {
+                    fcToast('❌ Erro: ' + e.message, '#ef4444');
+                    fcRefresh({ skipCache: true });
+                }
             }
 
             async function fcMarcarCustoPago(rowIndex, valorRestante) {
-                if (!confirm('Marcar este custo como PAGO (R$ ' + valorRestante.toLocaleString('pt-BR') + ')?')) return;
+                // V7.11: feedback INSTANTÂNEO
+                fcTransformarCardPago(rowIndex, 'saida');
                 try {
                     const lr = await finApi('listTopoPartners', {});
                     const item = (lr.items || []).find(x => x.rowIndex == rowIndex);
-                    if (!item) { alert('Item não encontrado'); return; }
+                    if (!item) { fcToast('❌ Item não encontrado', '#ef4444'); fcRefresh({ skipCache: true }); return; }
                     const novoPago = (Number(item.valorAcordado) || 0);
                     const r = await finApi('updateTopoPartner', { rowIndex: rowIndex, fields: { valorPago: novoPago, observacoes: (item.observacoes || '') + ' [PAGO via Fluxo de Caixa em ' + new Date().toLocaleDateString('pt-BR') + ']' } });
-                    if (r && r.ok) fcRefresh();
-                    else alert('Erro: ' + (r && r.error || 'desconhecido'));
-                } catch (e) { alert('Erro: ' + e.message); }
+                    if (r && r.ok) {
+                        fcToast('✅ Pagamento de R$ ' + valorRestante.toLocaleString('pt-BR') + ' confirmado', '#34d399');
+                        fcRefresh({ skipCache: true });
+                    } else {
+                        fcToast('❌ Erro: ' + (r && r.error || 'desconhecido'), '#ef4444');
+                        fcRefresh({ skipCache: true });
+                    }
+                } catch (e) {
+                    fcToast('❌ Erro: ' + e.message, '#ef4444');
+                    fcRefresh({ skipCache: true });
+                }
             }
 
             // ────────────────────────────────────────────────────────────────
