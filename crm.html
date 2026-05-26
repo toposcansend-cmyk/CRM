@@ -5337,21 +5337,23 @@
             // Puxar da nuvem imediatamente
             puxarDadosDaNuvem();
 
-            // Prefetch em background — Financeiro, TopoPartners e Engenharia
+            // Prefetch em background — Financeiro, TopoPartners, Engenharia e Fluxo de Caixa
             // Dispara apos 500ms para nao competir com puxarDadosDaNuvem (que e prioritario)
             setTimeout(function() {
                 if (typeof finRefresh === 'function') finRefresh().catch(()=>{});
                 if (typeof tpRefresh === 'function') tpRefresh().catch(()=>{});
                 if (typeof engRefresh === 'function') engRefresh().catch(()=>{});
+                if (typeof fcRefresh === 'function') fcRefresh().catch(()=>{});
             }, 500);
 
             // Refresh periodically (optional, every 5 mins)
             setInterval(puxarDadosDaNuvem, 300000);
-            // Refresh Financeiro, TopoPartners e Engenharia em background a cada 5 min
+            // Refresh Financeiro, TopoPartners, Engenharia e Fluxo de Caixa em background a cada 5 min
             setInterval(function() {
                 if (typeof finRefresh === 'function') finRefresh({ skipCache: true }).catch(()=>{});
                 if (typeof tpRefresh === 'function') tpRefresh({ skipCache: true }).catch(()=>{});
                 if (typeof engRefresh === 'function') engRefresh({ skipCache: true }).catch(()=>{});
+                if (typeof fcRefresh === 'function') fcRefresh({ skipCache: true }).catch(()=>{});
             }, 300000);
 
             // --- SISTEMA DE NOTIFICAÇÕES (SININHO) ---
@@ -7749,24 +7751,74 @@ Data: ${h.data}`;
             })();
 
             // ════════════════════════════════════════════════════════════════
-            // 💸 FLUXO DE CAIXA V7.8
+            // 💸 FLUXO DE CAIXA V7.9 — cache stale-while-revalidate + prefetch
             // ════════════════════════════════════════════════════════════════
             let fcDados = null;
+            let fcLastLoad = 0;
+            const FC_CACHE_KEY = 'crm_fc_v1';
+            const FC_CACHE_TTL = 30 * 60 * 1000; // 30 min — fluxo de caixa não muda toda hora
 
             function fcBRL(n) {
                 return 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
 
-            async function fcRefresh() {
-                document.getElementById('fcSaldoValor').textContent = '...';
-                document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);width:100%">Carregando...</div>';
+            // Carrega cache do localStorage se existir (chamado na inicialização do app)
+            (function fcLoadCache() {
                 try {
-                    const r = await finApi('getCashFlow', { dias: 30 }); // backend retorna 30 mas frontend mostra só 14
-                    if (!r || !r.ok) { document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + (r && r.error || 'desconhecido') + '</div>'; return; }
+                    const raw = localStorage.getItem(FC_CACHE_KEY);
+                    if (raw) {
+                        const cached = JSON.parse(raw);
+                        if (cached && cached.dados && cached.timestamp) {
+                            fcDados = cached.dados;
+                            fcLastLoad = cached.timestamp;
+                        }
+                    }
+                } catch (e) {}
+            })();
+
+            // Stale-while-revalidate:
+            // - Se temos cache (mesmo velho), renderiza IMEDIATAMENTE
+            // - Em paralelo busca dados frescos do backend
+            // - Quando chega resposta, re-renderiza silenciosamente
+            // - Skip do fetch se cache fresco (< TTL) e skipCache não foi passado
+            async function fcRefresh(opts) {
+                opts = opts || {};
+                const skipCache = opts.skipCache === true;
+
+                // 1) Render IMEDIATO se temos cache (mesmo se vai buscar novo depois)
+                if (fcDados && !skipCache) {
+                    fcRender();
+                    // Se cache fresco, nem busca de novo
+                    if ((Date.now() - fcLastLoad) < FC_CACHE_TTL) {
+                        return;
+                    }
+                    // Indicador sutil: "atualizando..." pequeno
+                    const el = document.getElementById('fcSaldoUpdated');
+                    if (el) el.textContent = '🔄 Atualizando...';
+                } else {
+                    // Sem cache: mostra loading só na timeline (não no resto)
+                    document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);width:100%">Carregando...</div>';
+                }
+
+                // 2) Fetch real em background
+                try {
+                    const r = await finApi('getCashFlow', { dias: 14 }); // só 14 = payload menor + render só 14 mesmo
+                    if (!r || !r.ok) {
+                        if (!fcDados) {
+                            document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + (r && r.error || 'desconhecido') + '</div>';
+                        }
+                        return;
+                    }
                     fcDados = r;
+                    fcLastLoad = Date.now();
+                    try {
+                        localStorage.setItem(FC_CACHE_KEY, JSON.stringify({ dados: r, timestamp: fcLastLoad }));
+                    } catch (e) {}
                     fcRender();
                 } catch (e) {
-                    document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + e.message + '</div>';
+                    if (!fcDados) {
+                        document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + e.message + '</div>';
+                    }
                 }
             }
 
@@ -8786,7 +8838,11 @@ Data: ${h.data}`;
                     }
                 }
                 if (tabId === 'fluxocaixa') {
-                    if (typeof fcRefresh === 'function') fcRefresh();
+                    if (typeof fcRefresh === 'function') {
+                        // Render IMEDIATO com cache (se houver), refresh em bg se velho
+                        if (fcDados) fcRender();
+                        fcRefresh();
+                    }
                 }
                 if (tabId === 'central') {
                     if (typeof centralRefresh === 'function' && (typeof centralKpis === 'undefined' || centralKpis === null)) {
