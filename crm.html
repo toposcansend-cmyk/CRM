@@ -2616,12 +2616,12 @@
         // Para adicionar um usuário: adiciona no AUTH_USERS acima + define aqui.
         // Para mudar permissão: edita a lista de abas dele.
         // ═══════════════════════════════════════════════════════════════
-        const TODAS_ABAS = ['central','oportunidades','pipeline','evolucao','insights','kpi','followup','orcamento','financeiro','topopartners','engenharia'];
+        const TODAS_ABAS = ['central','oportunidades','pipeline','evolucao','insights','kpi','followup','orcamento','financeiro','topopartners','engenharia','fluxocaixa'];
         const USER_PERMISSIONS = {
             'admin@toposcan.com.br':      TODAS_ABAS,  // acesso total
             'guilherme@toposcan.com.br':  TODAS_ABAS,  // dono — acesso total
             'marcelo@toposcan.com.br':    TODAS_ABAS,  // sócio — acesso total
-            'allana@toposcan.com.br':     ['oportunidades','pipeline','evolucao','followup','orcamento']  // SDR/Hunter — só vendas
+            'allana@toposcan.com.br':     ['oportunidades','pipeline','evolucao','followup','orcamento']  // SDR/Hunter — só vendas (SEM fluxo de caixa)
         };
 
         function aplicarPermissoes() {
@@ -2930,6 +2930,7 @@
                 <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
                 <button class="tab-btn" onclick="trocarTab('topopartners')">💼 Custos de Operação</button>
                 <button class="tab-btn" onclick="trocarTab('engenharia')">🛠️ Engenharia</button>
+                <button class="tab-btn" onclick="trocarTab('fluxocaixa')">💸 Fluxo de Caixa</button>
             </div>
         </div>
 
@@ -3000,6 +3001,77 @@
                     </div>
                 </div>
                 <div id="centralAlertasLista" style="display:flex;flex-direction:column;gap:8px">—</div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- 💸 FLUXO DE CAIXA V7.8 — Timeline + saldo projetado + alertas -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="fluxocaixa" class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+                <div>
+                    <h2 style="margin:0">💸 Fluxo de Caixa</h2>
+                    <div style="font-size:0.85em;color:var(--text-secondary);margin-top:4px">Timeline · Saldo projetado · Alertas · Conciliação com banco</div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                    <select id="fcJanela" onchange="fcRefresh()" style="padding:6px 10px;background:var(--glass-bg);border:1px solid var(--glass-border);color:var(--text-primary);border-radius:6px">
+                        <option value="14">14 dias</option>
+                        <option value="30" selected>30 dias</option>
+                        <option value="60">60 dias</option>
+                        <option value="90">90 dias</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="fcRefresh()" style="padding:8px 14px;font-size:0.85em">🔄 Atualizar</button>
+                </div>
+            </div>
+
+            <!-- Card de saldo atual (editável) -->
+            <div class="card" style="margin-bottom:18px;background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(0,212,255,0.02))">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px">
+                    <div>
+                        <div style="font-size:0.78em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">💰 Saldo atual em caixa</div>
+                        <div id="fcSaldoValor" style="font-size:2.4em;font-weight:800;margin-top:4px">—</div>
+                        <div id="fcSaldoUpdated" style="font-size:0.78em;color:var(--text-secondary);margin-top:4px">—</div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:6px;min-width:240px">
+                        <label style="font-size:0.78em;color:var(--text-secondary)">Atualizar saldo (R$):</label>
+                        <input type="number" step="0.01" id="fcNovoSaldo" placeholder="ex: 10364.46" style="padding:8px 12px;background:rgba(255,255,255,0.05);border:1px solid var(--glass-border);color:var(--text-primary);border-radius:6px">
+                        <button class="btn btn-primary" onclick="fcSalvarSaldo()" style="padding:8px 14px;font-size:0.85em">💾 Salvar saldo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumo da janela -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px">
+                <div class="card" style="margin:0;border-left:3px solid #34d399">
+                    <div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">📥 Entradas</div>
+                    <div id="fcResEntradas" style="font-size:1.4em;font-weight:700;margin-top:4px">—</div>
+                </div>
+                <div class="card" style="margin:0;border-left:3px solid #f87171">
+                    <div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">📤 Saídas</div>
+                    <div id="fcResSaidas" style="font-size:1.4em;font-weight:700;margin-top:4px">—</div>
+                </div>
+                <div class="card" style="margin:0;border-left:3px solid #00d4ff">
+                    <div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">💰 Saldo final projetado</div>
+                    <div id="fcResFinal" style="font-size:1.4em;font-weight:700;margin-top:4px">—</div>
+                </div>
+                <div class="card" style="margin:0;border-left:3px solid #fbbf24">
+                    <div style="font-size:0.75em;color:var(--text-secondary);text-transform:uppercase">📉 Saldo mínimo</div>
+                    <div id="fcResMin" style="font-size:1.4em;font-weight:700;margin-top:4px">—</div>
+                </div>
+            </div>
+
+            <!-- Alertas + Sugestões -->
+            <div id="fcAlertasWrap" style="display:none;margin-bottom:18px">
+                <div class="card" style="border-left:3px solid #ef4444">
+                    <div style="font-weight:600;margin-bottom:8px">🔔 Alertas e Sugestões</div>
+                    <div id="fcAlertasLista" style="display:flex;flex-direction:column;gap:8px"></div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <div style="font-weight:600;margin-bottom:12px">📅 Timeline diária</div>
+                <div id="fcTimeline" style="display:flex;flex-direction:column;gap:6px">Carregando...</div>
             </div>
         </div>
 
@@ -7675,6 +7747,150 @@ Data: ${h.data}`;
                         document.body.appendChild(t);
                         setTimeout(()=>t.remove(), 1800);
                     }
+                });
+            })();
+
+            // ════════════════════════════════════════════════════════════════
+            // 💸 FLUXO DE CAIXA V7.8
+            // ════════════════════════════════════════════════════════════════
+            let fcDados = null;
+
+            function fcBRL(n) {
+                return 'R$ ' + Number(n || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            async function fcRefresh() {
+                const janela = parseInt(document.getElementById('fcJanela').value) || 30;
+                document.getElementById('fcSaldoValor').textContent = '...';
+                document.getElementById('fcTimeline').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary)">Carregando fluxo de caixa...</div>';
+                try {
+                    const r = await finApi('getCashFlow', { dias: janela });
+                    if (!r || !r.ok) { document.getElementById('fcTimeline').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + (r && r.error || 'desconhecido') + '</div>'; return; }
+                    fcDados = r;
+                    fcRender();
+                } catch (e) {
+                    document.getElementById('fcTimeline').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + e.message + '</div>';
+                }
+            }
+
+            function fcRender() {
+                if (!fcDados) return;
+                const d = fcDados;
+                // Saldo top
+                document.getElementById('fcSaldoValor').textContent = fcBRL(d.saldoInicial);
+                if (d.saldoUpdatedAt) {
+                    const dt = new Date(d.saldoUpdatedAt);
+                    document.getElementById('fcSaldoUpdated').textContent = '📅 Atualizado: ' + dt.toLocaleString('pt-BR');
+                } else {
+                    document.getElementById('fcSaldoUpdated').textContent = '⚠️ Saldo ainda não informado';
+                }
+                // Resumo
+                document.getElementById('fcResEntradas').textContent = fcBRL(d.resumo.totalEntradas);
+                document.getElementById('fcResSaidas').textContent = fcBRL(d.resumo.totalSaidas);
+                document.getElementById('fcResFinal').textContent = fcBRL(d.resumo.saldoFinalProjetado);
+                document.getElementById('fcResFinal').style.color = d.resumo.saldoFinalProjetado >= 0 ? '#34d399' : '#fca5a5';
+                document.getElementById('fcResMin').textContent = fcBRL(d.resumo.saldoMinimo);
+                document.getElementById('fcResMin').style.color = d.resumo.saldoMinimo < 0 ? '#fca5a5' : (d.resumo.saldoMinimo < 5000 ? '#fbbf24' : '#34d399');
+
+                // Alertas
+                const alWrap = document.getElementById('fcAlertasWrap');
+                const alLista = document.getElementById('fcAlertasLista');
+                const todosAlertas = (d.alertas || []).concat((d.sugestoes || []).map(s => ({ emoji: s.emoji, texto: s.texto, sugestao: s.impacto, severity: 'sug' })));
+                if (todosAlertas.length === 0) { alWrap.style.display = 'none'; }
+                else {
+                    alWrap.style.display = 'block';
+                    const corSev = { alta: '#ef4444', media: '#fbbf24', sug: '#00d4ff' };
+                    alLista.innerHTML = todosAlertas.map(a => {
+                        const cor = corSev[a.severity] || '#94a3b8';
+                        return '<div style="background:rgba(255,255,255,0.03);border-left:3px solid ' + cor + ';border-radius:6px;padding:10px 14px">'
+                            + '<div style="font-size:0.92em">' + (a.emoji || '') + ' ' + esc(a.texto) + '</div>'
+                            + (a.sugestao ? '<div style="margin-top:4px;font-size:0.8em;color:var(--text-secondary)">💡 ' + esc(a.sugestao) + '</div>' : '')
+                            + '</div>';
+                    }).join('');
+                }
+
+                // Timeline diária
+                const tl = document.getElementById('fcTimeline');
+                const dias = d.dias || [];
+                tl.innerHTML = dias.map(dia => {
+                    const corSaldo = dia.saldoAcumulado < 0 ? '#fca5a5' : (dia.saldoAcumulado < 5000 ? '#fbbf24' : '#fff');
+                    const corDia = dia.ehHoje ? '#00d4ff' : (dia.ehFimDeSemana ? '#64748b' : '#fff');
+                    const semMovimento = dia.totalEntradas === 0 && dia.totalSaidas === 0;
+                    let entradasHtml = dia.entradas.map(e =>
+                        '<div style="font-size:0.82em;color:#34d399;margin-left:8px">📥 +' + fcBRL(e.valor) + ' · ' + esc(e.cliente) + ' (' + esc(e.vendedor || '?') + ') · parc ' + esc(e.parcela)
+                        + (e.atrasada ? ' <span style="color:#fca5a5">⚠️ atrasada desde ' + e.dataOriginal + '</span>' : '')
+                        + ' <button onclick="fcMarcarParcelaPaga(' + e.rowIndex + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 6px;border-radius:4px;font-size:0.75em;cursor:pointer;margin-left:6px">✓ marcar pago</button>'
+                        + '</div>'
+                    ).join('');
+                    let saidasHtml = dia.saidas.map(s =>
+                        '<div style="font-size:0.82em;color:#f87171;margin-left:8px">📤 -' + fcBRL(s.valorRestante) + ' · ' + esc(s.parceiro) + ' · ' + esc(s.servico)
+                        + (s.projeto ? ' · <i>' + esc(s.projeto) + '</i>' : '')
+                        + (s.atrasada ? ' <span style="color:#fbbf24">⚠️ atrasado desde ' + s.dataOriginal + '</span>' : '')
+                        + (s.programado ? ' <span style="background:#1e40af;color:#fff;padding:1px 6px;border-radius:8px;font-size:0.7em;margin-left:4px">PROGRAMADO</span>' : '')
+                        + ' <button onclick="fcMarcarCustoPago(' + s.rowIndex + ',' + s.valorRestante + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 6px;border-radius:4px;font-size:0.75em;cursor:pointer;margin-left:6px">✓ marcar pago</button>'
+                        + '</div>'
+                    ).join('');
+                    return '<div style="background:rgba(255,255,255,0.02);border-radius:6px;padding:8px 12px;' + (dia.ehHoje ? 'border-left:3px solid #00d4ff;' : '') + (semMovimento ? 'opacity:0.45;' : '') + '">'
+                        + '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">'
+                        +   '<div style="font-weight:600;color:' + corDia + '">' + dia.diaSemana + ' ' + dia.data + (dia.ehHoje ? ' · HOJE' : '') + (dia.ehFimDeSemana ? ' · fim de semana' : '') + '</div>'
+                        +   '<div style="font-size:0.85em">'
+                        +     (dia.totalEntradas > 0 ? '<span style="color:#34d399">+' + fcBRL(dia.totalEntradas) + '</span> ' : '')
+                        +     (dia.totalSaidas > 0 ? '<span style="color:#f87171">-' + fcBRL(dia.totalSaidas) + '</span> ' : '')
+                        +     '<span style="color:' + corSaldo + ';font-weight:700;margin-left:8px">' + fcBRL(dia.saldoAcumulado) + '</span>'
+                        +   '</div>'
+                        + '</div>'
+                        + (entradasHtml || saidasHtml ? '<div style="margin-top:6px">' + entradasHtml + saidasHtml + '</div>' : '')
+                        + '</div>';
+                }).join('');
+            }
+
+            async function fcSalvarSaldo() {
+                const v = parseFloat(document.getElementById('fcNovoSaldo').value);
+                if (isNaN(v)) { alert('Informe um valor numérico (ex: 10364.46)'); return; }
+                if (!confirm('Atualizar saldo de caixa para ' + fcBRL(v) + '?')) return;
+                try {
+                    const r = await finApi('setCashBalance', { valor: v, observacao: 'Atualizado manualmente pelo CRM' });
+                    if (r && r.ok) {
+                        document.getElementById('fcNovoSaldo').value = '';
+                        fcRefresh();
+                    } else alert('Erro: ' + (r && r.error || 'desconhecido'));
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            async function fcMarcarParcelaPaga(rowIndex) {
+                if (!confirm('Marcar esta parcela como PAGA hoje?')) return;
+                try {
+                    const r = await finApi('markPaid', { rowIndex: rowIndex });
+                    if (r && r.ok) fcRefresh();
+                    else alert('Erro: ' + (r && r.error || 'desconhecido'));
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            async function fcMarcarCustoPago(rowIndex, valorRestante) {
+                if (!confirm('Marcar este custo como PAGO (R$ ' + valorRestante.toLocaleString('pt-BR') + ')?')) return;
+                try {
+                    // Pega valor acordado e soma o restante ao pago
+                    const lr = await finApi('listTopoPartners', {});
+                    const item = (lr.itens || []).find(x => x.rowIndex == rowIndex);
+                    if (!item) { alert('Item não encontrado'); return; }
+                    const novoPago = (Number(item.valorAcordado) || 0);
+                    const r = await finApi('updateTopoPartner', { rowIndex: rowIndex, fields: { valorPago: novoPago, observacoes: (item.observacoes || '') + ' [PAGO via Fluxo de Caixa em ' + new Date().toLocaleDateString('pt-BR') + ']' } });
+                    if (r && r.ok) fcRefresh();
+                    else alert('Erro: ' + (r && r.error || 'desconhecido'));
+                } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            // Auto-refresh quando entrar na aba
+            (function() {
+                const obs = new MutationObserver(() => {
+                    const c = document.getElementById('fluxocaixa');
+                    if (c && c.classList.contains('active') && fcDados === null) {
+                        fcRefresh();
+                    }
+                });
+                document.addEventListener('DOMContentLoaded', () => {
+                    const c = document.getElementById('fluxocaixa');
+                    if (c) obs.observe(c, { attributes: true, attributeFilter: ['class'] });
                 });
             })();
 
