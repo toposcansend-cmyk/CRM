@@ -1,0 +1,20 @@
+{
+  "name": "toposcan-crm-mcp",
+  "version": "1.0.0",
+  "description": "MCP server wrapping Toposcan CRM webhook V7.12 — exposes ~30 actions as MCP tools for claude.ai Projects (Rafaela, Beatriz, Vanessa, Fernanda)",
+  "main": "src/index.ts",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.80.0"
+  }
+}

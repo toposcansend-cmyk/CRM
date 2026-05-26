@@ -1,0 +1,13 @@
+name = "toposcan-crm-mcp"
+main = "src/index.ts"
+compatibility_date = "2026-05-26"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A/exec"
+
+# Secret deve ser configurado via: wrangler secret put WEBHOOK_SECRET
+# Não commitar o secret aqui — vai como variável de ambiente injetada.
+
+[observability]
+enabled = true
