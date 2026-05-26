@@ -3025,45 +3025,33 @@
                         <button class="btn btn-primary" onclick="fcSalvarSaldo()" style="padding:6px 10px;font-size:0.78em">💾</button>
                     </div>
                 </div>
-                <!-- Previsão entradas 7d -->
+                <!-- Previsão entradas 14d -->
                 <div class="card" style="margin:0;border-left:3px solid #34d399">
-                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📥 Previsão entradas (7d)</div>
+                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📥 Previsão entradas (14d)</div>
                     <div id="fcResEntradas" style="font-size:1.7em;font-weight:800;margin-top:4px;color:#34d399">—</div>
                     <div id="fcResEntradasCount" style="font-size:0.72em;color:var(--text-secondary);margin-top:4px">—</div>
                 </div>
-                <!-- Previsão saídas 7d -->
+                <!-- Previsão saídas 14d -->
                 <div class="card" style="margin:0;border-left:3px solid #f87171">
-                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📤 Previsão saídas (7d)</div>
+                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📤 Previsão saídas (14d)</div>
                     <div id="fcResSaidas" style="font-size:1.7em;font-weight:800;margin-top:4px;color:#f87171">—</div>
                     <div id="fcResSaidasCount" style="font-size:0.72em;color:var(--text-secondary);margin-top:4px">—</div>
                 </div>
-                <!-- Saldo projetado fim 7d -->
+                <!-- Saldo projetado fim 14d -->
                 <div class="card" style="margin:0;border-left:3px solid #fbbf24">
-                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📊 Saldo projetado em 7d</div>
+                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📊 Saldo projetado em 14d</div>
                     <div id="fcResProj7d" style="font-size:1.7em;font-weight:800;margin-top:4px">—</div>
                     <div id="fcResProj7dDelta" style="font-size:0.72em;margin-top:4px">—</div>
                 </div>
             </div>
 
-            <!-- LINHA 2: Timeline horizontal 7 dias -->
+            <!-- LINHA 2: Timeline horizontal QUINZENAL (14 dias) -->
             <div class="card" style="margin-bottom:18px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-                    <div style="font-weight:600">📅 Próximos 7 dias</div>
-                    <div style="font-size:0.78em;color:var(--text-secondary)">Cards 📥 entrada · 📤 saída · saldo do dia em destaque</div>
+                    <div style="font-weight:600">📅 Próximos 14 dias (quinzena)</div>
+                    <div style="font-size:0.78em;color:var(--text-secondary)">📥 entradas verdes · 📤 saídas vermelhas · saldo do dia no rodapé</div>
                 </div>
-                <div id="fcTimelineHorizontal" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">Carregando...</div>
-            </div>
-
-            <!-- LINHA 3: Atrasados (separado da previsão!) -->
-            <div id="fcAtrasadosWrap" style="display:none;margin-bottom:18px">
-                <div class="card" style="border-left:3px solid #ef4444;background:rgba(239,68,68,0.05)">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
-                        <div style="font-weight:600;color:#fca5a5">🔴 A COBRAR — Parcelas atrasadas</div>
-                        <div id="fcAtrasadosTotal" style="font-weight:700;color:#fca5a5">R$ 0</div>
-                    </div>
-                    <div style="font-size:0.78em;color:var(--text-secondary);margin-bottom:10px">Esses valores NÃO são considerados "previsão" — só viram caixa se você cobrar de verdade.</div>
-                    <div id="fcAtrasadosLista" style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto"></div>
-                </div>
+                <div id="fcTimelineHorizontal" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px">Carregando...</div>
             </div>
 
             <!-- LINHA 4: Outras informações + alertas + sugestões -->
@@ -7773,7 +7761,7 @@ Data: ${h.data}`;
                 document.getElementById('fcSaldoValor').textContent = '...';
                 document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-secondary);width:100%">Carregando...</div>';
                 try {
-                    const r = await finApi('getCashFlow', { dias: 30 });
+                    const r = await finApi('getCashFlow', { dias: 30 }); // backend retorna 30 mas frontend mostra só 14
                     if (!r || !r.ok) { document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + (r && r.error || 'desconhecido') + '</div>'; return; }
                     fcDados = r;
                     fcRender();
@@ -7785,6 +7773,7 @@ Data: ${h.data}`;
             function fcRender() {
                 if (!fcDados) return;
                 const d = fcDados;
+                const dias = d.dias || [];
 
                 // ─── Saldo top ───
                 document.getElementById('fcSaldoValor').textContent = fcBRL(d.saldoInicial);
@@ -7795,105 +7784,69 @@ Data: ${h.data}`;
                     document.getElementById('fcSaldoUpdated').textContent = '⚠️ Saldo ainda não informado';
                 }
 
-                // ─── Separar atrasados de "previsão futura" ───
-                // Atrasados: entradas com atrasada=true (vencimento original < hoje)
-                // Os atrasados aparecem como "data: hoje" no backend, mas pra UI separamos
-                const dias = d.dias || [];
-                const hoje = dias[0]; // primeiro dia = hoje
-                const atrasadosEntradas = hoje ? hoje.entradas.filter(e => e.atrasada) : [];
-                const atrasadosSaidas = hoje ? hoje.saidas.filter(s => s.atrasada) : [];
-                const atrasadosTotal = atrasadosEntradas.reduce((s, e) => s + e.valor, 0);
-
-                // Próximos 7 dias só com previsão LIMPA (atrasados não contam)
-                const proximos7 = dias.slice(0, 7);
-                let totalEntradas7d = 0, totalSaidas7d = 0;
-                let contEntradas7d = 0, contSaidas7d = 0;
-                proximos7.forEach(dia => {
-                    const entradasLimpas = dia.entradas.filter(e => !e.atrasada);
-                    const saidasLimpas = dia.saidas.filter(s => !s.atrasada);
-                    totalEntradas7d += entradasLimpas.reduce((s, e) => s + e.valor, 0);
-                    totalSaidas7d += saidasLimpas.reduce((s, x) => s + x.valorRestante, 0);
-                    contEntradas7d += entradasLimpas.length;
-                    contSaidas7d += saidasLimpas.length;
+                // ─── V7.9: backend já filtra atrasados, dados aqui são limpos ───
+                // Janela quinzenal (14 dias)
+                const proximos14 = dias.slice(0, 14);
+                let totalEntradas14d = 0, totalSaidas14d = 0;
+                let contEntradas14d = 0, contSaidas14d = 0;
+                proximos14.forEach(dia => {
+                    totalEntradas14d += dia.totalEntradas;
+                    totalSaidas14d += dia.totalSaidas;
+                    contEntradas14d += dia.entradas.length;
+                    contSaidas14d += dia.saidas.length;
                 });
 
-                document.getElementById('fcResEntradas').textContent = fcBRL(totalEntradas7d);
-                document.getElementById('fcResEntradasCount').textContent = contEntradas7d + ' parcela(s) a receber';
-                document.getElementById('fcResSaidas').textContent = fcBRL(totalSaidas7d);
-                document.getElementById('fcResSaidasCount').textContent = contSaidas7d + ' pagamento(s) programado(s)';
+                document.getElementById('fcResEntradas').textContent = fcBRL(totalEntradas14d);
+                document.getElementById('fcResEntradasCount').textContent = contEntradas14d + ' parcela(s) a receber';
+                document.getElementById('fcResSaidas').textContent = fcBRL(totalSaidas14d);
+                document.getElementById('fcResSaidasCount').textContent = contSaidas14d + ' pagamento(s) programado(s)';
 
-                const proj7d = d.saldoInicial + totalEntradas7d - totalSaidas7d;
-                document.getElementById('fcResProj7d').textContent = fcBRL(proj7d);
-                document.getElementById('fcResProj7d').style.color = proj7d < 0 ? '#fca5a5' : (proj7d < 5000 ? '#fbbf24' : '#34d399');
-                const delta = proj7d - d.saldoInicial;
+                const proj14d = d.saldoInicial + totalEntradas14d - totalSaidas14d;
+                document.getElementById('fcResProj7d').textContent = fcBRL(proj14d);
+                document.getElementById('fcResProj7d').style.color = proj14d < 0 ? '#fca5a5' : (proj14d < 5000 ? '#fbbf24' : '#34d399');
+                const delta = proj14d - d.saldoInicial;
                 document.getElementById('fcResProj7dDelta').innerHTML = (delta >= 0 ? '<span style="color:#34d399">+' : '<span style="color:#fca5a5">') + fcBRL(delta) + '</span> vs hoje';
 
-                // ─── Atrasados (card separado) ───
-                const atWrap = document.getElementById('fcAtrasadosWrap');
-                if (atrasadosEntradas.length === 0 && atrasadosSaidas.length === 0) {
-                    atWrap.style.display = 'none';
-                } else {
-                    atWrap.style.display = 'block';
-                    document.getElementById('fcAtrasadosTotal').textContent = fcBRL(atrasadosTotal) + ' a receber';
-                    document.getElementById('fcAtrasadosLista').innerHTML = atrasadosEntradas
-                        .sort((a, b) => b.valor - a.valor)
-                        .map(e =>
-                            '<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.03);border-radius:6px;padding:8px 12px;gap:8px;flex-wrap:wrap">'
-                            + '<div style="flex:1;min-width:200px">'
-                            +   '<span style="font-weight:600;color:#fca5a5">' + fcBRL(e.valor) + '</span> · '
-                            +   esc(e.cliente) + ' (' + esc(e.vendedor || '?') + ') · parc ' + esc(e.parcela)
-                            +   '<div style="font-size:0.75em;color:var(--text-secondary);margin-top:2px">⚠️ atrasada desde ' + e.dataOriginal + '</div>'
-                            + '</div>'
-                            + '<button onclick="fcMarcarParcelaPaga(' + e.rowIndex + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:4px 10px;border-radius:6px;font-size:0.78em;cursor:pointer">✓ marcar pago</button>'
-                            + '</div>'
-                        ).join('');
-                }
-
-                // ─── Timeline HORIZONTAL — 7 colunas lado a lado ───
+                // ─── Timeline HORIZONTAL QUINZENAL (14 colunas) ───
                 const tlH = document.getElementById('fcTimelineHorizontal');
-                tlH.innerHTML = proximos7.map(dia => {
-                    const entradasLimpas = dia.entradas.filter(e => !e.atrasada);
-                    const saidasLimpas = dia.saidas.filter(s => !s.atrasada);
-                    const totEnt = entradasLimpas.reduce((s, e) => s + e.valor, 0);
-                    const totSai = saidasLimpas.reduce((s, x) => s + x.valorRestante, 0);
-                    // Saldo acumulado considerando só não-atrasadas
-                    // (simplificação — usa o do backend e ignora)
+                tlH.innerHTML = proximos14.map(dia => {
+                    const totEnt = dia.totalEntradas;
+                    const totSai = dia.totalSaidas;
                     const corBorda = dia.ehHoje ? '#00d4ff' : (dia.ehFimDeSemana ? '#475569' : '#334155');
                     const corHeader = dia.ehHoje ? '#00d4ff' : (dia.ehFimDeSemana ? '#94a3b8' : 'var(--text-primary)');
-                    const opacityFds = dia.ehFimDeSemana ? '0.7' : '1';
+                    const opacityFds = dia.ehFimDeSemana ? '0.65' : '1';
                     let cards = '';
-                    entradasLimpas.forEach(e => {
-                        cards += '<div style="background:rgba(52,211,153,0.10);border-left:2px solid #34d399;border-radius:4px;padding:6px 8px;font-size:0.75em;line-height:1.3">'
+                    dia.entradas.forEach(e => {
+                        cards += '<div style="background:rgba(52,211,153,0.10);border-left:2px solid #34d399;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3">'
                             + '<div style="font-weight:700;color:#34d399">📥 +' + fcBRL(e.valor) + '</div>'
-                            + '<div style="opacity:0.85;margin-top:2px">' + esc(e.cliente) + '</div>'
-                            + '<div style="opacity:0.6;font-size:0.9em">' + esc(e.vendedor || '?') + ' · parc ' + esc(e.parcela) + '</div>'
-                            + '<button onclick="fcMarcarParcelaPaga(' + e.rowIndex + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 6px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:4px;width:100%">✓ pago</button>'
+                            + '<div style="opacity:0.85;margin-top:2px">' + esc(e.cliente.substring(0, 22)) + (e.cliente.length > 22 ? '…' : '') + '</div>'
+                            + '<div style="opacity:0.55;font-size:0.92em">' + esc(e.vendedor || '?') + ' · ' + esc(e.parcela) + '</div>'
+                            + '<button onclick="fcMarcarParcelaPaga(' + e.rowIndex + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 4px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:3px;width:100%">✓ pago</button>'
                             + '</div>';
                     });
-                    saidasLimpas.forEach(s => {
+                    dia.saidas.forEach(s => {
                         const isFixo = (s.projeto || '').toLowerCase().includes('custos fixos');
-                        cards += '<div style="background:rgba(248,113,113,0.10);border-left:2px solid #f87171;border-radius:4px;padding:6px 8px;font-size:0.75em;line-height:1.3">'
+                        cards += '<div style="background:rgba(248,113,113,0.10);border-left:2px solid #f87171;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3">'
                             + '<div style="font-weight:700;color:#f87171">📤 -' + fcBRL(s.valorRestante) + '</div>'
-                            + '<div style="opacity:0.85;margin-top:2px">' + esc(s.parceiro) + '</div>'
-                            + '<div style="opacity:0.6;font-size:0.9em">' + esc(s.servico).substring(0, 28) + (s.servico.length > 28 ? '…' : '') + '</div>'
-                            + (s.projeto ? '<div style="opacity:0.55;font-size:0.85em;margin-top:1px"><i>' + esc(s.projeto.substring(0, 24)) + (s.projeto.length > 24 ? '…' : '') + '</i></div>' : '')
-                            + (isFixo ? '<div style="background:#475569;color:#fff;padding:1px 4px;border-radius:3px;font-size:0.75em;display:inline-block;margin-top:3px">FIXO</div>' : '')
-                            + '<button onclick="fcMarcarCustoPago(' + s.rowIndex + ',' + s.valorRestante + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 6px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:4px;width:100%">✓ pago</button>'
+                            + '<div style="opacity:0.85;margin-top:2px">' + esc(s.parceiro.substring(0, 22)) + (s.parceiro.length > 22 ? '…' : '') + '</div>'
+                            + '<div style="opacity:0.55;font-size:0.92em">' + esc(s.servico.substring(0, 22)) + (s.servico.length > 22 ? '…' : '') + '</div>'
+                            + (isFixo ? '<div style="background:#475569;color:#fff;padding:0 4px;border-radius:3px;font-size:0.85em;display:inline-block;margin-top:2px">FIXO</div>' : '')
+                            + '<button onclick="fcMarcarCustoPago(' + s.rowIndex + ',' + s.valorRestante + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 4px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:3px;width:100%">✓ pago</button>'
                             + '</div>';
                     });
                     if (!cards) {
-                        cards = '<div style="font-size:0.75em;color:var(--text-secondary);text-align:center;padding:14px 0;opacity:0.4">sem movimento</div>';
+                        cards = '<div style="font-size:0.7em;color:var(--text-secondary);text-align:center;padding:12px 0;opacity:0.35">sem movimento</div>';
                     }
                     const diferencaDia = totEnt - totSai;
-                    return '<div style="flex:0 0 170px;background:rgba(255,255,255,0.02);border:1px solid ' + corBorda + ';border-radius:8px;padding:10px;opacity:' + opacityFds + ';display:flex;flex-direction:column">'
-                        + '<div style="text-align:center;border-bottom:1px solid var(--glass-border);padding-bottom:6px;margin-bottom:8px">'
-                        +   '<div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">' + dia.diaSemana + '</div>'
-                        +   '<div style="font-weight:700;color:' + corHeader + ';font-size:1.05em">' + dia.data.substring(0,5) + '</div>'
+                    return '<div style="flex:0 0 145px;background:rgba(255,255,255,0.02);border:1px solid ' + corBorda + ';border-radius:8px;padding:8px;opacity:' + opacityFds + ';display:flex;flex-direction:column">'
+                        + '<div style="text-align:center;border-bottom:1px solid var(--glass-border);padding-bottom:5px;margin-bottom:6px">'
+                        +   '<div style="font-size:0.7em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">' + dia.diaSemana + '</div>'
+                        +   '<div style="font-weight:700;color:' + corHeader + ';font-size:1em">' + dia.data.substring(0,5) + '</div>'
                         +   (dia.ehHoje ? '<div style="font-size:0.7em;color:#00d4ff;margin-top:2px">HOJE</div>' : '')
                         +   (dia.ehFimDeSemana && !dia.ehHoje ? '<div style="font-size:0.7em;color:#94a3b8;margin-top:2px">FDS</div>' : '')
                         + '</div>'
-                        + '<div style="display:flex;flex-direction:column;gap:6px;flex:1">' + cards + '</div>'
-                        + (totEnt > 0 || totSai > 0 ? '<div style="border-top:1px solid var(--glass-border);padding-top:6px;margin-top:8px;text-align:center;font-size:0.78em">'
+                        + '<div style="display:flex;flex-direction:column;gap:5px;flex:1">' + cards + '</div>'
+                        + (totEnt > 0 || totSai > 0 ? '<div style="border-top:1px solid var(--glass-border);padding-top:5px;margin-top:6px;text-align:center;font-size:0.75em">'
                             + '<span style="color:' + (diferencaDia >= 0 ? '#34d399' : '#fca5a5') + ';font-weight:700">' + (diferencaDia >= 0 ? '+' : '') + fcBRL(diferencaDia) + '</span>'
                             + '</div>' : '')
                         + '</div>';
@@ -7908,7 +7861,7 @@ Data: ${h.data}`;
 
                 // ─── Alertas + sugestões ───
                 const alLista = document.getElementById('fcAlertasLista');
-                const todosAlertas = (d.alertas || []).filter(a => a.tipo !== 'inadimplencia') // já mostramos atrasados no card próprio
+                const todosAlertas = (d.alertas || []).filter(a => a.tipo !== 'inadimplencia')
                     .concat((d.sugestoes || []).map(s => ({ emoji: s.emoji, texto: s.texto, severity: 'sug' })));
                 if (todosAlertas.length === 0) {
                     alLista.innerHTML = '<div style="color:var(--text-secondary);text-align:center;padding:14px 0">✅ Sem alertas críticos</div>';
@@ -7929,10 +7882,10 @@ Data: ${h.data}`;
                     const corSaldo = dia.saldoAcumulado < 0 ? '#fca5a5' : (dia.saldoAcumulado < 5000 ? '#fbbf24' : '#fff');
                     let conteudo = '';
                     dia.entradas.forEach(e => {
-                        conteudo += '<div style="font-size:0.78em;color:#34d399;margin-left:8px">📥 +' + fcBRL(e.valor) + ' · ' + esc(e.cliente) + (e.atrasada ? ' <span style="color:#fca5a5">[ATRASADA]</span>' : '') + '</div>';
+                        conteudo += '<div style="font-size:0.78em;color:#34d399;margin-left:8px">📥 +' + fcBRL(e.valor) + ' · ' + esc(e.cliente) + '</div>';
                     });
                     dia.saidas.forEach(s => {
-                        conteudo += '<div style="font-size:0.78em;color:#f87171;margin-left:8px">📤 -' + fcBRL(s.valorRestante) + ' · ' + esc(s.parceiro) + (s.atrasada ? ' <span style="color:#fbbf24">[ATRASADO]</span>' : '') + '</div>';
+                        conteudo += '<div style="font-size:0.78em;color:#f87171;margin-left:8px">📤 -' + fcBRL(s.valorRestante) + ' · ' + esc(s.parceiro) + '</div>';
                     });
                     return '<div style="background:rgba(255,255,255,0.02);border-radius:6px;padding:6px 12px;' + (dia.ehHoje ? 'border-left:2px solid #00d4ff;' : '') + (semMov ? 'opacity:0.4;' : '') + '">'
                         + '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span style="font-weight:600">' + dia.diaSemana + ' ' + dia.data + (dia.ehHoje ? ' · HOJE' : '') + '</span>'
