@@ -218,6 +218,93 @@ textarea.dispatchEvent(new Event('change', { bubbles: true }));
 
 ---
 
+## E013 — Custom Instructions de conta sobrepõem Project Instructions
+
+**Sintoma:** Project Instructions corretamente injetadas (ex: "Você é Vanessa"), mas quando perguntada "quem é você", a IA responde com a identidade definida no perfil GERAL de conta ("você é Rafaela").
+
+**Causa raiz:** claude.ai aplica as "Instruções para o Claude" do nível de conta (Configurações > Geral) a TODOS os chats em TODOS os Projects. Quando o perfil de conta declara identidade ("você é X"), essa identidade tem precedência sobre identidades declaradas no Project Instructions — especialmente quando o "Você é X" no Project não está no topo.
+
+**Solução:**
+1. Edite a instrução de conta pra ser project-aware: adicione cláusula "EXCEÇÃO DE IDENTIDADE: se este chat está dentro de Project específico nomeado X, assume identidade de X"
+2. No Project Instructions, coloque "**VOCÊ É {Nome}** — sobrescreve identidade default do perfil" como PRIMEIRA seção (logo após marker [INÍCIO])
+3. Aplicar AMBOS — só um nível não é suficiente
+
+**Detectado em:** 2026-05-26 (4 IAs gerentes Toposcan respondendo como Rafaela)
+
+---
+
+## E014 — file_upload via Chrome MCP bloqueado pra paths locais
+
+**Sintoma:** `file_upload` retorna "Cannot upload X: only files the user has shared with this session can be uploaded".
+
+**Causa raiz:** O Chrome MCP `file_upload` tool tem permissão restrita — só aceita paths em "session's outputs/uploads folders, or folders the user has connected". O working dir do Claude Code (C:\Users\23GAMER\) NÃO conta como shared.
+
+**Solução (DataTransfer hack):**
+```js
+// Em vez de file_upload, faça em JS dentro da page:
+const resp = await fetch('https://api.github.com/repos/.../contents/FILE?ref=main');
+const meta = await resp.json();
+const bytes = Uint8Array.from(atob(meta.content.replace(/\n/g, '')), c => c.charCodeAt(0));
+const file = new File([bytes], 'name.md', { type: 'text/markdown' });
+
+// Achar o input correto — NÃO chat-input-file-upload-onpage, mas o hidden com .md no accept
+const projInput = Array.from(document.querySelectorAll('input[type=file]'))
+  .find(inp => inp.accept && inp.accept.includes('.md'));
+
+const dt = new DataTransfer();
+dt.items.add(file);  // pode adicionar múltiplos
+projInput.files = dt.files;
+projInput.dispatchEvent(new Event('change', { bubbles: true }));
+```
+
+**Detectado em:** 2026-05-26 (upload de PROMPT-CLAUDE-X.md + shared-files nos 4 Projects)
+
+---
+
+## E015 — Click via ref do Chrome MCP falha em botões dentro de Project
+
+**Sintoma:** `left_click` com `ref` apenas exibe tooltip do botão, não dispara o handler. Modal não abre.
+
+**Causa raiz:** Em algumas páginas da claude.ai, o click via ref do find/read_page registra como hover (mouse enter) mas não como click real. Comportamento inconsistente entre Projects.
+
+**Solução:** Usar JS direto na page:
+```js
+const editBtn = Array.from(document.querySelectorAll('button'))
+  .find(b => b.getAttribute('aria-label') === 'Edit Instructions');
+editBtn.click();  // dispara handler React corretamente
+```
+
+**Detectado em:** 2026-05-26 (reaplicação de prompts nos 4 Projects)
+
+---
+
+## E016 — Settings/Profile do claude.ai não auto-saving via blur simples
+
+**Sintoma:** Edita textarea de Instruções para o Claude, blur, fecha página, volta — conteúdo voltou ao anterior. Auto-save não disparou.
+
+**Causa raiz:** O auto-save da página de Settings precisa de sequência específica de eventos para detectar mudança real (não só value setter).
+
+**Solução (sequência funcional):**
+```js
+ta.focus();
+await new Promise(r => setTimeout(r, 200));
+ta.select();
+const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+setter.call(ta, content);
+ta.dispatchEvent(new Event('input', { bubbles: true }));
+ta.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText' }));
+ta.dispatchEvent(new Event('change', { bubbles: true }));
+await new Promise(r => setTimeout(r, 1500));
+ta.dispatchEvent(new FocusEvent('blur', { bubbles: false }));
+ta.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+ta.blur();
+await new Promise(r => setTimeout(r, 2000));
+```
+
+**Detectado em:** 2026-05-26 (atualização do perfil claude.ai)
+
+---
+
 ## 🆕 Template para novo padrão
 
 ```markdown
@@ -236,8 +323,8 @@ textarea.dispatchEvent(new Event('change', { bubbles: true }));
 
 ## 📊 Estatísticas
 
-- **Total catalogado:** 11 padrões
-- **Última atualização:** 2026-05-23
-- **Padrões mais comuns:** OAuth/auth (3), UI automation (3), state management (2), Windows sandboxing (1)
+- **Total catalogado:** 16 padrões (4 novos em 26/05/2026 sobre claude.ai automation)
+- **Última atualização:** 2026-05-26
+- **Padrões mais comuns:** OAuth/auth (3), UI automation (6 incl. claude.ai), state management (3), Windows sandboxing (1)
 
 > ⚠️ Quando errar pela mesma razão duas vezes, ATUALIZE este arquivo IMEDIATAMENTE.

@@ -19,6 +19,28 @@
 
 ## Entradas
 
+### 2026-05-26 (noite) — Reform claude.ai: perfil project-aware + sync arquivos nos 4 Projects (Guilherme)
+
+**Resumo:** Identificada origem do override "Rafaela" (perfil de conta sobrescreve Project Instructions). Reescrito perfil de conta com regra de exceção project-aware. Reforçada identidade no topo de cada Project. Sincronizados arquivos (PROMPT-CLAUDE-X.md + 3 shared utility files) nos 4 Projects.
+
+**Mudanças concretas:**
+- `claude-setup/account-instructions-v2.md` — novo perfil de conta (9162 chars) com regra de identidade project-aware + Marcelo + 4 IAs + Sofia + Claude Code + autonomia total
+- `claude-setup/backups/account-instructions-2026-05-26-pre-V7.12-reform.md` — backup do perfil anterior (local, não versionado)
+- `claude-setup/shared-files/{briefing_template,regras_gestao,webhook_api}.md` — extraídos do Project Rafaela e versionados pra sync
+- 4 prompts PROMPT-CLAUDE-{COMERCIAL,ENGENHARIA,FINANCEIRO,OPERACAO}.md — adicionado bloco "SUA IDENTIDADE NESTE PROJECT: {Nome}" logo após [INÍCIO]
+- 4 Projects na claude.ai UI receberam:
+  - Identidade reforçada no Instructions
+  - Upload de PROMPT-CLAUDE-X.md como arquivo + 3 shared
+- `error_patterns.md` — +4 padrões (E013-E016): conta sobrescreve Project, file_upload restrito, click via ref falha, settings sem auto-save
+
+**Padrões aprendidos (E013-E016) — registrados no error_patterns:**
+- E013: Account instructions sobrescrevem Project — fix em ambos os níveis
+- E014: file_upload do Chrome MCP rejeita paths locais — DataTransfer + File API funciona via JS
+- E015: click via ref instável — usar element.click() via JS direto
+- E016: settings auto-save precisa sequência completa de eventos (focus/select/set/input/InputEvent/change/blur/focusout)
+
+---
+
 ### 2026-05-26 — V7.12 + nomeação das IAs gerentes (Guilherme)
 
 **Resumo:** Deploy V7.12 Aprendizados (aba `Aprendizados` + 5 actions = memória institucional ilimitada da Rafaela), e nomeação dos 4 gerentes Claude: Rafaela (Comercial) · Beatriz (Engenharia) · Vanessa (Financeiro) · Fernanda (Operação). Vendedora humana Rafaela limpada de todas as referências (desligada).
