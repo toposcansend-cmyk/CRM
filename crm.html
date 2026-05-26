@@ -7807,7 +7807,7 @@ Data: ${h.data}`;
                 const delta = proj14d - d.saldoInicial;
                 document.getElementById('fcResProj7dDelta').innerHTML = (delta >= 0 ? '<span style="color:#34d399">+' : '<span style="color:#fca5a5">') + fcBRL(delta) + '</span> vs hoje';
 
-                // ─── Timeline HORIZONTAL QUINZENAL (14 colunas) ───
+                // ─── Timeline HORIZONTAL QUINZENAL (14 colunas) com drag-and-drop ───
                 const tlH = document.getElementById('fcTimelineHorizontal');
                 tlH.innerHTML = proximos14.map(dia => {
                     const totEnt = dia.totalEntradas;
@@ -7817,36 +7817,46 @@ Data: ${h.data}`;
                     const opacityFds = dia.ehFimDeSemana ? '0.65' : '1';
                     let cards = '';
                     dia.entradas.forEach(e => {
-                        cards += '<div style="background:rgba(52,211,153,0.10);border-left:2px solid #34d399;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3">'
+                        cards += '<div class="fc-card fc-card-entrada" draggable="true"'
+                            + ' data-tipo="entrada" data-row="' + e.rowIndex + '" data-valor="' + e.valor + '" data-data="' + e.data + '"'
+                            + ' data-label="' + esc(e.cliente.substring(0, 30)) + '"'
+                            + ' style="background:rgba(52,211,153,0.10);border-left:2px solid #34d399;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3;cursor:grab;user-select:none"'
+                            + ' ondragstart="fcDragStart(event)" ondragend="fcDragEnd(event)">'
                             + '<div style="font-weight:700;color:#34d399">📥 +' + fcBRL(e.valor) + '</div>'
                             + '<div style="opacity:0.85;margin-top:2px">' + esc(e.cliente.substring(0, 22)) + (e.cliente.length > 22 ? '…' : '') + '</div>'
                             + '<div style="opacity:0.55;font-size:0.92em">' + esc(e.vendedor || '?') + ' · ' + esc(e.parcela) + '</div>'
-                            + '<button onclick="fcMarcarParcelaPaga(' + e.rowIndex + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 4px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:3px;width:100%">✓ pago</button>'
+                            + '<button onclick="event.stopPropagation();fcMarcarParcelaPaga(' + e.rowIndex + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 4px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:3px;width:100%">✓ pago</button>'
                             + '</div>';
                     });
                     dia.saidas.forEach(s => {
                         const isFixo = (s.projeto || '').toLowerCase().includes('custos fixos');
-                        cards += '<div style="background:rgba(248,113,113,0.10);border-left:2px solid #f87171;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3">'
+                        cards += '<div class="fc-card fc-card-saida" draggable="true"'
+                            + ' data-tipo="saida" data-row="' + s.rowIndex + '" data-valor="' + s.valorRestante + '" data-data="' + s.data + '"'
+                            + ' data-label="' + esc(s.parceiro.substring(0, 30)) + '"'
+                            + ' style="background:rgba(248,113,113,0.10);border-left:2px solid #f87171;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3;cursor:grab;user-select:none"'
+                            + ' ondragstart="fcDragStart(event)" ondragend="fcDragEnd(event)">'
                             + '<div style="font-weight:700;color:#f87171">📤 -' + fcBRL(s.valorRestante) + '</div>'
                             + '<div style="opacity:0.85;margin-top:2px">' + esc(s.parceiro.substring(0, 22)) + (s.parceiro.length > 22 ? '…' : '') + '</div>'
                             + '<div style="opacity:0.55;font-size:0.92em">' + esc(s.servico.substring(0, 22)) + (s.servico.length > 22 ? '…' : '') + '</div>'
                             + (isFixo ? '<div style="background:#475569;color:#fff;padding:0 4px;border-radius:3px;font-size:0.85em;display:inline-block;margin-top:2px">FIXO</div>' : '')
-                            + '<button onclick="fcMarcarCustoPago(' + s.rowIndex + ',' + s.valorRestante + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 4px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:3px;width:100%">✓ pago</button>'
+                            + '<button onclick="event.stopPropagation();fcMarcarCustoPago(' + s.rowIndex + ',' + s.valorRestante + ')" style="background:transparent;border:1px solid #34d399;color:#34d399;padding:1px 4px;border-radius:3px;font-size:0.85em;cursor:pointer;margin-top:3px;width:100%">✓ pago</button>'
                             + '</div>';
                     });
                     if (!cards) {
-                        cards = '<div style="font-size:0.7em;color:var(--text-secondary);text-align:center;padding:12px 0;opacity:0.35">sem movimento</div>';
+                        cards = '<div style="font-size:0.7em;color:var(--text-secondary);text-align:center;padding:12px 0;opacity:0.35;pointer-events:none">sem movimento</div>';
                     }
                     const diferencaDia = totEnt - totSai;
-                    return '<div style="flex:0 0 145px;background:rgba(255,255,255,0.02);border:1px solid ' + corBorda + ';border-radius:8px;padding:8px;opacity:' + opacityFds + ';display:flex;flex-direction:column">'
-                        + '<div style="text-align:center;border-bottom:1px solid var(--glass-border);padding-bottom:5px;margin-bottom:6px">'
+                    return '<div class="fc-col" data-data="' + dia.data + '"'
+                        + ' ondragover="fcDragOver(event)" ondragleave="fcDragLeave(event)" ondrop="fcDrop(event)"'
+                        + ' style="flex:0 0 145px;background:rgba(255,255,255,0.02);border:1px solid ' + corBorda + ';border-radius:8px;padding:8px;opacity:' + opacityFds + ';display:flex;flex-direction:column;transition:background 0.15s,border-color 0.15s">'
+                        + '<div style="text-align:center;border-bottom:1px solid var(--glass-border);padding-bottom:5px;margin-bottom:6px;pointer-events:none">'
                         +   '<div style="font-size:0.7em;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em">' + dia.diaSemana + '</div>'
                         +   '<div style="font-weight:700;color:' + corHeader + ';font-size:1em">' + dia.data.substring(0,5) + '</div>'
                         +   (dia.ehHoje ? '<div style="font-size:0.7em;color:#00d4ff;margin-top:2px">HOJE</div>' : '')
                         +   (dia.ehFimDeSemana && !dia.ehHoje ? '<div style="font-size:0.7em;color:#94a3b8;margin-top:2px">FDS</div>' : '')
                         + '</div>'
-                        + '<div style="display:flex;flex-direction:column;gap:5px;flex:1">' + cards + '</div>'
-                        + (totEnt > 0 || totSai > 0 ? '<div style="border-top:1px solid var(--glass-border);padding-top:5px;margin-top:6px;text-align:center;font-size:0.75em">'
+                        + '<div style="display:flex;flex-direction:column;gap:5px;flex:1;min-height:60px">' + cards + '</div>'
+                        + (totEnt > 0 || totSai > 0 ? '<div style="border-top:1px solid var(--glass-border);padding-top:5px;margin-top:6px;text-align:center;font-size:0.75em;pointer-events:none">'
                             + '<span style="color:' + (diferencaDia >= 0 ? '#34d399' : '#fca5a5') + ';font-weight:700">' + (diferencaDia >= 0 ? '+' : '') + fcBRL(diferencaDia) + '</span>'
                             + '</div>' : '')
                         + '</div>';
@@ -7919,15 +7929,114 @@ Data: ${h.data}`;
             async function fcMarcarCustoPago(rowIndex, valorRestante) {
                 if (!confirm('Marcar este custo como PAGO (R$ ' + valorRestante.toLocaleString('pt-BR') + ')?')) return;
                 try {
-                    // Pega valor acordado e soma o restante ao pago
                     const lr = await finApi('listTopoPartners', {});
-                    const item = (lr.itens || []).find(x => x.rowIndex == rowIndex);
+                    const item = (lr.items || []).find(x => x.rowIndex == rowIndex);
                     if (!item) { alert('Item não encontrado'); return; }
                     const novoPago = (Number(item.valorAcordado) || 0);
                     const r = await finApi('updateTopoPartner', { rowIndex: rowIndex, fields: { valorPago: novoPago, observacoes: (item.observacoes || '') + ' [PAGO via Fluxo de Caixa em ' + new Date().toLocaleDateString('pt-BR') + ']' } });
                     if (r && r.ok) fcRefresh();
                     else alert('Erro: ' + (r && r.error || 'desconhecido'));
                 } catch (e) { alert('Erro: ' + e.message); }
+            }
+
+            // ────────────────────────────────────────────────────────────────
+            // DRAG-AND-DROP entre colunas (reprograma data)
+            // ────────────────────────────────────────────────────────────────
+            let fcDragInfo = null;
+
+            function fcDragStart(e) {
+                const c = e.currentTarget;
+                fcDragInfo = {
+                    tipo: c.dataset.tipo,
+                    rowIndex: parseInt(c.dataset.row),
+                    valor: parseFloat(c.dataset.valor) || 0,
+                    dataOrigem: c.dataset.data,
+                    label: c.dataset.label
+                };
+                c.style.opacity = '0.4';
+                c.style.cursor = 'grabbing';
+                e.dataTransfer.effectAllowed = 'move';
+                // Hack pra Firefox/alguns browsers — precisa ter algo no dataTransfer
+                try { e.dataTransfer.setData('text/plain', String(fcDragInfo.rowIndex)); } catch(err) {}
+            }
+
+            function fcDragEnd(e) {
+                e.currentTarget.style.opacity = '';
+                e.currentTarget.style.cursor = 'grab';
+                // Limpa highlight de todas colunas
+                document.querySelectorAll('.fc-col').forEach(col => {
+                    col.style.background = 'rgba(255,255,255,0.02)';
+                    col.style.borderColor = '';
+                });
+                fcDragInfo = null;
+            }
+
+            function fcDragOver(e) {
+                if (!fcDragInfo) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const col = e.currentTarget;
+                col.style.background = 'rgba(0,212,255,0.10)';
+                col.style.borderColor = '#00d4ff';
+            }
+
+            function fcDragLeave(e) {
+                const col = e.currentTarget;
+                // Só reset se realmente saiu da coluna (relatedTarget fora)
+                if (!col.contains(e.relatedTarget)) {
+                    col.style.background = 'rgba(255,255,255,0.02)';
+                    col.style.borderColor = '';
+                }
+            }
+
+            async function fcDrop(e) {
+                e.preventDefault();
+                const col = e.currentTarget;
+                col.style.background = 'rgba(255,255,255,0.02)';
+                col.style.borderColor = '';
+                if (!fcDragInfo) return;
+
+                const dataDestino = col.dataset.data;
+                const dataOrigem = fcDragInfo.dataOrigem;
+                if (dataOrigem === dataDestino) return; // soltou na mesma coluna, ignora
+
+                const info = { ...fcDragInfo }; // copia antes do reset
+                const tipoLabel = info.tipo === 'entrada' ? 'recebimento' : 'pagamento';
+                const ok = confirm(
+                    'Reprogramar ' + tipoLabel + ' de ' + info.label + ' (R$ ' + info.valor.toLocaleString('pt-BR') + ')'
+                    + '\n\nDe: ' + dataOrigem
+                    + '\nPara: ' + dataDestino
+                    + '\n\nConfirma?'
+                );
+                if (!ok) return;
+
+                // Mostra feedback visual durante o request
+                col.style.opacity = '0.6';
+                try {
+                    let r;
+                    if (info.tipo === 'entrada') {
+                        // Parcela financeiro — atualiza vencimento
+                        r = await finApi('updatePayment', {
+                            rowIndex: info.rowIndex,
+                            fields: { vencimento: dataDestino, observacao: 'Reprogramado via Fluxo de Caixa em ' + new Date().toLocaleDateString('pt-BR') + ' (era ' + dataOrigem + ')' }
+                        });
+                    } else {
+                        // Custo TopoPartners — atualiza previsaoPagamento
+                        r = await finApi('updateTopoPartner', {
+                            rowIndex: info.rowIndex,
+                            fields: { previsaoPagamento: dataDestino, observacoes: 'Reprogramado via Fluxo de Caixa em ' + new Date().toLocaleDateString('pt-BR') + ' (era ' + dataOrigem + ')' }
+                        });
+                    }
+                    if (r && r.ok) {
+                        fcRefresh();
+                    } else {
+                        alert('Erro ao reprogramar: ' + (r && r.error || 'desconhecido'));
+                    }
+                } catch (e) {
+                    alert('Erro: ' + e.message);
+                } finally {
+                    col.style.opacity = '';
+                }
             }
 
             // Auto-refresh quando entrar na aba
