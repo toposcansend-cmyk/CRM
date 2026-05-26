@@ -238,9 +238,32 @@ Depois conversa normal: *"como tá a produção do GEPLAN?"*, *"manda email pro 
 
 ---
 
-## 🔄 Mantendo atualizado
+## 🔄 Mantendo atualizado (sistema V7.11 de sincronização)
 
-Quando o Guilherme (ou eu) atualizar memórias/prompts:
+### Caminho rápido (recomendado)
+
+```powershell
+cd C:\Users\$env:USERNAME\work\CRM\claude-setup
+.\verificar-atualizacoes.ps1
+```
+
+Esse script faz tudo:
+1. **Git pull** do repo (busca última versão)
+2. **Compara** memórias locais vs remotas (hash MD5)
+3. **Mostra** quais arquivos mudaram
+4. **Exibe changelog** com o que mudou (e por quê)
+5. **Pergunta** se quer aplicar (S/n)
+6. **Se sim:** chama `instalar-memorias.ps1` automaticamente (com backup)
+
+Resultado: 3 segundos pra sincronizar tudo.
+
+### Quando rodar?
+
+- **Toda manhã** ao começar o dia (hábito recomendado)
+- **Sempre que** o Claude avisar *"📜 Há atualizações de memória..."*
+- **Antes de** trabalho importante (garantia)
+
+### Caminho manual (se preferir)
 
 ```powershell
 cd C:\Users\$env:USERNAME\work\CRM

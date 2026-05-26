@@ -7,7 +7,7 @@ metadata:
   originSessionId: caf65bea-eb8e-408d-84cd-d7819dde72d9
 ---
 
-# CRM Toposcan — API Webhook (V7.5 — atualizado 22/05/2026)
+# CRM Toposcan — API Webhook (V7.7 — atualizado 23/05/2026)
 
 ## Acesso direto ao código fonte (clasp)
 
@@ -81,11 +81,14 @@ https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg
 | `getCrossKPIs` | KPIs consolidados das 4 áreas + margem real do mês (com -11% imposto) |
 | `getActiveAlerts` | Alertas priorizados — inclui detecção CROSS (tarefa concluída → libera parcela) |
 | `getDailyBriefing` | Briefing matinal pronto em texto |
-| `installTriggers` | Instala 3 agentes autônomos (1x só — já instalado em 22/05) |
-| `uninstallTriggers` | Remove triggers |
-| `runDailyBriefNow` | Dispara briefing por email agora (teste manual) |
+| `installTriggers` | **V7.7** — Instala 2 triggers: segunda 9h + sexta 16h (reinstala limpo) |
+| `uninstallTriggers` | Remove triggers (cobre nomes V7.0-V7.7) |
+| `getTriggersHealth` | Health check dos triggers ativos (última execução + status). Read-only. |
+| `runDailyBriefNow` | [legado] Dispara dailyMorningBrief por email (manual) |
+| `runMondayPlanNow` | **V7.7** — Dispara mondayPlanningBrief agora (teste manual) |
+| `runFridayRecapNow` | **V7.7** — Dispara fridayWeekRecap agora (teste manual) |
 | `sendTestEmail` | Email de teste arbitrário (params: to, subject, text) |
-| `diagEmail` | Diagnóstico de envio (quota, scopes, sample) |
+| `diagEmail` | Diagnóstico de envio (quota, scopes, sample) — **⚠️ envia 2 emails reais, consome 2/quota** |
 
 ### 📧🗓️ Assistente Pessoal V7.5 (email + Meet)
 | Action | Função | Parâmetros |
@@ -102,12 +105,19 @@ https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg
 
 Executar do Editor sem try/catch — popup OAuth aparece naturalmente.
 
-## OAuth scopes ativos (autorizados em 22/05/2026)
+## OAuth scopes ativos (verificado 23/05/2026 via diagEmail)
 ```
-spreadsheets · script.external_request · script.send_mail · script.scriptapp ·
-userinfo.email · mail.google.com · calendar · calendar.events
+✅ spreadsheets
+✅ script.external_request
+✅ script.send_mail (MailApp funcionando)
+✅ script.scriptapp (triggers instalados)
+✅ calendar + calendar.events
+⚠️ userinfo.email — NÃO autorizado (Session.getEffectiveUser falha)
+⚠️ mail.google.com / gmail.send — NÃO autorizado (GmailApp falha)
 + Advanced Service: Calendar v3 (para Meet conferenceData)
 ```
+
+**Pendência:** rodar `forceAuthEmail()` e re-autorizar com scopes completos OU rodar nova função que toca GmailApp + Session.getEffectiveUser pra forçar popup OAuth. Não bloqueante (MailApp cobre envio de email).
 
 ## Padrões de Request
 
@@ -124,14 +134,16 @@ userinfo.email · mail.google.com · calendar · calendar.events
 - **Spreadsheet ID:** `1190S57Jmbb-eJcMHJYaOZ7qIqMCUpOTV-SDlWoSrMO4`
 - **4 abas ativas:** `CRM Consolidado` (16) · `Financeiro` (14) · `TopoPartners` (16) · `Producao` (16)
 
-## Agentes autônomos (Triggers do Google rodando 24/7)
+## Agentes autônomos (Triggers do Google rodando 24/7) — V7.7
 
-- **dailyMorningBrief** — todo dia 8h → envia briefing por email
-- **detectInadimplencia** — 10h e 16h diários → email se houver atraso
-- **weeklyStrategicReport** — segunda 9h → relatório estratégico
+- **mondayPlanningBrief** — SEGUNDA 9h → 🎯 PLANO DA SEMANA (top 10 ações priorizadas por valor)
+- **fridayWeekRecap** — SEXTA 16h → 📅 RECAP DA SEMANA (recebido, concluído, em aberto)
+- **Total:** 2 triggers físicos no Apps Script (apenas 2 emails/semana)
 - **Destinatários:** guilherme@toposcan.com.br + marcelo@toposcan.com.br
-- **Quota:** 100 emails/dia (workspace) — gasto típico: 4-10/dia
+- **Quota:** 100 emails/dia (workspace) — gasto típico: 4 emails/semana
 - **Mudança de destinatário:** `PropertiesService.getScriptProperties().setProperty('CENTRAL_EMAIL', 'a@x.com,b@y.com')`
+- **V7.6 — Instrumentação:** cada execução grava `TRIGGER_RUN_<name>` no PropertiesService (lastRun + status + error). Consultar via `getTriggersHealth`.
+- **V7.7 — Mudança em 23/05/2026:** triggers diários (dailyMorningBrief, detectInadimplencia, weeklyStrategicReport) REMOVIDOS a pedido do Guilherme. Funções mantidas como código morto (chamáveis via `runDailyBriefNow` se quiser disparar manualmente).
 
 ## Auto-cascata: ao virar Fechada
 

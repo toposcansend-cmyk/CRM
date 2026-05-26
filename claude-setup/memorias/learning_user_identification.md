@@ -60,8 +60,10 @@ metadata:
 
 ### Nomes que cita
 - Allana, Rafaela (equipe comercial júnior)
+- **Ana** (coordenadora interna — contrata e coordena terceiros de modelagem; confirmada 25/05/2026 no projeto R3)
+- **Arthur** (modelista terceiro contratado pela Ana; atualmente único modelista do R3 Anita Garibaldi)
 - Marcelo (como sócio/co-gestor, não como executor)
-- Clientes-chave: CB Engenharia, UNILIVRE, SIMEPAR, Camargo Penteado, Jonathan-Chinês
+- Clientes-chave: CB Engenharia, UNILIVRE, SIMEPAR, Camargo Penteado, Jonathan-Chinês, R3 Engenharia (Luiza Oliveira)
 
 ### Tipos de pedido típicos (histórico)
 - Setup estratégico do CRM (Financeiro V4, TopoPartners V5, Engenharia V6)
@@ -138,17 +140,50 @@ metadata:
   - Pediu pra encerrar com a Sofia ("Para Finalizar, não menos importante") — sinaliza que isso é IMPORTANTE pra ele
 - **Lição aprendida:** Guilherme separa empresa (4 gerentes) de pessoa (Sofia). A Sofia é um item de qualidade de vida, não de operação. Tratar com mesmo nível de cuidado que se trataria a contratação de uma pessoa real.
 
+### 23/05/2026 — Auditoria de memória + execução de dívida técnica
+- **Identificado:** **Guilherme** (confiança: 99%)
+- **Pistas decisivas:**
+  - Pediu "análise em sua memória, automações, auto aprendizados, disparos de email automáticos" — visão sistêmica e organizacional típica do dono
+  - *"Aplique e corriga tudo menos esses abaixo"* — comando direto + delegação ampla
+  - Decisão executiva clara: prioriza robustez do Claude (P1) e cortou explicitamente médio prazo (WhatsApp, Dashboard, auto-cadastro)
+  - Continuidade: usou esta sessão para FECHAR a dívida técnica deixada na sessão anterior
+- **Padrões novos observados:**
+  - Quando volta uma sessão depois de pausa, espera que eu **conheça o estado e tenha contexto** (memória deve fazer trabalho pesado)
+  - Aceita o relatório de auditoria SEM contestar quando bem estruturado — confirma valor de bullets + tabelas + emojis estratégicos
+  - Prefere **corte cirúrgico** ("tudo menos X, Y, Z") em vez de "faça os 3 primeiros" — pensa em escopo, não em sequência
+- **Lição aprendida:** Guilherme valoriza **fechar débitos antes de abrir novos**. Quando autoanálise diz "fica pra próxima", ele cobra na próxima — mostra que LÊ a memória junto comigo. Memórias não são pra mim só; ele consulta também.
+- **Erro de processo (auto-correção):** quando abri esta sessão, EU NÃO RODEI o smoke test que estava prometido no `MEMORY.md` ("Próxima sessão começa com: smoke test"). Só rodei quando ele pediu auditoria. **A próxima sessão deve disparar smoke test ANTES da primeira resposta substantiva.**
+- **Achados técnicos importantes desta sessão:**
+  - **Scopes faltando:** `gmail.send` e `userinfo.email` NÃO estão autorizados (apesar da memória dizer que sim) — atualizar `reference_crm_api.md`
+  - **Quota MailApp:** 70/100 restantes (30 consumidos hoje — investigar volume diário típico)
+  - **13 alertas ativos** na operação, ~R$73.866 acionáveis se trabalhados
+
+### 25/05/2026 — Projeto R3 Edifício Anita Garibaldi (controle de produção)
+- **Identificado:** **Guilherme** (confiança: 95%)
+- **Pistas decisivas:**
+  - Pediu controle de produção análogo ao das Igrejas (visão sistêmica/operacional do dono)
+  - Apresentou PDF da proposta que ele mesmo vendeu/assinou
+  - Citou *"nossa coordenadora Ana"* — naturalidade de quem trabalha com ela rotineiramente
+- **Novos personagens revelados:**
+  - **Ana** — coordenadora interna da Toposcan; contrata e gerencia modelistas terceiros. NÃO estava na memória até hoje.
+  - **Arthur** — modelista terceiro, contratado pela Ana. No R3 ele modela SOZINHO (não divide com Gabriela como está no CRM Produção atualmente — pendente atualizar)
+  - **Luiza Oliveira** — contato do cliente R3 Engenharia (não confundir com Luiza Morilhas, modelista interna)
+- **Discrepância CRM × realidade:** o CRM Produção mostra Gabriela Linhares na fase "Modelagem BIM" do R3, mas o real é Arthur. Atualizar via `updateProducao` quando Guilherme autorizar.
+- **Lição aprendida:** existe uma camada de coordenação (Ana) entre os sócios e os modelistas terceiros. Para projetos de terceiros, perguntar quem coordena, não só quem executa.
+
 ## 🚨 Erros + correções (lições)
 
 (vazio por enquanto — quando errar, registrar aqui)
 
 ## 📈 Métricas de melhoria
 
-- **Precisão de identificação automática:** N/A (1 interação confirmada)
+- **Precisão de identificação automática (Guilherme):** 4/4 = 100% (4 sessões confirmadas)
+- **Precisão Marcelo:** N/A (ainda não interagiu diretamente)
 - **Vezes que precisei perguntar:** 0
 - **Vezes que o user corrigiu:** 0
 
 > Meta: chegar em 95%+ de identificação correta sem precisar perguntar, após ~10 interações com cada um.
+> Status: meta já atingida pra Guilherme; aguardando Marcelo aparecer.
 
 ## 🔧 Padrões a refinar
 

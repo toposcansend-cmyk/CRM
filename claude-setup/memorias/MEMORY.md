@@ -10,12 +10,27 @@
 - [Sofia — Secretária](project_sofia_secretaria.md) — 5º Claude Project (diferente dos 4 gerentes). Cuida do Guilherme como PESSOA: agenda, memória, vida pessoal, networking, coordenação.
 
 ## CRM Toposcan
-- [Estado do Projeto (V7.5)](project_crm_toposcan.md) — 4 áreas integradas, 4 gerentes Claude, Central, agentes 24/7, deploy estável
-- [API Webhook (~30 actions)](reference_crm_api.md) — Endpoint vivo, secret, todos módulos V1-V7.5, scopes autorizados
+- [Estado do Projeto (V7.6)](project_crm_toposcan.md) — 4 áreas integradas, 4 gerentes Claude, Central, agentes 24/7, deploy estável + monitor triggers
+- [API Webhook (~31 actions)](reference_crm_api.md) — Endpoint vivo, secret, todos módulos V1-V7.6, scopes autorizados, `getTriggersHealth` novo
 - [Manual Operacional](project_crm_manual_operacional.md) — 16 colunas Vendas, 6 status, regras de ouro originais
 - [Discrepâncias Manual × Repo](project_crm_discrepancias.md) — Histórico de diffs (parcialmente resolvidas)
-- [Feedback de gestão (15 regras)](feedback_crm_gestao.md) — Como o Guilherme quer ser servido: autonomia, verificação, cross-funcional
-- [Backlog de features](backlog_crm.md) — Próximos itens sugeridos
+- [Feedback de gestão (17 regras)](feedback_crm_gestao.md) — Como o Guilherme quer ser servido: autonomia, verificação, cross-funcional
+- [Backlog de features](backlog_crm.md) — P1 liquidado em 23/05; ainda em aberto P2 (WhatsApp, Dashboard, auto-cadastro) e P3-P4
 
 ## Padrões técnicos reutilizáveis
 - [GAS + OAuth + Chrome MCP automation](technical_patterns_gas_oauth_chrome.md) — Como adicionar scopes, autorizar, automatizar claude.ai Projects, fetchar GitHub sem cache
+- [PDF arquitetônico → 3D via Python/trimesh](technical_patterns_pdf_to_3d.md) — Pipeline sem Blender: pymupdf extrai pranchas, trimesh modela e exporta OBJ/GLB/DAE/STL para integrar projeto cliente com MDT
+- [Autodesk ReCap RCP/RCS — workflow CLI](technical_patterns_recap_rcp.md) — decap.exe converte LAS/LAZ→RCP; RCP é ZIP+XML; unificar N RCPs num mestre sem reprocessar
+- 🚨 [Catálogo de erros conhecidos (E001-E011)](error_patterns.md) — Consultar SEMPRE antes de refazer operação que falhou
+
+## Projetos de clientes (modelagem)
+- [SIMEPAR Torre Radar Banda C](project_torre_radar_simepar.md) — Torre treliçada 22m + edificação térrea 43m². Modelo 3D paramétrico gerado em 2026-05-23 a partir do PDF arquitetônico, pronto para implantar no MDT do levantamento.
+- [R3 Engenharia — Edifício Anita Garibaldi](project_r3_edificio_anita_garibaldi.md) — Scan to BIM Curitiba, R$19k, 5.664m², 30/06/2026. Coord: Ana · Modela: Arthur (terceiro) · Contato cliente: Luiza Oliveira · P1 inadimplente.
+- [CGH Cachoeira do Lageado](project_cgh_cachoeira_lageado.md) — 3 nuvens unificadas (32 scans FS01 + 1 FS02 + LIDAR) = 2.6bi pontos num RCP. Alinhamento UTM×local pendente.
+
+## Auto-reflexão e evolução contínua
+- 🔍 [Autoanálise 2026-05-22](autoanalise_2026-05-22.md) — onde fui forte, onde fui burro, roadmap de evolução
+- 📋 [Backlog priorizado (P1-P4)](backlog_crm.md) — P1 LIQUIDADO em 23/05 (smoke + error_patterns + backup + hook + monitor triggers)
+- 📊 [Métricas auto-monitoramento](metrics.md) — baseline + metas 30/90 dias
+- 📌 **Hook SessionStart ativo:** smoke test dispara automaticamente ao iniciar nova sessão (output: 1 linha)
+- 📌 **Backup automático:** Windows Task Scheduler 22h diário → push para repo privado `claude-memories-toposcan`

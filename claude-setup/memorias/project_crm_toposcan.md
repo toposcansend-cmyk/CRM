@@ -25,6 +25,8 @@ metadata:
    - 05/21 Engenharia V6 (matriz subitem×fase, 11 projetos, 115 tarefas seeded)
    - 05/22 **V7.0 Central de Inteligência** + 4 gerentes Claude unificados nos Projects
    - 05/22 **V7.5 Assistente Pessoal** (email + Meet sob comando) + auth completa
+   - 05/23 **V7.6** monitor de triggers (`getTriggersHealth` + instrumentação `_recordTriggerRun`) + smoke test infra + backup Git memórias
+   - 05/23 **V7.7** triggers diários removidos a pedido do Guilherme. Apenas 2 emails/semana: segunda 9h (plano) + sexta 16h (recap)
 
 ## Arquitetura — 4 áreas integradas
 
@@ -44,7 +46,7 @@ metadata:
 - **Script ID:** `1Pxlm30KKFm2z2Zcc8I4tLZfIa_Y5Yimh9GbD62cZWSdkSPANM59tJXBK`
 - **Code.js:** `C:\Users\23GAMER\.gemini\antigravity\scratch\clasp-crm\Code.js` (~2400 linhas)
 - **Deployment estável:** `AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A` (mantido entre versões)
-- **Atual:** V7.5 @22
+- **Atual:** V7.7 @24 (deployed 23/05/2026)
 
 ## Frontend (crm.html)
 

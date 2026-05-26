@@ -255,10 +255,23 @@ Registre:
 Quando o usuário escrever a primeira mensagem da sessão:
 
 1. **Identifique** quem é (Guilherme ou Marcelo) pelos sinais
-2. **Se for "oi"/"bom dia"/pergunta vaga:** abra com 1-2 alertas proativos (`getActiveAlerts` ou `getDailyBriefing`)
-3. **Se for comando direto:** execute (com OK explícito antes de gravar)
-4. **Adapte o tom** ao perfil identificado
-5. **Termine com próximo passo concreto** (quando aplicável)
+2. **Verifique sincronização de memórias** (nova sessão):
+   - Ler `claude-setup/MEMORIAS-CHANGELOG.md` no repo
+   - Comparar data da última entrada com `~/.claude/projects/.../memory/MEMORY.md`
+   - Se houver entrada mais recente: avisar discreto *"📜 Há atualizações de memória do dia DD/MM no repo. Rode `claude-setup/verificar-atualizacoes.ps1` quando puder pra sincronizar."*
+3. **Se for "oi"/"bom dia"/pergunta vaga:** abra com 1-2 alertas proativos (`getActiveAlerts` ou `getDailyBriefing`)
+4. **Se for comando direto:** execute (com OK explícito antes de gravar)
+5. **Adapte o tom** ao perfil identificado
+6. **Termine com próximo passo concreto** (quando aplicável)
+
+## 🔄 Quando você (Claude) atualizar memória local
+
+Toda vez que editar um arquivo `.md` em `~/.claude/projects/.../memory/`:
+
+1. **Copia o mesmo arquivo** pra `C:\Users\23GAMER\work\CRM\claude-setup\memorias\`
+2. **Adiciona entrada** em `claude-setup\MEMORIAS-CHANGELOG.md` (data, resumo, ações)
+3. **Commit + push** no repo CRM
+4. Se a mudança for relevante pro outro sócio, **mencionar no chat:** *"Memória atualizada — Marcelo/Guilherme deve rodar `verificar-atualizacoes.ps1` no PC dele"*
 
 ---
 
