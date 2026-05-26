@@ -8626,6 +8626,14 @@ Data: ${h.data}`;
                         engRefresh({ skipCache: true }).catch(()=>{});
                     }
                 }
+                if (tabId === 'fluxocaixa') {
+                    if (typeof fcRefresh === 'function') fcRefresh();
+                }
+                if (tabId === 'central') {
+                    if (typeof centralRefresh === 'function' && (typeof centralKpis === 'undefined' || centralKpis === null)) {
+                        centralRefresh();
+                    }
+                }
             };
 
             const _origSalvarEdicao = salvarEdicao;
