@@ -1446,6 +1446,68 @@
         }
 
         /* Modal de Edicao */
+        /* ── Fluxo de Caixa: cards clicáveis + gráfico SVG ── */
+        .fc-card-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,212,255,0.12);
+            filter: brightness(1.08);
+        }
+        .fc-card-clickable:active { transform: translateY(0); }
+
+        #fcChart svg { display: block; width: 100%; height: auto; }
+        #fcChart .fc-chart-bar { transition: opacity 0.15s; cursor: pointer; }
+        #fcChart .fc-chart-bar:hover { opacity: 1 !important; }
+        #fcChart .fc-chart-day-hit { cursor: crosshair; }
+        #fcChart .fc-chart-day-hit:hover ~ .fc-chart-tooltip { opacity: 1; }
+        #fcChart .fc-chart-dot { transition: r 0.15s; cursor: pointer; }
+        #fcChart .fc-chart-dot:hover { r: 6; }
+        .fc-tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(15,23,42,0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.78em;
+            color: var(--text-primary);
+            white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            transform: translate(-50%, calc(-100% - 10px));
+            opacity: 0;
+            transition: opacity 0.12s;
+            z-index: 5;
+        }
+        .fc-tooltip.show { opacity: 1; }
+
+        /* Modal detalhe Fluxo de Caixa */
+        #fcDetalheModal .modal-content { max-width: 900px; width: 96%; }
+        .fc-det-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 130px 90px;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+            transition: background 0.15s;
+        }
+        .fc-det-row:hover { background: rgba(255,255,255,0.04); }
+        .fc-det-row.entrada { border-left-color: #34d399; }
+        .fc-det-row.saida { border-left-color: #f87171; }
+        .fc-det-row.paga { opacity: 0.55; }
+        .fc-det-row.hoje { box-shadow: inset 0 0 0 1px rgba(0,212,255,0.35); }
+        .fc-det-data { text-align: center; font-size: 0.78em; }
+        .fc-det-data b { display: block; font-size: 1.15em; color: var(--text-primary); }
+        .fc-det-valor { font-weight: 800; font-size: 1em; text-align: right; }
+        .fc-det-valor.entrada { color: #34d399; }
+        .fc-det-valor.saida { color: #f87171; }
+        @media (max-width: 700px) {
+            .fc-det-row { grid-template-columns: 56px 1fr 110px; }
+            .fc-det-row .fc-det-acao { grid-column: 1 / -1; }
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -3026,22 +3088,46 @@
                     </div>
                 </div>
                 <!-- Previsão entradas 14d -->
-                <div class="card" style="margin:0;border-left:3px solid #34d399">
-                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📥 Previsão entradas (14d)</div>
+                <div class="card fc-card-clickable" onclick="fcAbrirDetalhe('entradas')" style="margin:0;border-left:3px solid #34d399;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s" title="Clique para ver todas as parcelas a receber nos próximos 14 dias">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+                        <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📥 Previsão entradas (14d)</div>
+                        <div style="font-size:0.65em;color:#34d399;opacity:0.7;letter-spacing:0.04em">VER LISTA →</div>
+                    </div>
                     <div id="fcResEntradas" style="font-size:1.7em;font-weight:800;margin-top:4px;color:#34d399">—</div>
                     <div id="fcResEntradasCount" style="font-size:0.72em;color:var(--text-secondary);margin-top:4px">—</div>
                 </div>
                 <!-- Previsão saídas 14d -->
-                <div class="card" style="margin:0;border-left:3px solid #f87171">
-                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📤 Previsão saídas (14d)</div>
+                <div class="card fc-card-clickable" onclick="fcAbrirDetalhe('saidas')" style="margin:0;border-left:3px solid #f87171;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s" title="Clique para ver todos os pagamentos programados nos próximos 14 dias">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+                        <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📤 Previsão saídas (14d)</div>
+                        <div style="font-size:0.65em;color:#f87171;opacity:0.7;letter-spacing:0.04em">VER LISTA →</div>
+                    </div>
                     <div id="fcResSaidas" style="font-size:1.7em;font-weight:800;margin-top:4px;color:#f87171">—</div>
                     <div id="fcResSaidasCount" style="font-size:0.72em;color:var(--text-secondary);margin-top:4px">—</div>
                 </div>
                 <!-- Saldo projetado fim 14d -->
-                <div class="card" style="margin:0;border-left:3px solid #fbbf24">
-                    <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📊 Saldo projetado em 14d</div>
+                <div class="card fc-card-clickable" onclick="fcAbrirDetalhe('ambos')" style="margin:0;border-left:3px solid #fbbf24;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s" title="Clique para ver todas as movimentações combinadas">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px">
+                        <div style="font-size:0.72em;color:var(--text-secondary);text-transform:uppercase">📊 Saldo projetado em 14d</div>
+                        <div style="font-size:0.65em;color:#fbbf24;opacity:0.7;letter-spacing:0.04em">VER TUDO →</div>
+                    </div>
                     <div id="fcResProj7d" style="font-size:1.7em;font-weight:800;margin-top:4px">—</div>
                     <div id="fcResProj7dDelta" style="font-size:0.72em;margin-top:4px">—</div>
+                </div>
+            </div>
+
+            <!-- LINHA 1.5: Gráfico SVG de saldo projetado (14 dias) -->
+            <div class="card" style="margin-bottom:18px;padding:14px 14px 6px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+                    <div style="font-weight:600">📈 Saldo projetado · oscilação diária</div>
+                    <div id="fcChartLegend" style="font-size:0.72em;color:var(--text-secondary);display:flex;gap:14px;flex-wrap:wrap">
+                        <span><span style="display:inline-block;width:10px;height:10px;background:#00d4ff;border-radius:50%;vertical-align:middle"></span> saldo</span>
+                        <span><span style="display:inline-block;width:10px;height:6px;background:#34d399;vertical-align:middle"></span> entradas</span>
+                        <span><span style="display:inline-block;width:10px;height:6px;background:#f87171;vertical-align:middle"></span> saídas</span>
+                    </div>
+                </div>
+                <div id="fcChart" style="width:100%;position:relative">
+                    <div style="padding:30px;text-align:center;color:var(--text-secondary);opacity:0.6">Carregando gráfico…</div>
                 </div>
             </div>
 
@@ -3994,6 +4080,34 @@
 
                 <div id="engDetalheProgresso" style="margin:14px 0"></div>
                 <div id="engDetalheTabela" style="overflow-x:auto"></div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- 💸 FLUXO DE CAIXA — modal de detalhe (entradas/saídas/ambos)     -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div id="fcDetalheModal" class="modal" onclick="if(event.target===this)fcFecharDetalhe()">
+            <div class="modal-content">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+                    <div>
+                        <h2 id="fcDetalheTitulo" style="margin:0">Detalhamento</h2>
+                        <div id="fcDetalheSub" style="font-size:0.85em;color:var(--text-secondary);margin-top:4px">—</div>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                        <div class="evo-period-group" id="fcDetalheTipoGroup" style="display:inline-flex">
+                            <button class="evo-period-btn" data-tipo="ambos" onclick="fcAbrirDetalhe('ambos')">📊 Tudo</button>
+                            <button class="evo-period-btn" data-tipo="entradas" onclick="fcAbrirDetalhe('entradas')">📥 Entradas</button>
+                            <button class="evo-period-btn" data-tipo="saidas" onclick="fcAbrirDetalhe('saidas')">📤 Saídas</button>
+                        </div>
+                        <button class="btn btn-secondary" onclick="fcFecharDetalhe()" style="padding:8px 14px;font-size:0.85em">✕ Fechar</button>
+                    </div>
+                </div>
+
+                <!-- Resumo no topo -->
+                <div id="fcDetalheResumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px"></div>
+
+                <!-- Lista ordenada por data -->
+                <div id="fcDetalheLista" style="display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto;padding-right:4px"></div>
             </div>
         </div>
 
@@ -7731,7 +7845,7 @@ Data: ${h.data}`;
                 // 2) Aplica visibilidade no load
                 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', aplicar);
                 else aplicar();
-                // 3) Atalho Ctrl+Shift+G
+                // 3) Atalho Ctrl+Shift+G + ESC fecha modal do Fluxo de Caixa
                 document.addEventListener('keydown', function(e) {
                     if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'G' || e.key === 'g')) {
                         e.preventDefault();
@@ -7746,6 +7860,12 @@ Data: ${h.data}`;
                         t.style.cssText = 'position:fixed;top:20px;right:20px;background:#1a2333;color:#fff;padding:12px 18px;border-radius:8px;border:1px solid #00d4ff;box-shadow:0 4px 14px rgba(0,0,0,0.3);z-index:9999;font-size:14px';
                         document.body.appendChild(t);
                         setTimeout(()=>t.remove(), 1800);
+                    }
+                    if (e.key === 'Escape') {
+                        const fcModal = document.getElementById('fcDetalheModal');
+                        if (fcModal && fcModal.classList.contains('active')) {
+                            fcModal.classList.remove('active');
+                        }
                     }
                 });
             })();
@@ -7966,6 +8086,390 @@ Data: ${h.data}`;
                         + '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px"><span style="font-weight:600">' + dia.diaSemana + ' ' + dia.data + (dia.ehHoje ? ' · HOJE' : '') + '</span>'
                         + '<span style="font-size:0.85em;color:' + corSaldo + ';font-weight:700">' + fcBRL(dia.saldoAcumulado) + '</span></div>'
                         + conteudo + '</div>';
+                }).join('');
+
+                // ─── Gráfico SVG do saldo projetado (14 dias) ───
+                fcRenderChart(proximos14, d.saldoInicial);
+
+                // ─── Re-render modal se aberto ───
+                const modalAberto = document.getElementById('fcDetalheModal');
+                if (modalAberto && modalAberto.classList.contains('active')) {
+                    fcRenderDetalhe(modalAberto.dataset.fcTipo || 'ambos');
+                }
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // GRÁFICO SVG — saldo projetado dia-a-dia (14 dias)
+            // ═══════════════════════════════════════════════════════════════
+            function fcRenderChart(dias, saldoInicial) {
+                const host = document.getElementById('fcChart');
+                if (!host) return;
+                if (!dias || !dias.length) { host.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-secondary)">Sem dados</div>'; return; }
+
+                // Constrói série: ponto 0 = "Hoje" (saldoInicial), depois cada dia acumulado
+                // Cada dia: saldoFinalDia = saldoAnterior + entradasPendentes - saidasPendentes
+                const pontos = [{ rotulo: 'Hoje', diaSemana: '', saldo: saldoInicial, entradas: 0, saidas: 0, ehHoje: true, dataIso: '' }];
+                let saldoAcc = saldoInicial;
+                dias.forEach(dia => {
+                    const ent = (dia.totalEntradasPendentes !== undefined ? dia.totalEntradasPendentes : dia.totalEntradas) || 0;
+                    const sai = (dia.totalSaidasPendentes !== undefined ? dia.totalSaidasPendentes : dia.totalSaidas) || 0;
+                    saldoAcc = saldoAcc + ent - sai;
+                    pontos.push({
+                        rotulo: dia.data ? dia.data.substring(0, 5) : '',
+                        diaSemana: dia.diaSemana || '',
+                        saldo: saldoAcc,
+                        entradas: ent,
+                        saidas: sai,
+                        ehHoje: !!dia.ehHoje,
+                        ehFimDeSemana: !!dia.ehFimDeSemana,
+                        dataIso: dia.data || ''
+                    });
+                });
+
+                // Dimensões viewBox
+                const W = 1000, H = 280;
+                const PL = 60, PR = 24, PT = 18, PB = 50;
+                const innerW = W - PL - PR;
+                const innerH = H - PT - PB;
+
+                // Escala Y considerando saldo + barras
+                const saldos = pontos.map(p => p.saldo);
+                const valoresMovExtra = [];
+                pontos.forEach(p => { if (p.entradas) valoresMovExtra.push(p.saldo + p.entradas); if (p.saidas) valoresMovExtra.push(p.saldo - p.saidas); });
+                let yMin = Math.min(0, ...saldos, ...valoresMovExtra);
+                let yMax = Math.max(0, ...saldos, ...valoresMovExtra);
+                if (yMin === yMax) { yMax = yMin + 1000; }
+                const margem = (yMax - yMin) * 0.12;
+                yMin -= margem; yMax += margem;
+                const yRange = yMax - yMin;
+                const yToPx = v => PT + innerH - ((v - yMin) / yRange) * innerH;
+                const stepX = innerW / (pontos.length - 1);
+                const xToPx = i => PL + i * stepX;
+                const zeroY = yToPx(0);
+                const barW = Math.min(10, stepX * 0.18);
+
+                // Path do saldo (linha)
+                let pathLine = '';
+                pontos.forEach((p, i) => { pathLine += (i ? ' L ' : 'M ') + xToPx(i).toFixed(1) + ' ' + yToPx(p.saldo).toFixed(1); });
+                // Path da área (preenchida até o zero / até o min)
+                const baselineY = (yMin < 0 ? zeroY : yToPx(yMin));
+                let pathArea = 'M ' + xToPx(0).toFixed(1) + ' ' + baselineY.toFixed(1);
+                pontos.forEach((p, i) => { pathArea += ' L ' + xToPx(i).toFixed(1) + ' ' + yToPx(p.saldo).toFixed(1); });
+                pathArea += ' L ' + xToPx(pontos.length - 1).toFixed(1) + ' ' + baselineY.toFixed(1) + ' Z';
+
+                // Path área negativa (parte abaixo do zero) — clip
+                const temNeg = saldos.some(s => s < 0);
+
+                // Min e Max do saldo (excluindo "Hoje" se for único)
+                let idxMin = 0, idxMax = 0;
+                pontos.forEach((p, i) => {
+                    if (p.saldo < pontos[idxMin].saldo) idxMin = i;
+                    if (p.saldo > pontos[idxMax].saldo) idxMax = i;
+                });
+
+                // Y ticks
+                const tickCount = 4;
+                let ticks = [];
+                for (let i = 0; i <= tickCount; i++) {
+                    const v = yMin + (yRange * i / tickCount);
+                    ticks.push({ v: v, y: yToPx(v) });
+                }
+
+                // Gradientes
+                const defs = '<defs>'
+                    + '<linearGradient id="fcGradPos" x1="0" y1="0" x2="0" y2="1">'
+                    +   '<stop offset="0%" stop-color="#34d399" stop-opacity="0.45"/>'
+                    +   '<stop offset="100%" stop-color="#34d399" stop-opacity="0.02"/>'
+                    + '</linearGradient>'
+                    + '<linearGradient id="fcGradLine" x1="0" y1="0" x2="0" y2="1">'
+                    +   '<stop offset="0%" stop-color="#00d4ff" stop-opacity="1"/>'
+                    +   '<stop offset="100%" stop-color="#00d4ff" stop-opacity="0.7"/>'
+                    + '</linearGradient>'
+                    + (temNeg ? '<clipPath id="fcClipNeg"><rect x="0" y="' + zeroY.toFixed(1) + '" width="' + W + '" height="' + (H - zeroY).toFixed(1) + '"/></clipPath>' : '')
+                    + '</defs>';
+
+                // Linhas de grade + labels Y
+                let grid = '';
+                ticks.forEach(t => {
+                    grid += '<line x1="' + PL + '" y1="' + t.y.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + t.y.toFixed(1) + '" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>';
+                    grid += '<text x="' + (PL - 8) + '" y="' + (t.y + 4).toFixed(1) + '" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="10" font-family="system-ui,sans-serif">' + fcFmtCompact(t.v) + '</text>';
+                });
+                // Linha do zero destacada
+                if (yMin < 0 && yMax > 0) {
+                    grid += '<line x1="' + PL + '" y1="' + zeroY.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgba(248,113,113,0.4)" stroke-width="1" stroke-dasharray="3 4"/>';
+                }
+
+                // Barras de entradas (verde, pra cima) e saídas (vermelho, pra baixo)
+                let bars = '';
+                pontos.forEach((p, i) => {
+                    if (i === 0) return; // pula "Hoje"
+                    const x = xToPx(i);
+                    if (p.entradas > 0) {
+                        const ySaldo = yToPx(p.saldo);
+                        const yBaseEnt = yToPx(p.saldo - p.entradas); // base = saldo do dia ANTERIOR
+                        bars += '<rect class="fc-chart-bar" x="' + (x - barW - 1).toFixed(1) + '" y="' + Math.min(ySaldo, yBaseEnt).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.abs(yBaseEnt - ySaldo).toFixed(1) + '" fill="#34d399" opacity="0.7" rx="2">'
+                            + '<title>' + p.rotulo + ' · entrada +' + fcBRL(p.entradas) + '</title></rect>';
+                    }
+                    if (p.saidas > 0) {
+                        const ySaldo = yToPx(p.saldo);
+                        const yBaseSai = yToPx(p.saldo + p.saidas);
+                        bars += '<rect class="fc-chart-bar" x="' + (x + 1).toFixed(1) + '" y="' + Math.min(ySaldo, yBaseSai).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.abs(yBaseSai - ySaldo).toFixed(1) + '" fill="#f87171" opacity="0.7" rx="2">'
+                            + '<title>' + p.rotulo + ' · saída -' + fcBRL(p.saidas) + '</title></rect>';
+                    }
+                });
+
+                // Área (positiva) + área negativa (vermelho)
+                let area = '<path d="' + pathArea + '" fill="url(#fcGradPos)" stroke="none"/>';
+                if (temNeg) {
+                    area += '<path d="' + pathArea + '" fill="rgba(248,113,113,0.35)" stroke="none" clip-path="url(#fcClipNeg)"/>';
+                }
+
+                // Linha do saldo
+                const line = '<path d="' + pathLine + '" fill="none" stroke="url(#fcGradLine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
+
+                // Dots + invisible hit areas pra hover/click
+                let dots = '', hits = '';
+                pontos.forEach((p, i) => {
+                    const x = xToPx(i), y = yToPx(p.saldo);
+                    const isExtremo = (i === idxMin && idxMin !== 0) || (i === idxMax && idxMax !== 0);
+                    const corDot = p.ehHoje ? '#00d4ff' : (p.saldo < 0 ? '#f87171' : (isExtremo ? '#fbbf24' : '#00d4ff'));
+                    const rDot = (p.ehHoje || isExtremo) ? 5 : 3.5;
+                    dots += '<circle class="fc-chart-dot" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + rDot + '" fill="' + corDot + '" stroke="rgba(15,23,42,0.9)" stroke-width="1.5"/>';
+                    // Hit area pra tooltip
+                    const tip = fcEsc(p.rotulo) + (p.diaSemana ? ' (' + fcEsc(p.diaSemana) + ')' : '') + '<br><b>saldo: ' + fcBRL(p.saldo) + '</b>'
+                        + (p.entradas ? '<br><span style="color:#34d399">+' + fcBRL(p.entradas) + ' entradas</span>' : '')
+                        + (p.saidas ? '<br><span style="color:#f87171">-' + fcBRL(p.saidas) + ' saídas</span>' : '');
+                    hits += '<rect class="fc-chart-day-hit" x="' + (x - stepX/2).toFixed(1) + '" y="' + PT + '" width="' + stepX.toFixed(1) + '" height="' + innerH + '" fill="transparent"'
+                        + ' data-tip="' + tip.replace(/"/g, '&quot;') + '"'
+                        + ' data-x="' + x.toFixed(1) + '" data-y="' + y.toFixed(1) + '"'
+                        + ' data-dataiso="' + (p.dataIso || '') + '"'
+                        + '/>';
+                    // Marcador MIN/MAX/HOJE
+                    if (p.ehHoje) {
+                        dots += '<text x="' + x.toFixed(1) + '" y="' + (y - 12).toFixed(1) + '" text-anchor="middle" fill="#00d4ff" font-size="10" font-weight="700" font-family="system-ui,sans-serif">HOJE</text>';
+                    } else if (i === idxMin && pontos[idxMin].saldo < saldoInicial) {
+                        dots += '<text x="' + x.toFixed(1) + '" y="' + (y + 18).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="700" font-family="system-ui,sans-serif">▼ MIN ' + fcFmtCompact(p.saldo) + '</text>';
+                    } else if (i === idxMax && pontos[idxMax].saldo > saldoInicial) {
+                        dots += '<text x="' + x.toFixed(1) + '" y="' + (y - 12).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="700" font-family="system-ui,sans-serif">▲ MAX ' + fcFmtCompact(p.saldo) + '</text>';
+                    }
+                });
+
+                // Labels X (datas) — todos os dias
+                let labelsX = '';
+                pontos.forEach((p, i) => {
+                    const x = xToPx(i);
+                    const cor = p.ehHoje ? '#00d4ff' : (p.ehFimDeSemana ? 'rgba(148,163,184,0.55)' : 'rgba(255,255,255,0.55)');
+                    const fw = p.ehHoje ? '700' : '500';
+                    labelsX += '<text x="' + x.toFixed(1) + '" y="' + (H - PB + 16) + '" text-anchor="middle" fill="' + cor + '" font-size="10" font-weight="' + fw + '" font-family="system-ui,sans-serif">' + fcEsc(p.rotulo) + '</text>';
+                    if (p.diaSemana) {
+                        labelsX += '<text x="' + x.toFixed(1) + '" y="' + (H - PB + 30) + '" text-anchor="middle" fill="rgba(255,255,255,0.32)" font-size="9" font-family="system-ui,sans-serif">' + fcEsc(p.diaSemana.substring(0,3)) + '</text>';
+                    }
+                });
+
+                const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" style="max-height:320px">'
+                    + defs + grid + area + bars + line + dots + hits + labelsX
+                    + '</svg>'
+                    + '<div class="fc-tooltip" id="fcChartTooltip"></div>';
+
+                host.innerHTML = svg;
+
+                // Liga tooltip + click-to-open-detail
+                const tooltip = document.getElementById('fcChartTooltip');
+                const svgEl = host.querySelector('svg');
+                const hitNodes = host.querySelectorAll('.fc-chart-day-hit');
+                hitNodes.forEach(node => {
+                    node.addEventListener('mouseenter', function(ev) {
+                        tooltip.innerHTML = this.dataset.tip;
+                        tooltip.classList.add('show');
+                        const rect = host.getBoundingClientRect();
+                        const svgRect = svgEl.getBoundingClientRect();
+                        const scaleX = svgRect.width / W;
+                        const scaleY = svgRect.height / H;
+                        const px = parseFloat(this.dataset.x) * scaleX;
+                        const py = parseFloat(this.dataset.y) * scaleY;
+                        tooltip.style.left = px + 'px';
+                        tooltip.style.top = py + 'px';
+                    });
+                    node.addEventListener('mouseleave', function() {
+                        tooltip.classList.remove('show');
+                    });
+                    node.addEventListener('click', function() {
+                        // Abre modal filtrado naquele dia
+                        const iso = this.dataset.dataiso;
+                        if (iso) fcAbrirDetalhe('ambos', iso);
+                    });
+                });
+            }
+
+            function fcFmtCompact(n) {
+                const abs = Math.abs(n);
+                if (abs >= 1000000) return (n < 0 ? '-' : '') + (abs / 1000000).toFixed(abs >= 10000000 ? 0 : 1) + 'M';
+                if (abs >= 1000) return (n < 0 ? '-' : '') + (abs / 1000).toFixed(abs >= 10000 ? 0 : 1) + 'k';
+                return Math.round(n).toString();
+            }
+
+            function fcEsc(s) {
+                return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            // MODAL DETALHE — listagem completa das parcelas/pagamentos
+            // ═══════════════════════════════════════════════════════════════
+            function fcAbrirDetalhe(tipo, focoDataIso) {
+                if (!fcDados) return;
+                const modal = document.getElementById('fcDetalheModal');
+                modal.dataset.fcTipo = tipo;
+                modal.dataset.fcFoco = focoDataIso || '';
+                modal.classList.add('active');
+                fcRenderDetalhe(tipo, focoDataIso);
+                // Highlight do botão ativo
+                document.querySelectorAll('#fcDetalheTipoGroup .evo-period-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.tipo === tipo);
+                });
+                // Foca no item destacado, se houver
+                if (focoDataIso) {
+                    setTimeout(() => {
+                        const el = document.querySelector('#fcDetalheLista [data-iso="' + focoDataIso + '"]');
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 50);
+                }
+            }
+
+            function fcFecharDetalhe() {
+                const modal = document.getElementById('fcDetalheModal');
+                modal.classList.remove('active');
+            }
+
+            function fcRenderDetalhe(tipo, focoDataIso) {
+                if (!fcDados) return;
+                const dias = (fcDados.dias || []).slice(0, 14);
+                const titulo = document.getElementById('fcDetalheTitulo');
+                const sub = document.getElementById('fcDetalheSub');
+                const resumo = document.getElementById('fcDetalheResumo');
+                const lista = document.getElementById('fcDetalheLista');
+
+                // Aplana itens com tipo + ordena por data
+                const itens = [];
+                dias.forEach(dia => {
+                    if (tipo === 'entradas' || tipo === 'ambos') {
+                        (dia.entradas || []).forEach(e => itens.push({
+                            tipo: 'entrada',
+                            data: dia.data,
+                            dataIso: dia.data,
+                            diaSemana: dia.diaSemana,
+                            ehHoje: dia.ehHoje,
+                            valor: e.valor,
+                            nome: e.cliente,
+                            sub: (e.vendedor || '?') + ' · ' + (e.parcela || ''),
+                            paga: !!e.paga,
+                            rowIndex: e.rowIndex
+                        }));
+                    }
+                    if (tipo === 'saidas' || tipo === 'ambos') {
+                        (dia.saidas || []).forEach(s => itens.push({
+                            tipo: 'saida',
+                            data: dia.data,
+                            dataIso: dia.data,
+                            diaSemana: dia.diaSemana,
+                            ehHoje: dia.ehHoje,
+                            valor: s.paga ? s.valorAcordado : s.valorRestante,
+                            valorRestante: s.valorRestante,
+                            nome: s.parceiro,
+                            sub: (s.servico || '') + (s.projeto ? ' · ' + s.projeto : ''),
+                            paga: !!s.paga,
+                            rowIndex: s.rowIndex
+                        }));
+                    }
+                });
+
+                const totalEntradas = itens.filter(i => i.tipo === 'entrada' && !i.paga).reduce((a, i) => a + i.valor, 0);
+                const totalSaidas = itens.filter(i => i.tipo === 'saida' && !i.paga).reduce((a, i) => a + (i.valorRestante !== undefined ? i.valorRestante : i.valor), 0);
+                const qtdEntradas = itens.filter(i => i.tipo === 'entrada' && !i.paga).length;
+                const qtdSaidas = itens.filter(i => i.tipo === 'saida' && !i.paga).length;
+                const saldoFinal = (fcDados.saldoInicial || 0) + totalEntradas - totalSaidas;
+
+                // Título dinâmico
+                const tituloMap = { entradas: '📥 Entradas — próximos 14 dias', saidas: '📤 Saídas — próximos 14 dias', ambos: '📊 Movimentação completa — próximos 14 dias' };
+                titulo.textContent = tituloMap[tipo] || tituloMap.ambos;
+                sub.textContent = itens.length + ' item(ns) · ' + dias.length + ' dia(s)' + (focoDataIso ? ' · filtrado em ' + focoDataIso : '');
+
+                // Resumo
+                let resumoHtml = '';
+                if (tipo === 'entradas' || tipo === 'ambos') {
+                    resumoHtml += '<div style="background:rgba(52,211,153,0.08);border-left:3px solid #34d399;border-radius:8px;padding:10px 12px">'
+                        + '<div style="font-size:0.7em;color:var(--text-secondary);text-transform:uppercase">A receber</div>'
+                        + '<div style="font-size:1.25em;font-weight:800;color:#34d399;margin-top:2px">' + fcBRL(totalEntradas) + '</div>'
+                        + '<div style="font-size:0.72em;color:var(--text-secondary);margin-top:2px">' + qtdEntradas + ' parcela(s)</div>'
+                        + '</div>';
+                }
+                if (tipo === 'saidas' || tipo === 'ambos') {
+                    resumoHtml += '<div style="background:rgba(248,113,113,0.08);border-left:3px solid #f87171;border-radius:8px;padding:10px 12px">'
+                        + '<div style="font-size:0.7em;color:var(--text-secondary);text-transform:uppercase">A pagar</div>'
+                        + '<div style="font-size:1.25em;font-weight:800;color:#f87171;margin-top:2px">' + fcBRL(totalSaidas) + '</div>'
+                        + '<div style="font-size:0.72em;color:var(--text-secondary);margin-top:2px">' + qtdSaidas + ' pagamento(s)</div>'
+                        + '</div>';
+                }
+                if (tipo === 'ambos') {
+                    const corSaldo = saldoFinal < 0 ? '#fca5a5' : (saldoFinal < 5000 ? '#fbbf24' : '#34d399');
+                    resumoHtml += '<div style="background:rgba(255,255,255,0.04);border-left:3px solid ' + corSaldo + ';border-radius:8px;padding:10px 12px">'
+                        + '<div style="font-size:0.7em;color:var(--text-secondary);text-transform:uppercase">Saldo final 14d</div>'
+                        + '<div style="font-size:1.25em;font-weight:800;color:' + corSaldo + ';margin-top:2px">' + fcBRL(saldoFinal) + '</div>'
+                        + '<div style="font-size:0.72em;color:var(--text-secondary);margin-top:2px">Saldo atual: ' + fcBRL(fcDados.saldoInicial || 0) + '</div>'
+                        + '</div>';
+                }
+                resumo.innerHTML = resumoHtml;
+
+                // Filtro de data foco
+                let itensRender = itens;
+                if (focoDataIso) itensRender = itens.filter(i => i.dataIso === focoDataIso);
+
+                // Vazio
+                if (itensRender.length === 0) {
+                    lista.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-secondary);opacity:0.6">Sem itens neste filtro.</div>';
+                    return;
+                }
+
+                // Agrupa por data (cabeçalho de seção)
+                const porData = {};
+                itensRender.forEach(i => { (porData[i.data] = porData[i.data] || []).push(i); });
+                const datasOrdenadas = Object.keys(porData);
+
+                lista.innerHTML = datasOrdenadas.map(data => {
+                    const grupo = porData[data];
+                    const primeiro = grupo[0];
+                    const totDia = grupo.reduce((a, i) => a + (i.tipo === 'entrada' ? (i.paga ? 0 : i.valor) : -(i.paga ? 0 : (i.valorRestante !== undefined ? i.valorRestante : i.valor))), 0);
+                    const corTot = totDia >= 0 ? '#34d399' : '#fca5a5';
+
+                    const header = '<div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 4px;padding:4px 8px;background:rgba(255,255,255,0.02);border-radius:6px"'
+                        + (primeiro.ehHoje ? ' ' : '') + '>'
+                        + '<div style="font-size:0.82em;font-weight:600;color:' + (primeiro.ehHoje ? '#00d4ff' : 'var(--text-secondary)') + '">'
+                        +   (primeiro.diaSemana || '') + ' · ' + data + (primeiro.ehHoje ? ' · HOJE' : '')
+                        + '</div>'
+                        + '<div style="font-size:0.78em;font-weight:700;color:' + corTot + '">' + (totDia >= 0 ? '+' : '') + fcBRL(totDia) + '</div>'
+                        + '</div>';
+
+                    const rows = grupo.map(i => {
+                        const ehEntrada = i.tipo === 'entrada';
+                        const valorMostrar = i.tipo === 'saida' && !i.paga && i.valorRestante !== undefined ? i.valorRestante : i.valor;
+                        const acaoBtn = i.paga
+                            ? '<div style="background:' + (ehEntrada ? '#059669' : '#7c2d12') + ';color:#fff;padding:3px 8px;border-radius:4px;font-size:0.75em;font-weight:700;text-align:center">✓ PAGO</div>'
+                            : '<button class="btn btn-secondary" onclick="' + (ehEntrada ? 'fcMarcarParcelaPaga(' + i.rowIndex + ')' : 'fcMarcarCustoPago(' + i.rowIndex + ',' + (i.valorRestante !== undefined ? i.valorRestante : i.valor) + ')') + '" style="padding:5px 8px;font-size:0.75em;width:100%">✓ marcar pago</button>';
+
+                        return '<div class="fc-det-row ' + (ehEntrada ? 'entrada' : 'saida') + (i.paga ? ' paga' : '') + (i.ehHoje ? ' hoje' : '') + '" data-iso="' + (i.dataIso || '') + '">'
+                            + '<div class="fc-det-data">'
+                            +   '<b>' + (i.data || '').substring(0, 5) + '</b>'
+                            +   '<span style="color:var(--text-secondary);font-size:0.85em">' + fcEsc((i.diaSemana || '').substring(0, 3)) + '</span>'
+                            + '</div>'
+                            + '<div>'
+                            +   '<div style="font-weight:600;font-size:0.92em">' + (ehEntrada ? '📥' : '📤') + ' ' + fcEsc(i.nome || '—') + '</div>'
+                            +   '<div style="font-size:0.78em;color:var(--text-secondary);margin-top:2px">' + fcEsc(i.sub || '') + '</div>'
+                            + '</div>'
+                            + '<div class="fc-det-valor ' + (ehEntrada ? 'entrada' : 'saida') + '">' + (ehEntrada ? '+' : '−') + fcBRL(valorMostrar) + '</div>'
+                            + '<div class="fc-det-acao">' + acaoBtn + '</div>'
+                            + '</div>';
+                    }).join('');
+
+                    return header + rows;
                 }).join('');
             }
 
