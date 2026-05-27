@@ -8644,13 +8644,28 @@ Data: ${h.data}`;
                 }, 400);
             }
 
+            // Invalida todos os caches em localStorage que dependem da parcela alterada,
+            // forçando próxima leitura a ir direto na API. Também dispara refresh das
+            // outras seções (Financeiro/TopoPartners) se estiverem carregadas.
+            function fcInvalidarCachesRelacionados(tipo) {
+                try { localStorage.removeItem('crm_fc_v1'); } catch (e) {}
+                if (tipo === 'entrada') {
+                    try { localStorage.removeItem('crm_fin_parcelas_v1'); } catch (e) {}
+                    if (typeof finRefresh === 'function') finRefresh({ skipCache: true }).catch(() => {});
+                } else if (tipo === 'saida') {
+                    try { localStorage.removeItem('crm_tp_items_v1'); } catch (e) {}
+                    if (typeof tpRefresh === 'function') tpRefresh({ skipCache: true }).catch(() => {});
+                }
+            }
+
             async function fcMarcarParcelaPaga(rowIndex) {
                 // V7.11: feedback INSTANTÂNEO (sem confirm, sem espera)
                 fcTransformarCardPago(rowIndex, 'entrada');
                 try {
                     const r = await finApi('markPaid', { rowIndex: rowIndex });
                     if (r && r.ok) {
-                        fcToast('✅ Parcela marcada como paga', '#34d399');
+                        fcToast('✅ Parcela marcada como paga · Financeiro atualizado', '#34d399');
+                        fcInvalidarCachesRelacionados('entrada');
                         fcRefresh({ skipCache: true });
                     } else {
                         fcToast('❌ Erro: ' + (r && r.error || 'desconhecido'), '#ef4444');
@@ -8673,7 +8688,8 @@ Data: ${h.data}`;
                     const novoPago = (Number(item.valorAcordado) || 0);
                     const r = await finApi('updateTopoPartner', { rowIndex: rowIndex, fields: { valorPago: novoPago, observacoes: (item.observacoes || '') + ' [PAGO via Fluxo de Caixa em ' + new Date().toLocaleDateString('pt-BR') + ']' } });
                     if (r && r.ok) {
-                        fcToast('✅ Pagamento de R$ ' + valorRestante.toLocaleString('pt-BR') + ' confirmado', '#34d399');
+                        fcToast('✅ Pagamento de R$ ' + valorRestante.toLocaleString('pt-BR') + ' · Operação atualizada', '#34d399');
+                        fcInvalidarCachesRelacionados('saida');
                         fcRefresh({ skipCache: true });
                     } else {
                         fcToast('❌ Erro: ' + (r && r.error || 'desconhecido'), '#ef4444');
