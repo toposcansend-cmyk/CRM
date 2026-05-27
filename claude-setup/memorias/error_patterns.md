@@ -15,14 +15,16 @@ metadata:
 
 ## 🆕 Erros descobertos em 26/05/2026 (V7.7-V7.11)
 
-### E009 — `_derivarStatus` recebe objeto em vez de array
+> ⚠️ Renumerados em 26/05 (rotina de auto-conhecimento) — antigos E009/E010/E011 já existiam abaixo.
+
+### E022 — `_derivarStatus` recebe objeto em vez de array
 **Sintoma:** parcelas com `vencimento < hoje` (atrasadas) viram `status = 'Pendente'`. Saldo do dia inflado. Lista de "atrasadas" some.
 **Causa:** `_derivarStatus(row)` espera array bruto da planilha (`row[FIN_COL.dataPagamento - 1]` é índice numérico). Objeto JS retorna `undefined`.
 **Sintoma específico:** `34 parcelas atrasadas R$ 338k` quando `listPayments(filter:'atrasado')` retornava `2 parcelas R$ 22k`.
 **Solução:** sempre passar `row` (array) direto: `var status = _derivarStatus(row);`
 **Aplicado em:** `getCashFlow` V7.10
 
-### E010 — `listTopoPartners` retorna `items` (não `itens`)
+### E023 — `listTopoPartners` retorna `items` (não `itens`)
 **Sintoma:** loop `r.itens.forEach` undefined. Dados existem mas frontend não acha.
 **Causa:** endpoint retorna `items` (inglês), outros retornam `parcelas`/`dias`/etc.
 **Solução:** lista oficial de chaves de retorno:
@@ -37,12 +39,12 @@ metadata:
 | `listAll` | `propostas` |
 | `getLearnings` | `results` ⚠️ |
 
-### E011 — Filtro `status === 'Pago'` esconde pagamentos do dia
+### E024 — Filtro `status === 'Pago'` esconde pagamentos do dia
 **Sintoma:** parcela paga hoje no Financeiro não aparece no Fluxo de Caixa.
 **Causa:** `if (status === 'Pago') return;` descartava TUDO.
 **Solução V7.10:** incluir pagas com `dataPagamento >= hoje`, marcar com `paga: true`. Frontend mostra com badge `✓ PAGO`. NÃO somar no saldo projetado.
 
-### E012 — Memórias não propagam entre PCs (Guilherme ↔ Marcelo)
+### E025 — Memórias não propagam entre PCs (Guilherme ↔ Marcelo)
 **Sintoma:** edição de `.md` em `~/.claude/projects/.../memory/` no PC do Guilherme não aparece no PC do Marcelo.
 **Causa:** memórias são locais por máquina, sem sync automático.
 **Solução V7.11:** ver `claude-setup/MEMORIAS-CHANGELOG.md` no repo + script `verificar-atualizacoes.ps1`.
@@ -383,6 +385,45 @@ Retorna `{"result":{"subdomain":"toposcan"},"success":true}`.
 
 ---
 
+## E026 — PowerShell Add-Content `-Encoding UTF8` injeta BOM em arquivo sem BOM
+
+**Sintoma:** Append a `.md` UTF-8 sem BOM via `Add-Content -Encoding UTF8` produz mistura de bytes — emoji `🤖` no source vira `ðŸ¤–` quando lido depois. Headers de seção criados pelo append ficam corrompidos visualmente.
+
+**Causa raiz:** PowerShell 5.1 `-Encoding UTF8` significa **UTF-8 com BOM**. O arquivo original não tinha BOM. O BOM injetado no meio (não no início) confunde editores e parsers que detectam encoding por heurística.
+
+**Solução:** Use .NET direto com `UTF8Encoding($false)` (parâmetro false = sem BOM):
+```powershell
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::AppendAllText($path, $content, $utf8NoBom)
+```
+
+Alternativa: evitar emojis no append e usar header ASCII (`## Auto-log` em vez de `## 🤖 Auto-log`).
+
+**Detectado em:** 2026-05-26 (post-session.ps1 — primeiro append em metrics.md gerou `ðŸ¤–` no header)
+
+---
+
+## E027 — Edição paralela: outra sessão mexe em arquivo que eu também editava
+
+**Sintoma:** Eu termino uma edição, vou commitar, e percebo via system-reminder *"X was modified, either by the user or by a linter"* que outra sessão (Claude Code do Marcelo, ou claude.ai injetando memory, ou edição manual) tocou o arquivo enquanto eu trabalhava. Ou pior: meu commit dá merge conflict no push.
+
+**Causa raiz:** Sistema Toposcan tem múltiplas instâncias evoluindo o mesmo repo `toposcansend-cmyk/CRM` simultaneamente (2 Claude Codes, 4 IAs gerentes via Aprendizados, edições manuais). Sem coordenação central — apenas Git como event bus.
+
+**Solução (defensiva):**
+1. `git pull origin main` ANTES de qualquer commit substantivo
+2. `git log --oneline -10` pra ver atividade recente
+3. Se vou editar arquivo "sensível" (memórias compartilhadas, MEMORY.md, CHANGELOG, error_patterns), `git log -1 --format='%ci' -- caminho` pra ver última modificação
+4. Se outra sessão modificou recentemente → reler via `Read` antes de editar
+5. Edits MINIMALISTAS via `Edit` (não `Write`) reduzem chance de conflict
+6. Commit IMEDIATO (não acumular várias mudanças)
+7. Se conflito de merge → resolver manual, commit como `merge: integrar evoluções paralelas`
+
+**Aceitar trabalho da outra sessão:** se ela já fez algo que eu IA fazer, aceitar. Não reverter pra "padronizar com meu plano". Ver `[[pattern-parallel-evolution]]` pra detalhes.
+
+**Detectado em:** 2026-05-26 noite (sessão paralela adicionou observability v1.1.0 no MCP server enquanto eu trabalhava em sync script)
+
+---
+
 ## 🆕 Template para novo padrão
 
 ```markdown
@@ -401,8 +442,8 @@ Retorna `{"result":{"subdomain":"toposcan"},"success":true}`.
 
 ## 📊 Estatísticas
 
-- **Total catalogado:** 21 padrões (9 novos em 26/05/2026 — claude.ai automation + Cloudflare Workers + MCP)
-- **Última atualização:** 2026-05-26
-- **Padrões mais comuns:** OAuth/auth (3), UI automation (6 incl. claude.ai), state management (3), Cloudflare/MCP deploy (4), Windows sandboxing (1)
+- **Total catalogado:** 26 padrões únicos (E001-E011 + E013-E027; E012 pulado historicamente)
+- **Última atualização:** 2026-05-26 (noite — E027 = evolução paralela: outra sessão adicionou observability v1.1.0 ao MCP enquanto eu trabalhava no sync script; detectada via system-reminders + git pull)
+- **Padrões mais comuns:** OAuth/auth (3), UI automation (6 incl. claude.ai), state management (3), Cloudflare/MCP deploy (4), Sheets schema (3), PowerShell encoding (2), parallel evolution (1), Windows sandboxing (1)
 
 > ⚠️ Quando errar pela mesma razão duas vezes, ATUALIZE este arquivo IMEDIATAMENTE.

@@ -19,6 +19,29 @@
 
 ## Entradas
 
+### 2026-05-26 (noite tardia) — Lição de evolução paralela (Guilherme + sessão paralela)
+
+**Resumo:** Detectado em tempo real que múltiplas instâncias de Claude Code estavam evoluindo o repo simultaneamente. Enquanto eu (sessão principal Guilherme) trabalhava no `verificar-atualizacoes.ps1` + setup do Marcelo, **outra sessão** entregou paralelamente:
+- `mcp-server/src/index.ts` v1.1.0 com observability (logs estruturados JSON, telemetria por tool_call)
+- `mcp-server/wrangler.toml` com cron `0 */6 * * *` (auto health check 4×/dia) + `[observability] enabled = true`
+- Novos endpoints `/health` (paralelo 3 tools críticas, 503 se falha) e `/metrics`
+- `error_patterns.md` ganhou E022-E026 (Sheets schema + PowerShell BOM)
+- `crm.html` ganhou gráficos + modal de detalhamento Fluxo de Caixa 14d
+
+**Colisão real:** tentei usar E022 — já existia. Renumerei pra E027.
+
+**Arquivos novos:**
+- `pattern_parallel_evolution.md` — receita de como detectar colisões, conviver com múltiplas instâncias, renumerar EXXX, integrar trabalho alheio sem reverter. **Meta-conteúdo:** documenta a própria colisão que sofri criando o documento.
+- Error pattern **E027** — edição paralela: sintoma (system-reminder de file modified), solução (git pull antes de commit, edit minimalista, accept other session's work)
+
+**Arquivos atualizados:**
+- `MEMORY.md` — link novo pra pattern_parallel_evolution + total agora E001-E027 (26 padrões, E012 pulado)
+- `error_patterns.md` — +E027 e nova estatística
+
+**Implicação filosófica:** o Toposcan virou um **sistema multi-agente colaborativo de verdade** — 2 Claude Codes + 4 IAs gerentes + edições manuais commitando em `main` via Git como event bus. Toda futura sessão tem que rodar `git pull` antes de qualquer commit, e checar `git log -10` antes de editar arquivos sensíveis (memórias, MEMORY.md, error_patterns).
+
+---
+
 ### 2026-05-26 (madrugada) — V7.12-MCP: servidor MCP custom + 4 IAs executam ações reais (Guilherme)
 
 **Resumo:** Construído + deployed MCP server em Cloudflare Workers wrappeando o webhook V7.12. 35 ferramentas `crm_*`. Conectado como "Toposcan CRM" na claude.ai (account-level → propagou nos 4 Projects). Beatriz executou `crm_get_cross_kpis` ao vivo — saúde 100, R$127.533, 13 projetos. Lacuna fundamental (claude.ai não tem fetch HTTP arbitrário) **resolvida**.
