@@ -1494,7 +1494,7 @@
         }
         .fc-glass-chart > * { position: relative; z-index: 1; }
 
-        #fcChart svg { display: block; width: 100%; height: auto; max-height: 170px; }
+        #fcChart svg { display: block; width: 100%; height: auto; max-height: 210px; }
         #fcChart .fc-chart-bar { transition: opacity 0.15s; cursor: pointer; }
         #fcChart .fc-chart-bar:hover { opacity: 1 !important; }
         #fcChart .fc-chart-day-hit { cursor: crosshair; }
@@ -8176,8 +8176,8 @@ Data: ${h.data}`;
                 const SLOT = COL + GAP; // 153
                 // Largura: 14 cards × 145 + 13 gaps × 8 = 2134px (idêntica ao timeline)
                 const W = pontos.length * COL + (pontos.length - 1) * GAP;
-                const H = 130;
-                const PT = 16, PB = 16;
+                const H = 160;
+                const PT = 14, PB = 14;
                 const innerH = H - PT - PB;
 
                 // Y scale considerando saldo, saldoInicial e extremos das barras
@@ -8190,7 +8190,7 @@ Data: ${h.data}`;
                 let yMin = Math.min(...valoresY);
                 let yMax = Math.max(...valoresY);
                 if (yMin === yMax) { yMax = yMin + 1000; }
-                const margem = (yMax - yMin) * 0.20;
+                const margem = (yMax - yMin) * 0.18;
                 yMin -= margem; yMax += margem;
                 const yRange = yMax - yMin;
                 const yToPx = v => PT + innerH - ((v - yMin) / yRange) * innerH;
@@ -8204,6 +8204,13 @@ Data: ${h.data}`;
                     pathLine += (i ? ' L ' : 'M ') + xToPx(i).toFixed(1) + ' ' + yToPx(p.saldo).toFixed(1);
                 });
 
+                // Path da ÁREA sob a linha (preenchimento blood gradient)
+                let pathArea = 'M ' + xToPx(0).toFixed(1) + ' ' + (H - PB).toFixed(1);
+                pontos.forEach((p, i) => {
+                    pathArea += ' L ' + xToPx(i).toFixed(1) + ' ' + yToPx(p.saldo).toFixed(1);
+                });
+                pathArea += ' L ' + xToPx(pontos.length - 1).toFixed(1) + ' ' + (H - PB).toFixed(1) + ' Z';
+
                 // Min/Max
                 let idxMin = 0, idxMax = 0;
                 pontos.forEach((p, i) => {
@@ -8212,68 +8219,139 @@ Data: ${h.data}`;
                 });
                 const temNeg = pontos.some(p => p.saldo < 0);
 
-                // Defs: gradient linha sangue + filtro glow vermelho
+                // ─── Y-axis "nice ticks" arredondados (10k, 20k, 30k...) ───
+                function fcNiceStep(range, target) {
+                    const raw = range / target;
+                    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+                    const norm = raw / mag;
+                    if (norm < 1.5) return mag;
+                    if (norm < 3) return mag * 2;
+                    if (norm < 7) return mag * 5;
+                    return mag * 10;
+                }
+                const yStep = fcNiceStep(yRange, 4);
+                const yTickStart = Math.ceil(yMin / yStep) * yStep;
+                const yTicks = [];
+                for (let v = yTickStart; v <= yMax; v += yStep) yTicks.push(v);
+
+                // Defs: gradients + filtros
                 const defs = '<defs>'
+                    // Linha sangue: gradient horizontal
                     + '<linearGradient id="fcBloodLine" x1="0" y1="0" x2="1" y2="0">'
-                    +   '<stop offset="0%" stop-color="#7f1d1d" stop-opacity="0.95"/>'
-                    +   '<stop offset="35%" stop-color="#dc2626" stop-opacity="1"/>'
-                    +   '<stop offset="100%" stop-color="#ef4444" stop-opacity="1"/>'
+                    +   '<stop offset="0%" stop-color="#991b1b" stop-opacity="0.95"/>'
+                    +   '<stop offset="50%" stop-color="#dc2626" stop-opacity="1"/>'
+                    +   '<stop offset="100%" stop-color="#f87171" stop-opacity="1"/>'
                     + '</linearGradient>'
-                    + '<filter id="fcBloodGlow" x="-10%" y="-30%" width="120%" height="160%">'
-                    +   '<feGaussianBlur stdDeviation="1.6" result="b"/>'
-                    +   '<feFlood flood-color="#dc2626" flood-opacity="0.55"/>'
-                    +   '<feComposite in2="b" operator="in" result="g"/>'
-                    +   '<feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>'
+                    // Área sob a linha: vertical fade sangue
+                    + '<linearGradient id="fcBloodArea" x1="0" y1="0" x2="0" y2="1">'
+                    +   '<stop offset="0%" stop-color="#dc2626" stop-opacity="0.22"/>'
+                    +   '<stop offset="60%" stop-color="#7f1d1d" stop-opacity="0.08"/>'
+                    +   '<stop offset="100%" stop-color="#7f1d1d" stop-opacity="0"/>'
+                    + '</linearGradient>'
+                    // Grid line: fade horizontal (transparente nas pontas, sutil no centro)
+                    + '<linearGradient id="fcGridFade" x1="0" y1="0" x2="1" y2="0">'
+                    +   '<stop offset="0%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>'
+                    +   '<stop offset="20%" stop-color="rgba(255,255,255,1)" stop-opacity="0.12"/>'
+                    +   '<stop offset="80%" stop-color="rgba(255,255,255,1)" stop-opacity="0.12"/>'
+                    +   '<stop offset="100%" stop-color="rgba(255,255,255,0)" stop-opacity="0"/>'
+                    + '</linearGradient>'
+                    // Glow vermelho intenso na linha
+                    + '<filter id="fcBloodGlow" x="-5%" y="-50%" width="110%" height="200%">'
+                    +   '<feGaussianBlur stdDeviation="2.5" result="b1"/>'
+                    +   '<feFlood flood-color="#ef4444" flood-opacity="0.75"/>'
+                    +   '<feComposite in2="b1" operator="in" result="g1"/>'
+                    +   '<feGaussianBlur stdDeviation="5" in="SourceGraphic" result="b2"/>'
+                    +   '<feFlood flood-color="#dc2626" flood-opacity="0.35"/>'
+                    +   '<feComposite in2="b2" operator="in" result="g2"/>'
+                    +   '<feMerge>'
+                    +     '<feMergeNode in="g2"/>'
+                    +     '<feMergeNode in="g1"/>'
+                    +     '<feMergeNode in="SourceGraphic"/>'
+                    +   '</feMerge>'
+                    + '</filter>'
+                    // Glow dos dots
+                    + '<filter id="fcDotGlow" x="-100%" y="-100%" width="300%" height="300%">'
+                    +   '<feGaussianBlur stdDeviation="1.8" result="b"/>'
+                    +   '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'
                     + '</filter>'
                     + (temNeg ? '<clipPath id="fcClipNeg"><rect x="0" y="' + yToPx(0).toFixed(1) + '" width="' + W + '" height="' + (H - yToPx(0)).toFixed(1) + '"/></clipPath>' : '')
                     + '</defs>';
 
-                // Linha de referência: saldoInicial (faint dashed branco)
-                const yRefStart = yToPx(saldoInicial);
-                let refs = '<line x1="0" y1="' + yRefStart.toFixed(1) + '" x2="' + W + '" y2="' + yRefStart.toFixed(1) + '" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="2 6"/>';
-                // Linha do zero se houver saldo negativo
+                // ─── Background: faixas verticais sutis pros FDS ───
+                let bgFds = '';
+                pontos.forEach((p, i) => {
+                    if (p.ehFimDeSemana) {
+                        const x = i * SLOT - GAP/2;
+                        bgFds += '<rect x="' + Math.max(0, x).toFixed(1) + '" y="0" width="' + SLOT + '" height="' + H + '" fill="rgba(100,116,139,0.04)"/>';
+                    }
+                });
+
+                // ─── Grid horizontal: gridlines com gradient fade + labels Y arredondados ───
+                let grid = '';
+                yTicks.forEach(v => {
+                    const y = yToPx(v);
+                    // Halo: linha grossa borrada
+                    grid += '<line x1="0" y1="' + y.toFixed(1) + '" x2="' + W + '" y2="' + y.toFixed(1) + '" stroke="rgba(255,255,255,0.04)" stroke-width="4"/>';
+                    // Linha nítida com gradient fade
+                    grid += '<line x1="0" y1="' + y.toFixed(1) + '" x2="' + W + '" y2="' + y.toFixed(1) + '" stroke="url(#fcGridFade)" stroke-width="1" stroke-dasharray="3 7"/>';
+                    // Label do valor — repete a cada 3 colunas pra aparecer mesmo scrollando
+                    for (let xLabel = 8; xLabel < W; xLabel += SLOT * 3) {
+                        grid += '<text x="' + xLabel + '" y="' + (y - 4).toFixed(1) + '" fill="rgba(255,255,255,0.45)" font-size="9" font-weight="600" font-family="system-ui,sans-serif" style="text-shadow:0 1px 3px rgba(0,0,0,0.9)">R$ ' + fcFmtCompact(v) + '</text>';
+                    }
+                });
+
+                // Linha do ZERO se houver saldo negativo
                 if (yMin < 0 && yMax > 0) {
                     const yZ = yToPx(0);
-                    refs += '<line x1="0" y1="' + yZ.toFixed(1) + '" x2="' + W + '" y2="' + yZ.toFixed(1) + '" stroke="rgba(248,113,113,0.35)" stroke-width="1" stroke-dasharray="3 4"/>';
+                    grid += '<line x1="0" y1="' + yZ.toFixed(1) + '" x2="' + W + '" y2="' + yZ.toFixed(1) + '" stroke="rgba(248,113,113,0.45)" stroke-width="1.2" stroke-dasharray="4 4"/>';
                 }
 
+                // Linha de referência: saldoInicial (linha cyan sutil)
+                const yRefStart = yToPx(saldoInicial);
+                grid += '<line x1="0" y1="' + yRefStart.toFixed(1) + '" x2="' + W + '" y2="' + yRefStart.toFixed(1) + '" stroke="rgba(0,212,255,0.22)" stroke-width="1" stroke-dasharray="1 4"/>';
+
                 // Barras finas (entradas verde acima, saídas laranja abaixo do saldo anterior)
-                const barW = 3;
+                const barW = 3.5;
                 let bars = '';
                 pontos.forEach((p, i) => {
                     const x = xToPx(i);
                     if (p.entradas > 0) {
                         const yTop = yToPx(p.saldoAnterior + p.entradas);
                         const yBot = yToPx(p.saldoAnterior);
-                        bars += '<rect class="fc-chart-bar" x="' + (x - barW - 1).toFixed(1) + '" y="' + Math.min(yTop, yBot).toFixed(1) + '" width="' + barW + '" height="' + Math.abs(yBot - yTop).toFixed(1) + '" fill="#22c55e" opacity="0.85" rx="1"><title>' + p.rotulo + ' · entrada +' + fcBRL(p.entradas) + '</title></rect>';
+                        bars += '<rect class="fc-chart-bar" x="' + (x - barW - 1).toFixed(1) + '" y="' + Math.min(yTop, yBot).toFixed(1) + '" width="' + barW + '" height="' + Math.abs(yBot - yTop).toFixed(1) + '" fill="#22c55e" opacity="0.92" rx="1.5"><title>' + p.rotulo + ' · entrada +' + fcBRL(p.entradas) + '</title></rect>';
                     }
                     if (p.saidas > 0) {
                         const yTop = yToPx(p.saldoAnterior);
                         const yBot = yToPx(p.saldoAnterior - p.saidas);
-                        bars += '<rect class="fc-chart-bar" x="' + (x + 1).toFixed(1) + '" y="' + Math.min(yTop, yBot).toFixed(1) + '" width="' + barW + '" height="' + Math.abs(yBot - yTop).toFixed(1) + '" fill="#fb923c" opacity="0.85" rx="1"><title>' + p.rotulo + ' · saída -' + fcBRL(p.saidas) + '</title></rect>';
+                        bars += '<rect class="fc-chart-bar" x="' + (x + 1).toFixed(1) + '" y="' + Math.min(yTop, yBot).toFixed(1) + '" width="' + barW + '" height="' + Math.abs(yBot - yTop).toFixed(1) + '" fill="#fb923c" opacity="0.92" rx="1.5"><title>' + p.rotulo + ' · saída -' + fcBRL(p.saidas) + '</title></rect>';
                     }
                 });
 
-                // Filete fino de sangue
-                const line = '<path d="' + pathLine + '" fill="none" stroke="url(#fcBloodLine)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#fcBloodGlow)"/>';
+                // Área sob a linha (preenchimento blood gradient)
+                const area = '<path d="' + pathArea + '" fill="url(#fcBloodArea)" stroke="none"/>';
 
-                // Dots minúsculos + hits + anotações
+                // Filete fino de sangue COM GLOW INTENSO
+                const line = '<path d="' + pathLine + '" fill="none" stroke="url(#fcBloodLine)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#fcBloodGlow)"/>';
+
+                // Dots com glow + hits + anotações
                 let dots = '', hits = '', anots = '';
                 pontos.forEach((p, i) => {
                     const x = xToPx(i), y = yToPx(p.saldo);
                     const ehMin = (i === idxMin), ehMax = (i === idxMax);
-                    let r = 1.6, fill = '#dc2626', stroke = 'rgba(15,23,42,0.95)';
-                    if (p.ehHoje) { r = 2.8; fill = '#00d4ff'; }
-                    else if ((ehMin && p.saldo < saldoInicial) || (ehMax && p.saldo > saldoInicial)) { r = 2.4; fill = '#fbbf24'; }
-                    dots += '<circle class="fc-chart-dot" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="0.8"/>';
+                    let r = 2.2, fill = '#ef4444', stroke = 'rgba(15,23,42,0.95)';
+                    let useGlow = false;
+                    if (p.ehHoje) { r = 3.5; fill = '#00d4ff'; useGlow = true; }
+                    else if ((ehMin && p.saldo < saldoInicial) || (ehMax && p.saldo > saldoInicial)) { r = 3; fill = '#fbbf24'; useGlow = true; }
+                    const glowAttr = useGlow ? ' filter="url(#fcDotGlow)"' : '';
+                    dots += '<circle class="fc-chart-dot" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="0.8"' + glowAttr + '/>';
 
                     // Anotação compacta
                     if (p.ehHoje) {
-                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle" fill="#00d4ff" font-size="8" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,0.8)">HOJE</text>';
+                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y - 8).toFixed(1) + '" text-anchor="middle" fill="#00d4ff" font-size="9" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 3px rgba(0,0,0,0.9)">HOJE</text>';
                     } else if (ehMin && p.saldo < saldoInicial) {
-                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y + 11).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="8" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,0.9)">▼' + fcFmtCompact(p.saldo) + '</text>';
+                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y + 13).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 3px rgba(0,0,0,0.95)">▼ ' + fcFmtCompact(p.saldo) + '</text>';
                     } else if (ehMax && p.saldo > saldoInicial) {
-                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="8" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,0.9)">▲' + fcFmtCompact(p.saldo) + '</text>';
+                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y - 8).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 3px rgba(0,0,0,0.95)">▲ ' + fcFmtCompact(p.saldo) + '</text>';
                     }
 
                     // Hit area
@@ -8286,11 +8364,8 @@ Data: ${h.data}`;
                         + ' data-dataiso="' + (p.dataIso || '') + '"/>';
                 });
 
-                // Label do saldoInicial (canto esquerdo, discreto)
-                const refLabel = '<text x="6" y="' + (yRefStart - 3).toFixed(1) + '" fill="rgba(255,255,255,0.4)" font-size="8" font-family="system-ui,sans-serif" font-weight="500">início ' + fcFmtCompact(saldoInicial) + '</text>';
-
                 const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">'
-                    + defs + refs + refLabel + bars + line + dots + anots + hits
+                    + defs + bgFds + grid + area + bars + line + dots + anots + hits
                     + '</svg>'
                     + '<div class="fc-tooltip" id="fcChartTooltip"></div>';
 
