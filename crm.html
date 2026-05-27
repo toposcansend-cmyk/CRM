@@ -1446,7 +1446,7 @@
         }
 
         /* Modal de Edicao */
-        /* ── Fluxo de Caixa: cards clicáveis + gráfico SVG ── */
+        /* ── Fluxo de Caixa: cards clicáveis + gráfico SVG vidro/sangue ── */
         .fc-card-clickable:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(0,212,255,0.12);
@@ -1454,13 +1454,52 @@
         }
         .fc-card-clickable:active { transform: translateY(0); }
 
-        #fcChart svg { display: block; width: 100%; height: auto; }
+        /* Container "vidro" do gráfico — efeito 3D com gradients + inner shadows */
+        .fc-glass-chart {
+            position: relative;
+            background:
+                linear-gradient(135deg, rgba(20,30,48,0.55) 0%, rgba(2,6,23,0.85) 100%),
+                radial-gradient(ellipse at top, rgba(220,38,38,0.04), transparent 60%) !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            border-top-color: rgba(255,255,255,0.18) !important;
+            border-bottom-color: rgba(0,0,0,0.6) !important;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                inset 0 -1px 0 rgba(0,0,0,0.4),
+                inset 0 0 60px rgba(0,0,0,0.35),
+                0 10px 30px -10px rgba(220,38,38,0.10),
+                0 2px 12px rgba(0,0,0,0.45) !important;
+            overflow: hidden;
+        }
+        /* Brilho superior (reflexo do vidro) */
+        .fc-glass-chart::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 55%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 50%, transparent 100%);
+            pointer-events: none;
+            border-radius: inherit;
+            z-index: 0;
+        }
+        /* Vinheta (escurece bordas pra dar profundidade) */
+        .fc-glass-chart::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 85% 65% at 50% 45%, transparent 30%, rgba(0,0,0,0.55) 100%);
+            pointer-events: none;
+            border-radius: inherit;
+            z-index: 0;
+        }
+        .fc-glass-chart > * { position: relative; z-index: 1; }
+
+        #fcChart svg { display: block; width: 100%; height: auto; max-height: 170px; }
         #fcChart .fc-chart-bar { transition: opacity 0.15s; cursor: pointer; }
         #fcChart .fc-chart-bar:hover { opacity: 1 !important; }
         #fcChart .fc-chart-day-hit { cursor: crosshair; }
-        #fcChart .fc-chart-day-hit:hover ~ .fc-chart-tooltip { opacity: 1; }
         #fcChart .fc-chart-dot { transition: r 0.15s; cursor: pointer; }
-        #fcChart .fc-chart-dot:hover { r: 6; }
+        #fcChart .fc-chart-dot:hover { r: 4; }
         .fc-tooltip {
             position: absolute;
             pointer-events: none;
@@ -3116,18 +3155,20 @@
                 </div>
             </div>
 
-            <!-- LINHA 1.5: Gráfico SVG de saldo projetado (14 dias) -->
-            <div class="card" style="margin-bottom:18px;padding:14px 14px 6px 14px">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px">
-                    <div style="font-weight:600">📈 Saldo projetado · oscilação diária</div>
-                    <div id="fcChartLegend" style="font-size:0.72em;color:var(--text-secondary);display:flex;gap:14px;flex-wrap:wrap">
-                        <span><span style="display:inline-block;width:10px;height:10px;background:#00d4ff;border-radius:50%;vertical-align:middle"></span> saldo</span>
-                        <span><span style="display:inline-block;width:10px;height:6px;background:#34d399;vertical-align:middle"></span> entradas</span>
-                        <span><span style="display:inline-block;width:10px;height:6px;background:#f87171;vertical-align:middle"></span> saídas</span>
+            <!-- LINHA 1.5: Gráfico SVG de saldo projetado (14 dias) — vidro/sangue -->
+            <div class="card fc-glass-chart" style="margin-bottom:18px;padding:10px 22px 4px 22px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px;padding:0 6px">
+                    <div style="font-weight:600;font-size:0.88em;text-shadow:0 1px 2px rgba(0,0,0,0.6)">📈 Saldo projetado · oscilação 14d</div>
+                    <div id="fcChartLegend" style="font-size:0.7em;color:var(--text-secondary);display:flex;gap:12px;flex-wrap:wrap">
+                        <span><span style="display:inline-block;width:14px;height:2px;background:linear-gradient(90deg,#7f1d1d,#ef4444);vertical-align:middle;box-shadow:0 0 4px rgba(220,38,38,0.6)"></span> saldo</span>
+                        <span><span style="display:inline-block;width:3px;height:9px;background:#22c55e;vertical-align:middle"></span> entradas</span>
+                        <span><span style="display:inline-block;width:3px;height:9px;background:#fb923c;vertical-align:middle"></span> saídas</span>
                     </div>
                 </div>
-                <div id="fcChart" style="width:100%;position:relative">
-                    <div style="padding:30px;text-align:center;color:var(--text-secondary);opacity:0.6">Carregando gráfico…</div>
+                <div id="fcChartScroll" style="overflow-x:auto;overflow-y:hidden;padding-bottom:2px">
+                    <div id="fcChart" style="width:100%;min-width:2134px;position:relative">
+                        <div style="padding:30px;text-align:center;color:var(--text-secondary);opacity:0.5;font-size:0.85em">Carregando gráfico…</div>
+                    </div>
                 </div>
             </div>
 
@@ -8091,6 +8132,9 @@ Data: ${h.data}`;
                 // ─── Gráfico SVG do saldo projetado (14 dias) ───
                 fcRenderChart(proximos14, d.saldoInicial);
 
+                // ─── Sincroniza scroll horizontal entre gráfico e timeline ───
+                fcWireScrollSync();
+
                 // ─── Re-render modal se aberto ───
                 const modalAberto = document.getElementById('fcDetalheModal');
                 if (modalAberto && modalAberto.classList.contains('active')) {
@@ -8099,25 +8143,26 @@ Data: ${h.data}`;
             }
 
             // ═══════════════════════════════════════════════════════════════
-            // GRÁFICO SVG — saldo projetado dia-a-dia (14 dias)
+            // GRÁFICO SVG — filete fino de sangue, vidro 3D (14 dias)
             // ═══════════════════════════════════════════════════════════════
             function fcRenderChart(dias, saldoInicial) {
                 const host = document.getElementById('fcChart');
                 if (!host) return;
                 if (!dias || !dias.length) { host.innerHTML = '<div style="padding:30px;text-align:center;color:var(--text-secondary)">Sem dados</div>'; return; }
 
-                // Constrói série: ponto 0 = "Hoje" (saldoInicial), depois cada dia acumulado
-                // Cada dia: saldoFinalDia = saldoAnterior + entradasPendentes - saidasPendentes
-                const pontos = [{ rotulo: 'Hoje', diaSemana: '', saldo: saldoInicial, entradas: 0, saidas: 0, ehHoje: true, dataIso: '' }];
+                // Constrói série — 14 pontos (END-OF-DAY balance). Sem "Hoje" virtual: alinha 1:1 com cards abaixo.
+                const pontos = [];
                 let saldoAcc = saldoInicial;
                 dias.forEach(dia => {
                     const ent = (dia.totalEntradasPendentes !== undefined ? dia.totalEntradasPendentes : dia.totalEntradas) || 0;
                     const sai = (dia.totalSaidasPendentes !== undefined ? dia.totalSaidasPendentes : dia.totalSaidas) || 0;
+                    const saldoAnt = saldoAcc;
                     saldoAcc = saldoAcc + ent - sai;
                     pontos.push({
                         rotulo: dia.data ? dia.data.substring(0, 5) : '',
                         diaSemana: dia.diaSemana || '',
                         saldo: saldoAcc,
+                        saldoAnterior: saldoAnt,
                         entradas: ent,
                         saidas: sai,
                         ehHoje: !!dia.ehHoje,
@@ -8126,148 +8171,126 @@ Data: ${h.data}`;
                     });
                 });
 
-                // Dimensões viewBox
-                const W = 1000, H = 280;
-                const PL = 60, PR = 24, PT = 18, PB = 50;
-                const innerW = W - PL - PR;
+                // ViewBox espelhando o layout dos cards abaixo (card=145px + gap=8px)
+                const COL = 145, GAP = 8;
+                const SLOT = COL + GAP; // 153
+                // Largura: 14 cards × 145 + 13 gaps × 8 = 2134px (idêntica ao timeline)
+                const W = pontos.length * COL + (pontos.length - 1) * GAP;
+                const H = 130;
+                const PT = 16, PB = 16;
                 const innerH = H - PT - PB;
 
-                // Escala Y considerando saldo + barras
-                const saldos = pontos.map(p => p.saldo);
-                const valoresMovExtra = [];
-                pontos.forEach(p => { if (p.entradas) valoresMovExtra.push(p.saldo + p.entradas); if (p.saidas) valoresMovExtra.push(p.saldo - p.saidas); });
-                let yMin = Math.min(0, ...saldos, ...valoresMovExtra);
-                let yMax = Math.max(0, ...saldos, ...valoresMovExtra);
+                // Y scale considerando saldo, saldoInicial e extremos das barras
+                const valoresY = [saldoInicial];
+                pontos.forEach(p => {
+                    valoresY.push(p.saldo);
+                    if (p.entradas) valoresY.push(p.saldoAnterior + p.entradas);
+                    if (p.saidas) valoresY.push(p.saldoAnterior - p.saidas);
+                });
+                let yMin = Math.min(...valoresY);
+                let yMax = Math.max(...valoresY);
                 if (yMin === yMax) { yMax = yMin + 1000; }
-                const margem = (yMax - yMin) * 0.12;
+                const margem = (yMax - yMin) * 0.20;
                 yMin -= margem; yMax += margem;
                 const yRange = yMax - yMin;
                 const yToPx = v => PT + innerH - ((v - yMin) / yRange) * innerH;
-                const stepX = innerW / (pontos.length - 1);
-                const xToPx = i => PL + i * stepX;
-                const zeroY = yToPx(0);
-                const barW = Math.min(10, stepX * 0.18);
 
-                // Path do saldo (linha)
+                // X = centro do card i (alinha 1:1 com o centro do card-dia abaixo)
+                const xToPx = i => i * SLOT + COL / 2;
+
+                // Path da linha (saldo)
                 let pathLine = '';
-                pontos.forEach((p, i) => { pathLine += (i ? ' L ' : 'M ') + xToPx(i).toFixed(1) + ' ' + yToPx(p.saldo).toFixed(1); });
-                // Path da área (preenchida até o zero / até o min)
-                const baselineY = (yMin < 0 ? zeroY : yToPx(yMin));
-                let pathArea = 'M ' + xToPx(0).toFixed(1) + ' ' + baselineY.toFixed(1);
-                pontos.forEach((p, i) => { pathArea += ' L ' + xToPx(i).toFixed(1) + ' ' + yToPx(p.saldo).toFixed(1); });
-                pathArea += ' L ' + xToPx(pontos.length - 1).toFixed(1) + ' ' + baselineY.toFixed(1) + ' Z';
+                pontos.forEach((p, i) => {
+                    pathLine += (i ? ' L ' : 'M ') + xToPx(i).toFixed(1) + ' ' + yToPx(p.saldo).toFixed(1);
+                });
 
-                // Path área negativa (parte abaixo do zero) — clip
-                const temNeg = saldos.some(s => s < 0);
-
-                // Min e Max do saldo (excluindo "Hoje" se for único)
+                // Min/Max
                 let idxMin = 0, idxMax = 0;
                 pontos.forEach((p, i) => {
                     if (p.saldo < pontos[idxMin].saldo) idxMin = i;
                     if (p.saldo > pontos[idxMax].saldo) idxMax = i;
                 });
+                const temNeg = pontos.some(p => p.saldo < 0);
 
-                // Y ticks
-                const tickCount = 4;
-                let ticks = [];
-                for (let i = 0; i <= tickCount; i++) {
-                    const v = yMin + (yRange * i / tickCount);
-                    ticks.push({ v: v, y: yToPx(v) });
-                }
-
-                // Gradientes
+                // Defs: gradient linha sangue + filtro glow vermelho
                 const defs = '<defs>'
-                    + '<linearGradient id="fcGradPos" x1="0" y1="0" x2="0" y2="1">'
-                    +   '<stop offset="0%" stop-color="#34d399" stop-opacity="0.45"/>'
-                    +   '<stop offset="100%" stop-color="#34d399" stop-opacity="0.02"/>'
+                    + '<linearGradient id="fcBloodLine" x1="0" y1="0" x2="1" y2="0">'
+                    +   '<stop offset="0%" stop-color="#7f1d1d" stop-opacity="0.95"/>'
+                    +   '<stop offset="35%" stop-color="#dc2626" stop-opacity="1"/>'
+                    +   '<stop offset="100%" stop-color="#ef4444" stop-opacity="1"/>'
                     + '</linearGradient>'
-                    + '<linearGradient id="fcGradLine" x1="0" y1="0" x2="0" y2="1">'
-                    +   '<stop offset="0%" stop-color="#00d4ff" stop-opacity="1"/>'
-                    +   '<stop offset="100%" stop-color="#00d4ff" stop-opacity="0.7"/>'
-                    + '</linearGradient>'
-                    + (temNeg ? '<clipPath id="fcClipNeg"><rect x="0" y="' + zeroY.toFixed(1) + '" width="' + W + '" height="' + (H - zeroY).toFixed(1) + '"/></clipPath>' : '')
+                    + '<filter id="fcBloodGlow" x="-10%" y="-30%" width="120%" height="160%">'
+                    +   '<feGaussianBlur stdDeviation="1.6" result="b"/>'
+                    +   '<feFlood flood-color="#dc2626" flood-opacity="0.55"/>'
+                    +   '<feComposite in2="b" operator="in" result="g"/>'
+                    +   '<feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>'
+                    + '</filter>'
+                    + (temNeg ? '<clipPath id="fcClipNeg"><rect x="0" y="' + yToPx(0).toFixed(1) + '" width="' + W + '" height="' + (H - yToPx(0)).toFixed(1) + '"/></clipPath>' : '')
                     + '</defs>';
 
-                // Linhas de grade + labels Y
-                let grid = '';
-                ticks.forEach(t => {
-                    grid += '<line x1="' + PL + '" y1="' + t.y.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + t.y.toFixed(1) + '" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>';
-                    grid += '<text x="' + (PL - 8) + '" y="' + (t.y + 4).toFixed(1) + '" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="10" font-family="system-ui,sans-serif">' + fcFmtCompact(t.v) + '</text>';
-                });
-                // Linha do zero destacada
+                // Linha de referência: saldoInicial (faint dashed branco)
+                const yRefStart = yToPx(saldoInicial);
+                let refs = '<line x1="0" y1="' + yRefStart.toFixed(1) + '" x2="' + W + '" y2="' + yRefStart.toFixed(1) + '" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="2 6"/>';
+                // Linha do zero se houver saldo negativo
                 if (yMin < 0 && yMax > 0) {
-                    grid += '<line x1="' + PL + '" y1="' + zeroY.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgba(248,113,113,0.4)" stroke-width="1" stroke-dasharray="3 4"/>';
+                    const yZ = yToPx(0);
+                    refs += '<line x1="0" y1="' + yZ.toFixed(1) + '" x2="' + W + '" y2="' + yZ.toFixed(1) + '" stroke="rgba(248,113,113,0.35)" stroke-width="1" stroke-dasharray="3 4"/>';
                 }
 
-                // Barras de entradas (verde, pra cima) e saídas (vermelho, pra baixo)
+                // Barras finas (entradas verde acima, saídas laranja abaixo do saldo anterior)
+                const barW = 3;
                 let bars = '';
                 pontos.forEach((p, i) => {
-                    if (i === 0) return; // pula "Hoje"
                     const x = xToPx(i);
                     if (p.entradas > 0) {
-                        const ySaldo = yToPx(p.saldo);
-                        const yBaseEnt = yToPx(p.saldo - p.entradas); // base = saldo do dia ANTERIOR
-                        bars += '<rect class="fc-chart-bar" x="' + (x - barW - 1).toFixed(1) + '" y="' + Math.min(ySaldo, yBaseEnt).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.abs(yBaseEnt - ySaldo).toFixed(1) + '" fill="#34d399" opacity="0.7" rx="2">'
-                            + '<title>' + p.rotulo + ' · entrada +' + fcBRL(p.entradas) + '</title></rect>';
+                        const yTop = yToPx(p.saldoAnterior + p.entradas);
+                        const yBot = yToPx(p.saldoAnterior);
+                        bars += '<rect class="fc-chart-bar" x="' + (x - barW - 1).toFixed(1) + '" y="' + Math.min(yTop, yBot).toFixed(1) + '" width="' + barW + '" height="' + Math.abs(yBot - yTop).toFixed(1) + '" fill="#22c55e" opacity="0.85" rx="1"><title>' + p.rotulo + ' · entrada +' + fcBRL(p.entradas) + '</title></rect>';
                     }
                     if (p.saidas > 0) {
-                        const ySaldo = yToPx(p.saldo);
-                        const yBaseSai = yToPx(p.saldo + p.saidas);
-                        bars += '<rect class="fc-chart-bar" x="' + (x + 1).toFixed(1) + '" y="' + Math.min(ySaldo, yBaseSai).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + Math.abs(yBaseSai - ySaldo).toFixed(1) + '" fill="#f87171" opacity="0.7" rx="2">'
-                            + '<title>' + p.rotulo + ' · saída -' + fcBRL(p.saidas) + '</title></rect>';
+                        const yTop = yToPx(p.saldoAnterior);
+                        const yBot = yToPx(p.saldoAnterior - p.saidas);
+                        bars += '<rect class="fc-chart-bar" x="' + (x + 1).toFixed(1) + '" y="' + Math.min(yTop, yBot).toFixed(1) + '" width="' + barW + '" height="' + Math.abs(yBot - yTop).toFixed(1) + '" fill="#fb923c" opacity="0.85" rx="1"><title>' + p.rotulo + ' · saída -' + fcBRL(p.saidas) + '</title></rect>';
                     }
                 });
 
-                // Área (positiva) + área negativa (vermelho)
-                let area = '<path d="' + pathArea + '" fill="url(#fcGradPos)" stroke="none"/>';
-                if (temNeg) {
-                    area += '<path d="' + pathArea + '" fill="rgba(248,113,113,0.35)" stroke="none" clip-path="url(#fcClipNeg)"/>';
-                }
+                // Filete fino de sangue
+                const line = '<path d="' + pathLine + '" fill="none" stroke="url(#fcBloodLine)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#fcBloodGlow)"/>';
 
-                // Linha do saldo
-                const line = '<path d="' + pathLine + '" fill="none" stroke="url(#fcGradLine)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-
-                // Dots + invisible hit areas pra hover/click
-                let dots = '', hits = '';
+                // Dots minúsculos + hits + anotações
+                let dots = '', hits = '', anots = '';
                 pontos.forEach((p, i) => {
                     const x = xToPx(i), y = yToPx(p.saldo);
-                    const isExtremo = (i === idxMin && idxMin !== 0) || (i === idxMax && idxMax !== 0);
-                    const corDot = p.ehHoje ? '#00d4ff' : (p.saldo < 0 ? '#f87171' : (isExtremo ? '#fbbf24' : '#00d4ff'));
-                    const rDot = (p.ehHoje || isExtremo) ? 5 : 3.5;
-                    dots += '<circle class="fc-chart-dot" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + rDot + '" fill="' + corDot + '" stroke="rgba(15,23,42,0.9)" stroke-width="1.5"/>';
-                    // Hit area pra tooltip
-                    const tip = fcEsc(p.rotulo) + (p.diaSemana ? ' (' + fcEsc(p.diaSemana) + ')' : '') + '<br><b>saldo: ' + fcBRL(p.saldo) + '</b>'
-                        + (p.entradas ? '<br><span style="color:#34d399">+' + fcBRL(p.entradas) + ' entradas</span>' : '')
-                        + (p.saidas ? '<br><span style="color:#f87171">-' + fcBRL(p.saidas) + ' saídas</span>' : '');
-                    hits += '<rect class="fc-chart-day-hit" x="' + (x - stepX/2).toFixed(1) + '" y="' + PT + '" width="' + stepX.toFixed(1) + '" height="' + innerH + '" fill="transparent"'
+                    const ehMin = (i === idxMin), ehMax = (i === idxMax);
+                    let r = 1.6, fill = '#dc2626', stroke = 'rgba(15,23,42,0.95)';
+                    if (p.ehHoje) { r = 2.8; fill = '#00d4ff'; }
+                    else if ((ehMin && p.saldo < saldoInicial) || (ehMax && p.saldo > saldoInicial)) { r = 2.4; fill = '#fbbf24'; }
+                    dots += '<circle class="fc-chart-dot" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="0.8"/>';
+
+                    // Anotação compacta
+                    if (p.ehHoje) {
+                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle" fill="#00d4ff" font-size="8" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,0.8)">HOJE</text>';
+                    } else if (ehMin && p.saldo < saldoInicial) {
+                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y + 11).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="8" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,0.9)">▼' + fcFmtCompact(p.saldo) + '</text>';
+                    } else if (ehMax && p.saldo > saldoInicial) {
+                        anots += '<text x="' + x.toFixed(1) + '" y="' + (y - 6).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="8" font-weight="700" font-family="system-ui,sans-serif" style="text-shadow:0 1px 2px rgba(0,0,0,0.9)">▲' + fcFmtCompact(p.saldo) + '</text>';
+                    }
+
+                    // Hit area
+                    const tip = fcEsc(p.rotulo) + (p.diaSemana ? ' · ' + fcEsc(p.diaSemana) : '') + '<br><b>saldo: ' + fcBRL(p.saldo) + '</b>'
+                        + (p.entradas ? '<br><span style="color:#22c55e">+' + fcBRL(p.entradas) + '</span>' : '')
+                        + (p.saidas ? '<br><span style="color:#fb923c">-' + fcBRL(p.saidas) + '</span>' : '');
+                    hits += '<rect class="fc-chart-day-hit" x="' + (i * SLOT).toFixed(1) + '" y="0" width="' + SLOT + '" height="' + H + '" fill="transparent"'
                         + ' data-tip="' + tip.replace(/"/g, '&quot;') + '"'
                         + ' data-x="' + x.toFixed(1) + '" data-y="' + y.toFixed(1) + '"'
-                        + ' data-dataiso="' + (p.dataIso || '') + '"'
-                        + '/>';
-                    // Marcador MIN/MAX/HOJE
-                    if (p.ehHoje) {
-                        dots += '<text x="' + x.toFixed(1) + '" y="' + (y - 12).toFixed(1) + '" text-anchor="middle" fill="#00d4ff" font-size="10" font-weight="700" font-family="system-ui,sans-serif">HOJE</text>';
-                    } else if (i === idxMin && pontos[idxMin].saldo < saldoInicial) {
-                        dots += '<text x="' + x.toFixed(1) + '" y="' + (y + 18).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="700" font-family="system-ui,sans-serif">▼ MIN ' + fcFmtCompact(p.saldo) + '</text>';
-                    } else if (i === idxMax && pontos[idxMax].saldo > saldoInicial) {
-                        dots += '<text x="' + x.toFixed(1) + '" y="' + (y - 12).toFixed(1) + '" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="700" font-family="system-ui,sans-serif">▲ MAX ' + fcFmtCompact(p.saldo) + '</text>';
-                    }
+                        + ' data-dataiso="' + (p.dataIso || '') + '"/>';
                 });
 
-                // Labels X (datas) — todos os dias
-                let labelsX = '';
-                pontos.forEach((p, i) => {
-                    const x = xToPx(i);
-                    const cor = p.ehHoje ? '#00d4ff' : (p.ehFimDeSemana ? 'rgba(148,163,184,0.55)' : 'rgba(255,255,255,0.55)');
-                    const fw = p.ehHoje ? '700' : '500';
-                    labelsX += '<text x="' + x.toFixed(1) + '" y="' + (H - PB + 16) + '" text-anchor="middle" fill="' + cor + '" font-size="10" font-weight="' + fw + '" font-family="system-ui,sans-serif">' + fcEsc(p.rotulo) + '</text>';
-                    if (p.diaSemana) {
-                        labelsX += '<text x="' + x.toFixed(1) + '" y="' + (H - PB + 30) + '" text-anchor="middle" fill="rgba(255,255,255,0.32)" font-size="9" font-family="system-ui,sans-serif">' + fcEsc(p.diaSemana.substring(0,3)) + '</text>';
-                    }
-                });
+                // Label do saldoInicial (canto esquerdo, discreto)
+                const refLabel = '<text x="6" y="' + (yRefStart - 3).toFixed(1) + '" fill="rgba(255,255,255,0.4)" font-size="8" font-family="system-ui,sans-serif" font-weight="500">início ' + fcFmtCompact(saldoInicial) + '</text>';
 
-                const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" style="max-height:320px">'
-                    + defs + grid + area + bars + line + dots + hits + labelsX
+                const svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet">'
+                    + defs + refs + refLabel + bars + line + dots + anots + hits
                     + '</svg>'
                     + '<div class="fc-tooltip" id="fcChartTooltip"></div>';
 
@@ -8299,6 +8322,28 @@ Data: ${h.data}`;
                         if (iso) fcAbrirDetalhe('ambos', iso);
                     });
                 });
+            }
+
+            let fcScrollSyncBound = false;
+            function fcWireScrollSync() {
+                if (fcScrollSyncBound) return;
+                const a = document.getElementById('fcChartScroll');
+                const b = document.getElementById('fcTimelineHorizontal');
+                if (!a || !b) return;
+                // Sync usa "idempotência": se dst já está no scrollLeft correto, não escreve
+                // (evita feedback loop sem precisar de flag temporal/RAF)
+                const onScroll = (src, dst) => () => {
+                    const sMax = src.scrollWidth - src.clientWidth;
+                    const dMax = dst.scrollWidth - dst.clientWidth;
+                    if (sMax <= 0 || dMax <= 0) return;
+                    const alvo = (src.scrollLeft / sMax) * dMax;
+                    if (Math.abs(dst.scrollLeft - alvo) > 0.5) {
+                        dst.scrollLeft = alvo;
+                    }
+                };
+                a.addEventListener('scroll', onScroll(a, b), { passive: true });
+                b.addEventListener('scroll', onScroll(b, a), { passive: true });
+                fcScrollSyncBound = true;
             }
 
             function fcFmtCompact(n) {
