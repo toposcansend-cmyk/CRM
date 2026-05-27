@@ -8658,13 +8658,63 @@ Data: ${h.data}`;
                 }
             }
 
+            // Procura uma parcela (entrada/saida) por rowIndex em fcDados e retorna {valor, nome}
+            function fcLookupParcela(rowIndex, tipo) {
+                if (!fcDados || !fcDados.dias) return null;
+                for (const dia of fcDados.dias) {
+                    if (tipo === 'entrada') {
+                        for (const e of (dia.entradas || [])) {
+                            if (e.rowIndex == rowIndex) return { valor: Number(e.valor) || 0, nome: e.cliente, paga: !!e.paga };
+                        }
+                    } else {
+                        for (const s of (dia.saidas || [])) {
+                            if (s.rowIndex == rowIndex) {
+                                const v = (s.valorRestante !== undefined && s.valorRestante > 0) ? Number(s.valorRestante) : (Number(s.valorAcordado) || 0);
+                                return { valor: v, nome: s.parceiro, paga: !!s.paga };
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+
+            // Atualiza o SALDO ATUAL EM CAIXA somando (entrada) ou subtraindo (saida) o valor.
+            // Retorna mensagem para o toast e o novo saldo (ou null se falhar).
+            async function fcAjustarSaldoApos(tipo, valor, nome, rowIndex) {
+                if (!valor || !fcDados) return { msg: '', novo: null };
+                const saldoAtual = Number(fcDados.saldoInicial) || 0;
+                const delta = (tipo === 'entrada') ? valor : -valor;
+                const novo = saldoAtual + delta;
+                try {
+                    const obs = (tipo === 'entrada' ? 'Auto: +' : 'Auto: −') + (nome || '?') + ' (rowIndex ' + rowIndex + ')';
+                    const r = await finApi('setCashBalance', { valor: novo, observacao: obs });
+                    if (r && r.ok) {
+                        // Atualiza fcDados.saldoInicial localmente pra refletir imediato (otimista)
+                        fcDados.saldoInicial = novo;
+                        fcDados.saldoUpdatedAt = new Date().toISOString();
+                        return { msg: ' · Saldo: ' + fcBRL(saldoAtual) + ' → ' + fcBRL(novo), novo: novo };
+                    }
+                    return { msg: ' (saldo não atualizou)', novo: null };
+                } catch (e) {
+                    return { msg: ' (saldo erro: ' + e.message + ')', novo: null };
+                }
+            }
+
             async function fcMarcarParcelaPaga(rowIndex) {
                 // V7.11: feedback INSTANTÂNEO (sem confirm, sem espera)
                 fcTransformarCardPago(rowIndex, 'entrada');
+                // Captura valor ANTES da chamada (depois do refresh ele desaparece da lista de pendentes)
+                const parcela = fcLookupParcela(rowIndex, 'entrada');
                 try {
                     const r = await finApi('markPaid', { rowIndex: rowIndex });
                     if (r && r.ok) {
-                        fcToast('✅ Parcela marcada como paga · Financeiro atualizado', '#34d399');
+                        // Auto-atualiza saldo se a parcela ainda não estava paga
+                        let saldoMsg = '';
+                        if (parcela && !parcela.paga && parcela.valor > 0) {
+                            const ajuste = await fcAjustarSaldoApos('entrada', parcela.valor, parcela.nome, rowIndex);
+                            saldoMsg = ajuste.msg;
+                        }
+                        fcToast('✅ Pago' + saldoMsg, '#34d399');
                         fcInvalidarCachesRelacionados('entrada');
                         fcRefresh({ skipCache: true });
                     } else {
@@ -8681,6 +8731,7 @@ Data: ${h.data}`;
             async function fcMarcarCustoPago(rowIndex, valorRestante) {
                 // V7.11: feedback INSTANTÂNEO
                 fcTransformarCardPago(rowIndex, 'saida');
+                const parcela = fcLookupParcela(rowIndex, 'saida');
                 try {
                     const lr = await finApi('listTopoPartners', {});
                     const item = (lr.items || []).find(x => x.rowIndex == rowIndex);
@@ -8688,7 +8739,13 @@ Data: ${h.data}`;
                     const novoPago = (Number(item.valorAcordado) || 0);
                     const r = await finApi('updateTopoPartner', { rowIndex: rowIndex, fields: { valorPago: novoPago, observacoes: (item.observacoes || '') + ' [PAGO via Fluxo de Caixa em ' + new Date().toLocaleDateString('pt-BR') + ']' } });
                     if (r && r.ok) {
-                        fcToast('✅ Pagamento de R$ ' + valorRestante.toLocaleString('pt-BR') + ' · Operação atualizada', '#34d399');
+                        // Auto-atualiza saldo: saída paga sai do caixa
+                        let saldoMsg = '';
+                        if (parcela && !parcela.paga && valorRestante > 0) {
+                            const ajuste = await fcAjustarSaldoApos('saida', valorRestante, parcela.nome, rowIndex);
+                            saldoMsg = ajuste.msg;
+                        }
+                        fcToast('✅ Pagamento de R$ ' + valorRestante.toLocaleString('pt-BR') + saldoMsg, '#34d399');
                         fcInvalidarCachesRelacionados('saida');
                         fcRefresh({ skipCache: true });
                     } else {
