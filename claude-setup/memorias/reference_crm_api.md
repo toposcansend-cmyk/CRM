@@ -7,7 +7,21 @@ metadata:
   originSessionId: caf65bea-eb8e-408d-84cd-d7819dde72d9
 ---
 
-# CRM Toposcan — API Webhook (V7.12 — atualizado 26/05/2026)
+# CRM Toposcan — API Webhook (V7.12 — atualizado 26/05/2026 noite)
+
+## 🌐 Camada MCP — NOVO em 26/05/2026
+
+A partir de 26/05/2026, as 4 IAs gerentes na claude.ai chamam o webhook via **MCP server custom**:
+- **MCP URL:** `https://toposcan-crm-mcp.toposcan.workers.dev/mcp`
+- **35 tools** wrappeando as actions abaixo
+- **Tools nomeadas:** prefixo `crm_` + snake_case (ex: `crm_list_all`, `crm_get_cross_kpis`, `crm_add_learning`)
+- **Conector no claude.ai:** "Toposcan CRM" (account-level → propaga pros 4 Projects automaticamente)
+- Ver [[project-mcp-toposcan-crm]] e [[technical-patterns-mcp-server]]
+
+**Pra Claude Code (sessões locais), curl, PowerShell:** continuar chamando o webhook GAS direto (URL+secret embaixo). MCP é só pra IAs claude.ai.
+
+---
+
 
 ## Acesso direto ao código fonte (clasp)
 

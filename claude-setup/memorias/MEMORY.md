@@ -16,18 +16,21 @@
 - [Sofia — Secretária](project_sofia_secretaria.md) — 5º Claude Project (diferente dos 4 gerentes). Cuida do Guilherme como PESSOA: agenda, memória, vida pessoal, networking, coordenação.
 
 ## CRM Toposcan
-- [Estado do Projeto (V7.6)](project_crm_toposcan.md) — 4 áreas integradas, 4 gerentes Claude, Central, agentes 24/7, deploy estável + monitor triggers
-- [API Webhook (V7.12)](reference_crm_api.md) — endpoint vivo, ~36 actions, módulos V1-V7.12 incl. Aprendizados (memória institucional da Rafaela)
+- [Estado do Projeto (V7.12)](project_crm_toposcan.md) — 4 áreas integradas, 4 gerentes Claude nomeados, Central, MCP layer, Aprendizados V7.12
+- [API Webhook (V7.12)](reference_crm_api.md) — endpoint vivo, ~36 actions, módulos V1-V7.12 incl. Aprendizados
+- 🌐 [**MCP Toposcan CRM**](project_mcp_toposcan_crm.md) — servidor MCP em Cloudflare Workers expondo 35 tools `crm_*` pras 4 IAs gerentes (criado 26/05/2026)
 - [Manual Operacional](project_crm_manual_operacional.md) — 16 colunas Vendas, 6 status, regras de ouro originais
 - [Discrepâncias Manual × Repo](project_crm_discrepancias.md) — Histórico de diffs (parcialmente resolvidas)
 - [Feedback de gestão (17 regras)](feedback_crm_gestao.md) — Como o Guilherme quer ser servido: autonomia, verificação, cross-funcional
+- ⚠️ [Regra: zero busywork](feedback_no_busywork.md) — Não invente trabalho pra parecer progresso quando o explícito está pronto. Detectar "Para que é útil?" como corte imediato.
 - [Backlog de features](backlog_crm.md) — P1 liquidado em 23/05; ainda em aberto P2 (WhatsApp, Dashboard, auto-cadastro) e P3-P4
 
 ## Padrões técnicos reutilizáveis
 - [GAS + OAuth + Chrome MCP automation](technical_patterns_gas_oauth_chrome.md) — Como adicionar scopes, autorizar, automatizar claude.ai Projects, fetchar GitHub sem cache
+- 🌐 [**MCP server custom (Cloudflare Workers)**](technical_patterns_mcp_server.md) — Stack TypeScript+Hono, JSON-RPC 2.0, deploy wrangler, secret management via API CF, conectar na claude.ai — referência completa após construir o Toposcan CRM MCP
 - [PDF arquitetônico → 3D via Python/trimesh](technical_patterns_pdf_to_3d.md) — Pipeline sem Blender: pymupdf extrai pranchas, trimesh modela e exporta OBJ/GLB/DAE/STL para integrar projeto cliente com MDT
 - [Autodesk ReCap RCP/RCS — workflow CLI](technical_patterns_recap_rcp.md) — decap.exe converte LAS/LAZ→RCP; RCP é ZIP+XML; unificar N RCPs num mestre sem reprocessar
-- 🚨 [Catálogo de erros conhecidos (E001-E011)](error_patterns.md) — Consultar SEMPRE antes de refazer operação que falhou
+- 🚨 [Catálogo de erros conhecidos (E001-E021)](error_patterns.md) — 21 padrões; consultar SEMPRE antes de refazer operação que falhou. **E017-E021 novos em 26/05/2026** (Cloudflare/MCP/claude.ai gaps)
 
 ## Projetos de clientes (modelagem)
 - [SIMEPAR Torre Radar Banda C](project_torre_radar_simepar.md) — Torre treliçada 22m + edificação térrea 43m². Modelo 3D paramétrico gerado em 2026-05-23 a partir do PDF arquitetônico, pronto para implantar no MDT do levantamento.

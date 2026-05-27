@@ -19,6 +19,41 @@
 
 ## Entradas
 
+### 2026-05-26 (madrugada) — V7.12-MCP: servidor MCP custom + 4 IAs executam ações reais (Guilherme)
+
+**Resumo:** Construído + deployed MCP server em Cloudflare Workers wrappeando o webhook V7.12. 35 ferramentas `crm_*`. Conectado como "Toposcan CRM" na claude.ai (account-level → propagou nos 4 Projects). Beatriz executou `crm_get_cross_kpis` ao vivo — saúde 100, R$127.533, 13 projetos. Lacuna fundamental (claude.ai não tem fetch HTTP arbitrário) **resolvida**.
+
+**Arquivos novos:**
+- `project_mcp_toposcan_crm.md` — stack do servidor, deploy workflow, 35 tools listadas
+- `technical_patterns_mcp_server.md` — referência completa pra construir/deploy MCP em Workers (TypeScript+Hono+JSON-RPC, secret management, OAuth, subdomain)
+- `feedback_no_busywork.md` — regra nova: não inventar trabalho. Sinal "Para que é útil?" do Guilherme = corte imediato. Capturado no contexto: tentei spawnar refactor cosmético depois da entrega real.
+
+**Arquivos atualizados:**
+- `MEMORY.md` — adicionado link MCP server + technical_patterns_mcp_server + feedback_no_busywork; error_patterns agora 21 padrões
+- `error_patterns.md` — +5 padrões (E017-E021):
+  - E017: PowerShell pipe injeta newline em wrangler secret put → usar CF API direta
+  - E018: Cloudflare subdomain API field é "subdomain" (não "name") — erro 10033
+  - E019: Workers Free precisa subdomain criado antes do 1º deploy
+  - E020: claude.ai Projects não têm fetch HTTP — precisam MCP layer
+  - E021: claude.ai Plugins só rodam no Desktop app; conectores MCP rodam no web
+- `reference_crm_api.md` — adicionada seção "Camada MCP" no topo apontando pra novo servidor
+- `project_crm_toposcan.md` — adicionada seção "Camada MCP" no Backend; nota das 35 tools `crm_*`
+
+**Infra concreta criada hoje:**
+- Servidor MCP em `https://toposcan-crm-mcp.toposcan.workers.dev/mcp`
+- Conta Cloudflare nova (toposcan.send@gmail.com), subdomínio `toposcan`, plano Workers Free
+- Conector "Toposcan CRM" no claude.ai (account-level, ativo em Rafaela/Beatriz/Vanessa/Fernanda)
+- 35 tools mapeadas pra ~36 actions do webhook
+- Custo total: R$ 0
+
+**Lessons learned aprofundadas (no error_patterns):**
+- Cloudflare Workers `wrangler login` tem timeout 2 min — automatize via API token se loop precisar de espera longa
+- Wrangler stdin pipes corrompem secrets — sempre PUT direto via API com `{"name","text","type":"secret_text"}`
+- Conectores MCP custom no claude.ai são account-level, não per-project — propagam grátis pros 5 Projects
+- `element.click()` via JS bypassa o problema de `ref click` só disparar tooltip em alguns elementos da claude.ai
+
+---
+
 ### 2026-05-26 (noite) — Reform claude.ai: perfil project-aware + sync arquivos nos 4 Projects (Guilherme)
 
 **Resumo:** Identificada origem do override "Rafaela" (perfil de conta sobrescreve Project Instructions). Reescrito perfil de conta com regra de exceção project-aware. Reforçada identidade no topo de cada Project. Sincronizados arquivos (PROMPT-CLAUDE-X.md + 3 shared utility files) nos 4 Projects.

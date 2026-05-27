@@ -305,6 +305,84 @@ await new Promise(r => setTimeout(r, 2000));
 
 ---
 
+## E017 — PowerShell stdin pipe injeta newline em wrangler secret put
+
+**Sintoma:** Após `'valor' | npx wrangler secret put NOME`, o backend recebe "Senha inválida" — porque o secret foi salvo com `\n` ou `\r\n` no fim. A comparação string falha silenciosa.
+
+**Causa raiz:** O operador `|` do PowerShell trata o stdout como linhas e termina com newline. Mesmo `Get-Content -Raw` com `WriteAllText(...,utf8 sem BOM)` ainda injeta porque o pipe finaliza com newline.
+
+**Solução:** Cloudflare API direta, com controle total do valor:
+```bash
+curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/workers/scripts/$SCRIPT/secrets" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"WEBHOOK_SECRET","text":"valor-limpo-sem-newline","type":"secret_text"}'
+```
+
+Token OAuth do wrangler está em `C:\Users\23GAMER\AppData\Roaming\xdg.config\.wrangler\config\default.toml`.
+
+**Detectado em:** 2026-05-26 (deploy MCP server — "Senha inválida" no smoke test)
+
+---
+
+## E018 — Cloudflare Workers subdomain API field é "subdomain" (não "name")
+
+**Sintoma:** PUT `/accounts/{id}/workers/subdomain` com body `{"name":"X"}` retorna erro 10033: `Subdomain '' is invalid`. O nome não foi lido.
+
+**Causa raiz:** Diferente da maioria das APIs Cloudflare que usam `name`, este endpoint específico usa `subdomain` como campo.
+
+**Solução:**
+```bash
+curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/workers/subdomain" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"subdomain":"toposcan"}'
+```
+
+Retorna `{"result":{"subdomain":"toposcan"},"success":true}`.
+
+**Detectado em:** 2026-05-26 (registrando subdomain pro Workers depois do primeiro deploy falhar)
+
+---
+
+## E019 — Workers exige subdomain antes do primeiro deploy
+
+**Sintoma:** `wrangler deploy` em conta nova retorna ERROR "You need to register a workers.dev subdomain before publishing to workers.dev".
+
+**Causa raiz:** Cloudflare Workers Free precisa de subdomínio único por conta. Não cria automaticamente no signup — só na primeira visita ao Workers landing page OU via API explícita.
+
+**Solução:**
+1. Abrir `dash.cloudflare.com/{ACCOUNT_ID}/workers/workers-and-pages` UMA VEZ no browser logado → cria auto, OU
+2. PUT na API (ver E018)
+
+**Detectado em:** 2026-05-26
+
+---
+
+## E020 — claude.ai não tem fetch HTTP arbitrário pra IAs
+
+**Sintoma:** Beatriz (claude.ai Project) recebe instrução no prompt "use o webhook X com secret Y" mas reporta "Webhook fora do ar" mesmo com webhook funcionando.
+
+**Causa raiz:** claude.ai Projects têm tools limitados: Gmail/Calendar/Drive/Web Search/Habilidades/Plugins-desktop-only. **Não há `fetch()` ou `requests.post()` genérico** pra URL com body+secret customizado. As IAs "descrevem ações" mas não conseguem POST.
+
+**Solução:** Construir um **MCP server custom** que wrappea o webhook em tools nomeadas. claude.ai conecta o MCP via `Personalizar → Conectores → Adicionar conector personalizado`. Detalhe em [[technical-patterns-mcp-server]] e [[project-mcp-toposcan-crm]].
+
+**Detectado em:** 2026-05-26 (Beatriz "não consigo operar" — diagnóstico revelou gap de ferramenta)
+
+---
+
+## E021 — claude.ai Plugins só funcionam no Desktop app
+
+**Sintoma:** Tentativa de adicionar plugin custom via web claude.ai mostra "Os plugins podem ser visualizados, mas estão disponíveis para uso apenas no aplicativo para desktop".
+
+**Causa raiz:** Plugins é uma feature de extensão do Claude Desktop app (Mac/Windows), não funciona via web/mobile.
+
+**Solução:** Pra IAs que rodam no web, usar **conectores MCP** (não plugins) via `Personalizar → Conectores → +` botão. Mais flexível e roda em todas plataformas.
+
+**Detectado em:** 2026-05-26
+
+---
+
 ## 🆕 Template para novo padrão
 
 ```markdown
@@ -323,8 +401,8 @@ await new Promise(r => setTimeout(r, 2000));
 
 ## 📊 Estatísticas
 
-- **Total catalogado:** 16 padrões (4 novos em 26/05/2026 sobre claude.ai automation)
+- **Total catalogado:** 21 padrões (9 novos em 26/05/2026 — claude.ai automation + Cloudflare Workers + MCP)
 - **Última atualização:** 2026-05-26
-- **Padrões mais comuns:** OAuth/auth (3), UI automation (6 incl. claude.ai), state management (3), Windows sandboxing (1)
+- **Padrões mais comuns:** OAuth/auth (3), UI automation (6 incl. claude.ai), state management (3), Cloudflare/MCP deploy (4), Windows sandboxing (1)
 
 > ⚠️ Quando errar pela mesma razão duas vezes, ATUALIZE este arquivo IMEDIATAMENTE.

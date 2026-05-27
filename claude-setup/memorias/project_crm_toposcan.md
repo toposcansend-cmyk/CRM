@@ -52,6 +52,15 @@ metadata:
 - **Deployment estável:** `AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A` (mantido entre versões — não criar deploy novo, sempre `clasp deploy -i <id>`)
 - **Atual:** V7.12 @32 (deployed 26/05/2026) — Aprendizados
 
+## Camada MCP (ponte claude.ai → webhook GAS) — NOVO 26/05/2026
+
+- **URL pública:** `https://toposcan-crm-mcp.toposcan.workers.dev/mcp`
+- **Stack:** Cloudflare Workers + Hono + TypeScript (35 tools)
+- **Código:** `C:\Users\23GAMER\work\CRM\mcp-server\src\index.ts`
+- **Conector claude.ai:** "Toposcan CRM" (account-level, auto-ativo nos 4 Projects)
+- **Por quê:** claude.ai não tem fetch HTTP arbitrário; as 4 IAs gerentes precisavam de adapter pra chamar o webhook
+- **Ver:** [[project-mcp-toposcan-crm]] e [[technical-patterns-mcp-server]]
+
 ## Frontend (crm.html)
 
 **Abas visíveis (em ordem):**
