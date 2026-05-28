@@ -2857,10 +2857,6 @@
                 <div class="value" id="enviadas">0</div>
                 <div class="label">Enviadas</div>
             </div>
-            <div class="stat-card fechado">
-                <div class="value" id="totalFechado">R$ 0</div>
-                <div class="label">Fechado</div>
-            </div>
         </div>
 
         <div style="display:flex;gap:10px;margin:15px 0;flex-wrap:wrap;align-items:center">
@@ -4468,7 +4464,6 @@
                 const fechadas = f_stats.filter(p => p.status === 'Fechada').length;
                 const pendentes = f_stats.filter(p => p.status === 'Pendente').length;
                 const enviadas = f_stats.filter(p => p.status === 'Enviada').length;
-                const totalFechado = f_stats.filter(p => p.status === 'Fechada').reduce((s, p) => s + (p.valor || 0), 0);
 
                 // Apply sorting
                 f.sort((a, b) => {
@@ -4492,7 +4487,6 @@
                 document.getElementById('fechadas').textContent = fechadas;
                 document.getElementById('pendentes').textContent = pendentes;
                 document.getElementById('enviadas').textContent = enviadas;
-                document.getElementById('totalFechado').textContent = 'R$ ' + (totalFechado / 1000).toFixed(0) + 'K';
 
                 renderizarLista(f);
                 renderizarKanban();
