@@ -8674,24 +8674,18 @@ Data: ${h.data}`;
 
             // Atualiza o SALDO ATUAL EM CAIXA somando (entrada) ou subtraindo (saida) o valor.
             // Retorna mensagem para o toast e o novo saldo (ou null se falhar).
+            // V7.14: o recálculo do saldo agora é feito no BACKEND (markPaid / updateTopoPartner),
+            // pra valer em qualquer canal (site OU IAs gerentes) e SEM contar 2×. Ver E031.
+            // Aqui só atualizamos a tela otimisticamente; o fcRefresh logo depois puxa o valor real do backend.
             async function fcAjustarSaldoApos(tipo, valor, nome, rowIndex) {
                 if (!valor || !fcDados) return { msg: '', novo: null };
                 const saldoAtual = Number(fcDados.saldoInicial) || 0;
                 const delta = (tipo === 'entrada') ? valor : -valor;
                 const novo = saldoAtual + delta;
-                try {
-                    const obs = (tipo === 'entrada' ? 'Auto: +' : 'Auto: −') + (nome || '?') + ' (rowIndex ' + rowIndex + ')';
-                    const r = await finApi('setCashBalance', { valor: novo, observacao: obs });
-                    if (r && r.ok) {
-                        // Atualiza fcDados.saldoInicial localmente pra refletir imediato (otimista)
-                        fcDados.saldoInicial = novo;
-                        fcDados.saldoUpdatedAt = new Date().toISOString();
-                        return { msg: ' · Saldo: ' + fcBRL(saldoAtual) + ' → ' + fcBRL(novo), novo: novo };
-                    }
-                    return { msg: ' (saldo não atualizou)', novo: null };
-                } catch (e) {
-                    return { msg: ' (saldo erro: ' + e.message + ')', novo: null };
-                }
+                // Update otimista local (o backend já persistiu o ajuste); fcRefresh reconcilia em seguida.
+                fcDados.saldoInicial = novo;
+                fcDados.saldoUpdatedAt = new Date().toISOString();
+                return { msg: ' · Saldo: ' + fcBRL(saldoAtual) + ' → ' + fcBRL(novo), novo: novo };
             }
 
             async function fcMarcarParcelaPaga(rowIndex) {

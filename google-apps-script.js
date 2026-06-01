@@ -917,12 +917,21 @@ function markPaid(body) {
   if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
   if (!body.rowIndex || body.rowIndex < 2) return { ok: false, error: 'rowIndex invalido' };
   const sheet = _finSheet();
+  // Estado ANTES (idempotencia do auto-saldo: so soma no caixa na transicao p/ Pago)
+  var statusAntes = String(sheet.getRange(body.rowIndex, FIN_COL.status).getValue() || '');
+  var valorParcela = Number(sheet.getRange(body.rowIndex, FIN_COL.valor).getValue()) || 0;
+  var clienteParcela = String(sheet.getRange(body.rowIndex, FIN_COL.cliente).getValue() || '');
   const dataPagto = body.dataPagamento || _today();
   sheet.getRange(body.rowIndex, FIN_COL.dataPagamento).setValue(dataPagto);
   sheet.getRange(body.rowIndex, FIN_COL.status).setValue('Pago');
   sheet.getRange(body.rowIndex, FIN_COL.atualizadoEm).setValue(_now());
   if (body.comprovante) sheet.getRange(body.rowIndex, FIN_COL.comprovante).setValue(body.comprovante);
-  return { ok: true, rowIndex: body.rowIndex, dataPagamento: dataPagto };
+  // Auto-saldo: entrada recebida soma no caixa, 1x, em qualquer canal (site/IA). Ver E031.
+  var saldoAtualizado = null;
+  if (statusAntes !== 'Pago' && valorParcela > 0) {
+    saldoAtualizado = _ajustaCaixa(valorParcela, 'Auto: +' + clienteParcela + ' (parcela rowIndex ' + body.rowIndex + ')');
+  }
+  return { ok: true, rowIndex: body.rowIndex, dataPagamento: dataPagto, saldoAtualizado: saldoAtualizado };
 }
 
 function getFinanceKPIs(body) {
@@ -1207,6 +1216,8 @@ function updateTopoPartner(body) {
   const sheet = _tpSheet();
   const fields = body.fields || {};
   let updated = 0;
+  // valorPago ANTES — pra ajustar o caixa pelo delta efetivamente pago (auto-saldo, ver E031)
+  var pagoAntes = parseFloat(sheet.getRange(body.rowIndex, TP_COL.valorPago).getValue()) || 0;
 
   for (const [field, value] of Object.entries(fields)) {
     const col = TP_COL[field];
@@ -1222,6 +1233,14 @@ function updateTopoPartner(body) {
     const pg = parseFloat(sheet.getRange(body.rowIndex, TP_COL.valorPago).getValue()) || 0;
     sheet.getRange(body.rowIndex, TP_COL.valorRestante).setValue(Math.max(0, ac - pg));
     sheet.getRange(body.rowIndex, TP_COL.status).setValue(_tpDerivarStatus(ac, pg));
+    // Auto-saldo: custo pago sai do caixa pelo delta efetivamente pago, 1x, em qualquer canal. Ver E031.
+    if ('valorPago' in fields) {
+      var deltaPago = pg - pagoAntes;
+      if (deltaPago !== 0) {
+        var parceiroNome = String(sheet.getRange(body.rowIndex, TP_COL.parceiro).getValue() || '');
+        _ajustaCaixa(-deltaPago, 'Auto: -' + parceiroNome + ' (custo rowIndex ' + body.rowIndex + ')');
+      }
+    }
   }
 
   if (updated > 0) {
@@ -2864,6 +2883,23 @@ function setCashBalanceAction(body) {
   props.setProperty('CAIXA_UPDATED_AT', new Date().toISOString());
   if (body.observacao) props.setProperty('CAIXA_OBS', String(body.observacao));
   return { ok: true, valor: v, atualizadoEm: new Date().toISOString() };
+}
+
+// ─── Auto-saldo V7.14 ───────────────────────────────────────────────────
+// Ajusta o SALDO ATUAL EM CAIXA por um delta (entrada +, saida -). Chamado por
+// markPaid (entrada recebida) e updateTopoPartner (custo pago) pra que o saldo
+// recalcule sozinho em QUALQUER canal (site OU IAs gerentes), sem depender do
+// frontend. O campo manual (setCashBalanceAction) segue pros imprevistos. Ver E031.
+function _ajustaCaixa(delta, obs) {
+  var d = Number(delta);
+  if (!d || isNaN(d)) return null;
+  var props = PropertiesService.getScriptProperties();
+  var atual = parseFloat(props.getProperty('CAIXA_BALANCE') || '0');
+  var novo = Math.round((atual + d) * 100) / 100; // evita drift de centavos
+  props.setProperty('CAIXA_BALANCE', String(novo));
+  props.setProperty('CAIXA_UPDATED_AT', new Date().toISOString());
+  if (obs) props.setProperty('CAIXA_OBS', String(obs));
+  return novo;
 }
 
 function getCashFlowAction(body) {
