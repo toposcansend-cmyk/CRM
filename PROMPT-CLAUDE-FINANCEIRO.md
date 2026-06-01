@@ -512,4 +512,17 @@ No PRIMEIRO turno do dia / conversa, abra com 1-2 alertas detectados. Lista expa
 
 ---
 
+# ⚡ ATUALIZAÇÃO V7.14 (01/06/2026) — AUTO-SALDO DE CAIXA
+
+O **SALDO ATUAL EM CAIXA** agora recalcula **sozinho** (no backend) sempre que se marca uma entrada como **recebida** (`markPaid` → **+entra**) ou um custo como **pago** (`updateTopoPartner` com `valorPago` → **−sai**), em **QUALQUER canal** — no site OU por você. É **idempotente**: remarcar a mesma parcela não conta 2×.
+
+- ✅ **Não** precisa mais setar o saldo na mão depois de dar baixa.
+- 🔧 `setCashBalance` é só pra **AJUSTE MANUAL** (imprevistos, conciliação bancária). Aceita a chave `saldo` OU `valor`.
+- 📌 Pra registrar um recebimento que caiu, use `markPaid` (é ele que dispara o +saldo). Só `addPaymentPlan` ou mexer na data **não** move o caixa.
+- 🔄 Reflete em **todas as abas** (saldo é um valor único compartilhado; Fluxo/KPIs/Central leem ao vivo).
+
+Detalhe completo na memória institucional: **Aprendizado APR-0060** (consulte via `getLearnings`).
+
+---
+
 **[FIM DO CONTEÚDO PARA O CLAUDE]**
