@@ -58,10 +58,10 @@ C:\Users\23GAMER\work\CRM\                    ← este repo (git)
 ├── BRIEFING-CLAUDE-MOBILE.md                  ← contexto colável para outros Claudes
 └── CLAUDE.md                                  ← este arquivo
 
-C:\Users\23GAMER\.gemini\antigravity\scratch\clasp-crm\
-├── Code.js                                    ← backend GAS completo (~2400 linhas)
+C:\Users\23GAMER\work\clasp-crm\               ← projeto clasp (RECRIADO 01/06/2026; .gemini\antigravity antigo removido)
+├── Code.js                                    ← backend GAS completo (fonte de deploy — clasp pull/push)
 ├── appsscript.json                            ← manifest + OAuth scopes + Advanced Service Calendar v3
-└── .clasp.json                                ← scriptId
+└── .clasp.json                                ← scriptId 1Pxlm30KKFm2z2Zcc8I4tLZfIa_Y5Yimh9GbD62cZWSdkSPANM59tJXBK
 
 Planilha Google Sheets (banco): 1190S57Jmbb-eJcMHJYaOZ7qIqMCUpOTV-SDlWoSrMO4
 ├── CRM Consolidado (Vendas — 16 col A-P)
@@ -122,7 +122,7 @@ gh run watch <id> --exit-status
 
 ### Backend (Google Apps Script via clasp)
 ```bash
-cd "/c/Users/23GAMER/.gemini/antigravity/scratch/clasp-crm"
+cd "/c/Users/23GAMER/work/clasp-crm"   # RECRIADO 01/06/2026 (.gemini antigo removido)
 clasp push --force                                                                                  # envia código
 clasp deploy -i AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A -d "V7.x descrição"    # publica
 clasp deployments                                                                                   # lista versões

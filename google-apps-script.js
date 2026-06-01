@@ -2854,8 +2854,10 @@ function getCashBalanceAction(body) {
 
 function setCashBalanceAction(body) {
   if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
-  if (body.valor === undefined || body.valor === null) return { ok: false, error: 'Faltou: valor' };
-  var v = parseFloat(body.valor);
+  // Aceita 'valor' (frontend crm.html) OU 'saldo' (tool MCP crm_set_cash_balance). Ver E029.
+  var rawValor = (body.valor !== undefined && body.valor !== null) ? body.valor : body.saldo;
+  if (rawValor === undefined || rawValor === null) return { ok: false, error: 'Faltou: valor (ou saldo)' };
+  var v = parseFloat(rawValor);
   if (isNaN(v)) return { ok: false, error: 'valor invalido' };
   var props = PropertiesService.getScriptProperties();
   props.setProperty('CAIXA_BALANCE', String(v));
