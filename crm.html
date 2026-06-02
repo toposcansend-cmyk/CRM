@@ -4765,9 +4765,17 @@
                         hg.textContent = saud + (u ? ', ' + u.charAt(0).toUpperCase() + u.slice(1) : '') + ' 👋';
                     }
                     renderHeroResumo();
-                    if (!window._heroKpis && !window._heroKpisFetching) {
+                    // stale-while-revalidate: mostra o cache na hora (acima) e busca o fresco 1x/sessão
+                    if (!window._heroKpisFresh && !window._heroKpisFetching) {
                         window._heroKpisFetching = true;
-                        finApi('getCrossKPIs', {}).then(r => { window._heroKpisFetching = false; if (r && r.kpis) { window._heroKpis = r.kpis; renderHeroResumo(); } }).catch(() => { window._heroKpisFetching = false; });
+                        finApi('getCrossKPIs', {}).then(r => {
+                            window._heroKpisFetching = false;
+                            if (r && r.kpis) {
+                                window._heroKpis = r.kpis; window._heroKpisFresh = true;
+                                try { localStorage.setItem('crm_hero_kpis_v1', JSON.stringify(r.kpis)); } catch (e) {}
+                                renderHeroResumo();
+                            }
+                        }).catch(() => { window._heroKpisFetching = false; });
                     }
                 } catch (e) { console.warn('hero', e); }
 
@@ -5907,21 +5915,30 @@
                 reader.onload = function (ev) {
                     const img = new Image();
                     img.onload = function () {
-                        const size = 256;
-                        const canvas = document.createElement('canvas');
-                        canvas.width = size; canvas.height = size;
-                        const ctx = canvas.getContext('2d');
-                        const escala = Math.max(size / img.width, size / img.height);
-                        const w = img.width * escala, h = img.height * escala;
-                        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h); // cover-crop central
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        function encode(size, q) {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = size; canvas.height = size;
+                            const ctx = canvas.getContext('2d');
+                            const escala = Math.max(size / img.width, size / img.height);
+                            const w = img.width * escala, h = img.height * escala;
+                            ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h); // cover-crop central
+                            return canvas.toDataURL('image/jpeg', q);
+                        }
+                        // Encolhe de forma ADAPTATIVA até caber com folga no servidor (~45k chars; célula do Sheets = 50k).
+                        // Antes era fixo 256px/q0.7 → foto detalhada estourava 48k e a sincronia falhava silenciosa.
+                        const tentativas = [[224, 0.7], [200, 0.65], [176, 0.6], [152, 0.55], [128, 0.5], [104, 0.45], [88, 0.4]];
+                        let dataUrl = encode(224, 0.7);
+                        for (let i = 0; i < tentativas.length && dataUrl.length > 45000; i++) {
+                            dataUrl = encode(tentativas[i][0], tentativas[i][1]);
+                        }
                         const email = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
                         try { localStorage.setItem('crm_avatar_' + email, dataUrl); } catch (err) {}
                         aplicarPerfil(email);
                         const m = document.getElementById('profileMenu'); if (m) m.classList.remove('active');
                         // SINCRONIZA no servidor (aparece no site e em qualquer aparelho)
                         finApi('setUserAvatar', { email: email, dataUrl: dataUrl }).then(function (r) {
-                            if (!r || !r.ok) alert('Foto salva no aparelho, mas nao sincronizou: ' + ((r && r.error) || 'erro'));
+                            if (r && r.ok) { alert('✓ Foto sincronizada — já aparece em todos os seus aparelhos.'); }
+                            else { alert('Foto salva no aparelho, mas nao sincronizou: ' + ((r && r.error) || 'erro') + ' (' + dataUrl.length + ' chars)'); }
                         }).catch(function () { alert('Foto salva no aparelho, mas falhou a sincronia (sem rede?).'); });
                     };
                     img.src = ev.target.result;
@@ -6993,6 +7010,11 @@ Data: ${h.data}`;
             try {
                 const _fc = localStorage.getItem('crm_fin_parcelas_v1');
                 if (_fc) finParcelas = JSON.parse(_fc) || [];
+            } catch (e) {}
+            // Hidrata os KPIs do hero (resumo inicial aparece INSTANTÂNEO; getCrossKPIs atualiza em segundo plano)
+            try {
+                const _hk = localStorage.getItem('crm_hero_kpis_v1');
+                if (_hk) window._heroKpis = JSON.parse(_hk);
             } catch (e) {}
 
             async function finApi(action, payload) {
