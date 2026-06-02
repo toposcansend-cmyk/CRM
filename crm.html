@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>CRM Toposcan</title>
     <!-- PWA (app instalável) -->
     <meta name="theme-color" content="#0a0e1a">
@@ -2694,10 +2694,68 @@
                 overflow-x: auto;
             }
         }
+    /* ===== PWA UX V7.15 — safe-area (encaixe no aparelho) + menu lateral (drawer) estilo Claude/GPT ===== */
+    #drawerOverlay { display: none; }
+    @media (max-width: 768px) {
+      body {
+        padding-top: calc(8px + env(safe-area-inset-top));
+        padding-right: calc(8px + env(safe-area-inset-right));
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+        padding-left: calc(8px + env(safe-area-inset-left));
+      }
+      .menu-toggle {
+        display: inline-flex !important;
+        width: auto;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+      }
+      /* a lista de abas (#tabsMenu) vira gaveta fixa que desliza da esquerda */
+      #tabsMenu {
+        display: flex !important;
+        flex-direction: column;
+        gap: 4px;
+        position: fixed;
+        top: 0; left: 0; bottom: 0;
+        width: 82%;
+        max-width: 310px;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 9999;
+        background: var(--bg-secondary);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-right: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-lg);
+        overflow-y: auto;
+        padding: calc(env(safe-area-inset-top) + 64px) 14px calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 14px);
+      }
+      body.drawer-open #tabsMenu { transform: translateX(0); }
+      #tabsMenu .tab-btn {
+        width: 100%;
+        text-align: left;
+        padding: 14px 16px;
+        font-size: 0.95em;
+        border-radius: 12px;
+      }
+      #drawerOverlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.28s ease;
+        z-index: 9998;
+      }
+      body.drawer-open #drawerOverlay { opacity: 1; pointer-events: auto; }
+      body.drawer-open { overflow: hidden; }
+    }
     </style>
 </head>
 
 <body>
+    <div id="drawerOverlay" onclick="toggleMenu()"></div>
     <!-- Login Screen -->
     <div id="loginScreen">
         <div class="login-box">
@@ -2788,6 +2846,8 @@
             if (AUTH_USERS[user] && AUTH_USERS[user] === passHash) {
                 sessionStorage.setItem('crm_auth', user);
                 sessionStorage.setItem('crm_auth_time', Date.now().toString());
+                localStorage.setItem('crm_auth', user);
+                localStorage.setItem('crm_auth_time', Date.now().toString());
                 showCRM();
             } else {
                 document.getElementById('loginError').style.display = 'block';
@@ -2811,10 +2871,13 @@
         }
 
         function checkAuth() {
-            const auth = sessionStorage.getItem('crm_auth');
-            const authTime = parseInt(sessionStorage.getItem('crm_auth_time') || '0');
-            const maxAge = 8 * 60 * 60 * 1000; // 8 hours session
+            // V7.15: sessão persistente (localStorage) — continuar logado entre aberturas do app
+            const auth = localStorage.getItem('crm_auth') || sessionStorage.getItem('crm_auth');
+            const authTime = parseInt(localStorage.getItem('crm_auth_time') || sessionStorage.getItem('crm_auth_time') || '0');
+            const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
             if (auth && (Date.now() - authTime) < maxAge) {
+                sessionStorage.setItem('crm_auth', auth);
+                sessionStorage.setItem('crm_auth_time', String(authTime));
                 showCRM();
                 return true;
             }
@@ -2847,7 +2910,7 @@
                 </div>
 
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <button onclick="sessionStorage.clear();location.reload()"
+                    <button onclick="sessionStorage.clear();localStorage.removeItem('crm_auth');localStorage.removeItem('crm_auth_time');location.reload()"
                         style="background:#333;border:1px solid #555;padding:6px 12px;font-size:0.75em;border-radius:6px;color:#ccc;cursor:pointer;">Sair</button>
                     <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"
                         style="background:#333;border:1px solid #555;padding:8px 14px;font-size:0.85em;white-space:nowrap;border-radius:8px;">Modo
@@ -5380,20 +5443,14 @@
                 document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.getElementById(tabId).classList.add('active');
-                event.target.classList.add('active');
-
-                // Close menu on mobile after selection
-                const menu = document.getElementById('tabsMenu');
-                if (menu && window.innerWidth <= 768) {
-                    menu.classList.remove('expanded');
-                }
+                if (typeof event !== 'undefined' && event && event.target) event.target.classList.add('active');
+                // V7.15: fecha a gaveta lateral no mobile após escolher
+                document.body.classList.remove('drawer-open');
             }
 
             function toggleMenu() {
-                const menu = document.getElementById('tabsMenu');
-                if (menu) {
-                    menu.classList.toggle('expanded');
-                }
+                // V7.15: abre/fecha a gaveta lateral (drawer estilo Claude/GPT)
+                document.body.classList.toggle('drawer-open');
             }
 
             function velha_calcularOrcamento___() {
