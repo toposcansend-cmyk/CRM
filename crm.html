@@ -2724,6 +2724,24 @@
     .profile-item { width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 11px 12px; border-radius: 10px; cursor: pointer; font-size: 0.9em; }
     .profile-item:hover { background: var(--bg-tertiary); }
     .profile-item-danger { color: #f87171; }
+    /* Home hero (resumo inteligente) — substitui os 4 cards crus */
+    .stats { display: none !important; }
+    .home-hero {
+      background: linear-gradient(135deg, rgba(0,212,255,0.13), rgba(124,58,237,0.13));
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 15px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .home-hero .saud { font-size: 1.15em; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 16px; }
+    .home-hero .nums { display: flex; gap: 14px; }
+    .home-hero .num { flex: 1; min-width: 0; }
+    .home-hero .num .k { font-size: 0.7em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+    .home-hero .num .v { font-size: 1.45em; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; margin-top: 3px; }
+    .home-hero .num.win .v { color: #22c55e; }
+    .home-hero .sub { margin-top: 14px; font-size: 0.82em; color: var(--text-secondary); }
     /* Pull-to-refresh (puxar pra baixo no topo) */
     #ptrIndicator {
       position: fixed; top: 2px; left: 50%;
@@ -3013,6 +3031,15 @@
                 </div>
             </div>
         </header>
+
+        <div class="home-hero">
+            <div class="saud" id="heroSaudacao">Olá 👋</div>
+            <div class="nums">
+                <div class="num"><div class="k">💰 Pipeline (em aberto)</div><div class="v" id="heroPipeline">R$ 0</div></div>
+                <div class="num win"><div class="k">🏆 Fechado</div><div class="v" id="heroFechado">R$ 0</div></div>
+            </div>
+            <div class="sub" id="heroSub">—</div>
+        </div>
 
         <div class="stats">
             <div class="stat-card">
@@ -4660,6 +4687,24 @@
                 document.getElementById('fechadas').textContent = fechadas;
                 document.getElementById('pendentes').textContent = pendentes;
                 document.getElementById('enviadas').textContent = enviadas;
+
+                // Hero resumo inteligente (dinheiro + saudacao) — reusa f_stats
+                try {
+                    const ativosArr = f_stats.filter(p => p.status !== 'Perdida' && p.status !== 'Fechada');
+                    const pipelineVal = ativosArr.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+                    const fechadoVal = f_stats.filter(p => p.status === 'Fechada').reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
+                    const fmtR = v => 'R$ ' + (v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+                    const hp = document.getElementById('heroPipeline'); if (hp) hp.textContent = fmtR(pipelineVal);
+                    const hf = document.getElementById('heroFechado'); if (hf) hf.textContent = fmtR(fechadoVal);
+                    const hs = document.getElementById('heroSub'); if (hs) hs.textContent = ativosArr.length + ' ativas · ' + fechadas + ' fechadas · ' + pendentes + ' pendentes';
+                    const hg = document.getElementById('heroSaudacao');
+                    if (hg) {
+                        const hr = new Date().getHours();
+                        const saud = hr < 12 ? 'Bom dia' : (hr < 18 ? 'Boa tarde' : 'Boa noite');
+                        const u = (sessionStorage.getItem('crm_auth') || '').split('@')[0];
+                        hg.textContent = saud + (u ? ', ' + u.charAt(0).toUpperCase() + u.slice(1) : '') + ' 👋';
+                    }
+                } catch (e) { console.warn('hero', e); }
 
                 renderizarLista(f);
                 renderizarKanban();
