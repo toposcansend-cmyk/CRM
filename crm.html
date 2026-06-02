@@ -5856,6 +5856,7 @@
                 }
                 const fmtR = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
                 const fmtK = v => { v = Number(v) || 0; if (v >= 1000000) return 'R$ ' + (v / 1000000).toFixed(1).replace('.', ',') + 'M'; if (v >= 1000) return 'R$ ' + (v / 1000).toFixed(v >= 100000 ? 0 : 1).replace('.', ',') + 'k'; return fmtR(v); };
+                const _mesNome = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][new Date().getMonth()];
                 let cards = [];
                 if (isMarcelo) {
                     cards = [
@@ -5871,7 +5872,7 @@
                     if (fire) fire.innerHTML = fl;
                 } else {
                     cards = [
-                        { k: '🏆 Fechado ' + (k ? k.comercial.trimestreLabel : 'no tri'), v: k ? (k.comercial.fechadasTrimestre + ' · ' + fmtK(k.comercial.valorFechadoTrimestre)) : '—', win: true },
+                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true },
                         { k: '💰 Pipeline', v: k ? fmtK(k.comercial.pipelineAtivo) : (c.pipelineVal != null ? fmtK(c.pipelineVal) : '—') },
                         { k: '📅 Previstas no mês', v: c.previstas != null ? c.previstas : '—' },
                         { k: '🛠️ Em andamento', v: emAnd != null ? emAnd : '—' }
