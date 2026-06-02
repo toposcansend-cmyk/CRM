@@ -2696,6 +2696,8 @@
         }
     /* ===== PWA UX V7.15 — safe-area (encaixe no aparelho) + menu lateral (drawer) estilo Claude/GPT ===== */
     #drawerOverlay { display: none; }
+    /* Sino acima dos cards: lifta o contexto do cabecalho (senao o dropdown fica preso atras dos stat-cards) */
+    #mainHeader { position: relative; z-index: 50; }
     @media (max-width: 768px) {
       body {
         padding-top: calc(8px + env(safe-area-inset-top));
