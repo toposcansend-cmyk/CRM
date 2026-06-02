@@ -2989,6 +2989,8 @@
                                 <div class="profile-email" id="profileEmail">—</div>
                             </div>
                         </div>
+                        <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="onAvatarSelecionado(event)">
+                        <button class="profile-item" onclick="trocarFotoPerfil()">📷 Trocar foto</button>
                         <button class="profile-item" id="themeBtn" onclick="toggleTheme()">Modo Claro</button>
                         <button class="profile-item profile-item-danger" onclick="logout()">🚪 Sair</button>
                     </div>
@@ -5669,7 +5671,7 @@
                 const nome = (String(email).split('@')[0] || 'usuario');
                 const nomeCap = nome.charAt(0).toUpperCase() + nome.slice(1);
                 const inicial = nome.charAt(0).toUpperCase();
-                const foto = AVATAR_FOTOS[nome.toLowerCase()] || '';
+                const foto = localStorage.getItem('crm_avatar_' + String(email).toLowerCase()) || AVATAR_FOTOS[nome.toLowerCase()] || '';
                 let h = 0; for (let i = 0; i < nome.length; i++) h = nome.charCodeAt(i) + ((h << 5) - h);
                 const cor = 'hsl(' + (Math.abs(h) % 360) + ', 60%, 45%)';
                 const btn = document.getElementById('profileBtn');
@@ -5696,6 +5698,38 @@
                 localStorage.removeItem('crm_auth');
                 localStorage.removeItem('crm_auth_time');
                 location.reload();
+            }
+            function trocarFotoPerfil() {
+                const inp = document.getElementById('avatarInput');
+                if (inp) inp.click();
+            }
+            function onAvatarSelecionado(e) {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const size = 256;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = size; canvas.height = size;
+                        const ctx = canvas.getContext('2d');
+                        const escala = Math.max(size / img.width, size / img.height);
+                        const w = img.width * escala, h = img.height * escala;
+                        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h); // cover-crop central
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        const email = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
+                        try {
+                            localStorage.setItem('crm_avatar_' + email, dataUrl);
+                            aplicarPerfil(email);
+                            const m = document.getElementById('profileMenu'); if (m) m.classList.remove('active');
+                        } catch (err) {
+                            alert('Não consegui salvar a foto (muito grande). Tenta outra.');
+                        }
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
             }
             // fecha o menu de perfil ao clicar fora
             document.addEventListener('click', function (event) {
