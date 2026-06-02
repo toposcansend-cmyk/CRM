@@ -194,6 +194,8 @@ function handleAgentRequest(data) {
   if (action === 'getCashFlow')         return respond(getCashFlowAction(data));
   if (action === 'getCashBalance')      return respond(getCashBalanceAction(data));
   if (action === 'setCashBalance')      return respond(setCashBalanceAction(data));
+  if (action === 'setUserAvatar')       return respond(setUserAvatarAction(data));
+  if (action === 'getUserAvatar')       return respond(getUserAvatarAction(data));
 
   // ─── One-off: clonar template Igrejas → R3 Anita Garibaldi ───
   if (action === 'r3SetupSheet')        return r3SetupSheet(data);
@@ -2900,6 +2902,38 @@ function _ajustaCaixa(delta, obs) {
   props.setProperty('CAIXA_UPDATED_AT', new Date().toISOString());
   if (obs) props.setProperty('CAIXA_OBS', String(obs));
   return novo;
+}
+
+// ─── Avatares de perfil (sincronizados no servidor) V7.18 ───
+function _avatarsSheet() {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sh = ss.getSheetByName('Avatars');
+  if (!sh) { sh = ss.insertSheet('Avatars'); sh.appendRow(['email', 'dataUrl', 'atualizadoEm']); }
+  return sh;
+}
+
+function setUserAvatarAction(body) {
+  if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
+  var email = String(body.email || '').toLowerCase().trim();
+  var dataUrl = String(body.dataUrl || '');
+  if (!email) return { ok: false, error: 'Faltou email' };
+  if (dataUrl.length > 48000) return { ok: false, error: 'Foto muito grande (max ~48k chars)' };
+  var sh = _avatarsSheet();
+  var data = sh.getDataRange().getValues();
+  var row = -1;
+  for (var i = 1; i < data.length; i++) { if (String(data[i][0]).toLowerCase() === email) { row = i + 1; break; } }
+  if (row > 0) { sh.getRange(row, 2).setValue(dataUrl); sh.getRange(row, 3).setValue(new Date().toISOString()); }
+  else { sh.appendRow([email, dataUrl, new Date().toISOString()]); }
+  return { ok: true, email: email };
+}
+
+function getUserAvatarAction(body) {
+  if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
+  var email = String(body.email || '').toLowerCase().trim();
+  var sh = _avatarsSheet();
+  var data = sh.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) { if (String(data[i][0]).toLowerCase() === email) return { ok: true, dataUrl: String(data[i][1] || '') }; }
+  return { ok: true, dataUrl: '' };
 }
 
 function getCashFlowAction(body) {

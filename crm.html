@@ -2799,7 +2799,7 @@
       .menu-toggle span:first-child { font-size: 1.4em; line-height: 1; }
       #tabsContainer { margin-bottom: 0 !important; min-height: 0; }
       /* App-bar: ☰ esquerda (fixo) · logo centralizado · sino+avatar NA BARRA à direita (sem sobrepor) */
-      #mainHeader { position: relative; justify-content: flex-end; align-items: center; min-height: 64px; padding: 10px 12px 10px 62px; }
+      #mainHeader { position: relative; flex-direction: row !important; justify-content: flex-end !important; align-items: center !important; min-height: 64px; padding: 10px 12px 10px 64px; }
       #mainLogo {
         position: absolute;
         left: 50%; top: 50%;
@@ -5760,26 +5760,38 @@
                 // marcelo: 'fotos/marcelo.jpg',
             };
             function aplicarPerfil(email) {
-                const nome = (String(email).split('@')[0] || 'usuario');
+                const lower = String(email).toLowerCase();
+                const nome = (lower.split('@')[0] || 'usuario');
                 const nomeCap = nome.charAt(0).toUpperCase() + nome.slice(1);
                 const inicial = nome.charAt(0).toUpperCase();
-                const foto = localStorage.getItem('crm_avatar_' + String(email).toLowerCase()) || AVATAR_FOTOS[nome.toLowerCase()] || '';
                 let h = 0; for (let i = 0; i < nome.length; i++) h = nome.charCodeAt(i) + ((h << 5) - h);
                 const cor = 'hsl(' + (Math.abs(h) % 360) + ', 60%, 45%)';
-                const btn = document.getElementById('profileBtn');
-                const lg = document.getElementById('profileAvatarLg');
-                const ini = document.getElementById('profileInitial');
-                if (foto) {
-                    const img = '<img src="' + foto + '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
-                    if (btn) btn.innerHTML = img;
-                    if (lg) lg.innerHTML = img;
-                } else {
-                    if (ini) ini.textContent = inicial;
-                    if (btn) btn.style.background = cor;
-                    if (lg) { lg.textContent = inicial; lg.style.background = cor; }
+                function pintar(foto) {
+                    const btn = document.getElementById('profileBtn');
+                    const lg = document.getElementById('profileAvatarLg');
+                    if (foto) {
+                        const img = '<img src="' + foto + '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+                        if (btn) btn.innerHTML = img;
+                        if (lg) lg.innerHTML = img;
+                    } else {
+                        if (btn) { btn.textContent = inicial; btn.style.background = cor; }
+                        if (lg) { lg.textContent = inicial; lg.style.background = cor; }
+                    }
                 }
+                const local = localStorage.getItem('crm_avatar_' + lower) || AVATAR_FOTOS[nome] || '';
+                pintar(local);
                 const nm = document.getElementById('profileName'); if (nm) nm.textContent = nomeCap;
                 const em = document.getElementById('profileEmail'); if (em) em.textContent = email;
+                // sincroniza do backend (1x/sessao): a foto pode ter sido setada em outro aparelho/site
+                if (!window._avatarSynced) {
+                    window._avatarSynced = true;
+                    finApi('getUserAvatar', { email: lower }).then(function (r) {
+                        if (r && r.ok && r.dataUrl && r.dataUrl !== local) {
+                            localStorage.setItem('crm_avatar_' + lower, r.dataUrl);
+                            pintar(r.dataUrl);
+                        }
+                    }).catch(function () {});
+                }
             }
             function toggleProfileMenu() {
                 const m = document.getElementById('profileMenu');
@@ -5816,15 +5828,15 @@
                         const escala = Math.max(size / img.width, size / img.height);
                         const w = img.width * escala, h = img.height * escala;
                         ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h); // cover-crop central
-                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                         const email = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
-                        try {
-                            localStorage.setItem('crm_avatar_' + email, dataUrl);
-                            aplicarPerfil(email);
-                            const m = document.getElementById('profileMenu'); if (m) m.classList.remove('active');
-                        } catch (err) {
-                            alert('Não consegui salvar a foto (muito grande). Tenta outra.');
-                        }
+                        try { localStorage.setItem('crm_avatar_' + email, dataUrl); } catch (err) {}
+                        aplicarPerfil(email);
+                        const m = document.getElementById('profileMenu'); if (m) m.classList.remove('active');
+                        // SINCRONIZA no servidor (aparece no site e em qualquer aparelho)
+                        finApi('setUserAvatar', { email: email, dataUrl: dataUrl }).then(function (r) {
+                            if (!r || !r.ok) alert('Foto salva no aparelho, mas nao sincronizou: ' + ((r && r.error) || 'erro'));
+                        }).catch(function () { alert('Foto salva no aparelho, mas falhou a sincronia (sem rede?).'); });
                     };
                     img.src = ev.target.result;
                 };
