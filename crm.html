@@ -4731,8 +4731,8 @@
                     if (!window._heroProdLoaded) {
                         window._heroProdLoaded = true;
                         finApi('listProducao', {}).then(pr => {
-                            const n = ((pr && pr.tarefas) ? pr.tarefas : []).filter(t => t.status === 'Em andamento').length;
-                            set('heroAndamento', n);
+                            const arr = (pr && (pr.itens || pr.tarefas)) ? (pr.itens || pr.tarefas) : [];
+                            set('heroAndamento', arr.filter(t => t.status === 'Em andamento').length);
                         }).catch(() => {});
                     }
                 } catch (e) { console.warn('hero', e); }
