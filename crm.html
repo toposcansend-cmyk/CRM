@@ -2872,6 +2872,7 @@
 <body>
     <div id="drawerOverlay" onclick="toggleMenu()"></div>
     <div id="ptrIndicator">⟳</div>
+    <div class="modal" id="fcCardModal"><div class="modal-content" style="max-width:440px"><div id="fcCardBody"></div><div class="modal-buttons"><button class="btn btn-secondary" onclick="fcFecharCardModal()">Fechar</button></div></div></div>
     <!-- Login Screen -->
     <div id="loginScreen">
         <div class="login-box">
@@ -8415,6 +8416,7 @@ Data: ${h.data}`;
                         const draggable = paga ? '' : ' draggable="true" ondragstart="fcDragStart(event)" ondragend="fcDragEnd(event)"';
                         const cursor = paga ? 'default' : 'grab';
                         cards += '<div class="fc-card fc-card-entrada' + (paga ? ' fc-paga' : '') + '"' + draggable
+                            + ' onclick="fcAbrirCardDetalhe(\'entrada\',' + e.rowIndex + ')"'
                             + ' data-tipo="entrada" data-row="' + e.rowIndex + '" data-valor="' + e.valor + '" data-data="' + e.data + '"'
                             + ' data-label="' + esc(e.cliente.substring(0, 30)) + '"'
                             + ' style="background:' + bg + ';border-left:3px solid #34d399;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3;cursor:' + cursor + ';user-select:none">'
@@ -8435,6 +8437,7 @@ Data: ${h.data}`;
                         const draggable = paga ? '' : ' draggable="true" ondragstart="fcDragStart(event)" ondragend="fcDragEnd(event)"';
                         const cursor = paga ? 'default' : 'grab';
                         cards += '<div class="fc-card fc-card-saida' + (paga ? ' fc-paga' : '') + '"' + draggable
+                            + ' onclick="fcAbrirCardDetalhe(\'saida\',' + s.rowIndex + ')"'
                             + ' data-tipo="saida" data-row="' + s.rowIndex + '" data-valor="' + s.valorRestante + '" data-data="' + s.data + '"'
                             + ' data-label="' + esc(s.parceiro.substring(0, 30)) + '"'
                             + ' style="background:' + bg + ';border-left:3px solid #f87171;border-radius:4px;padding:5px 7px;font-size:0.72em;line-height:1.3;cursor:' + cursor + ';user-select:none">'
@@ -9072,6 +9075,62 @@ Data: ${h.data}`;
                 fcDados.saldoInicial = novo;
                 fcDados.saldoUpdatedAt = new Date().toISOString();
                 return { msg: ' · Saldo: ' + fcBRL(saldoAtual) + ' → ' + fcBRL(novo), novo: novo };
+            }
+
+            // ===== Detalhe do card de Fluxo de Caixa (clicar no card abre + info) =====
+            function fcCardModalShow(html) {
+                const b = document.getElementById('fcCardBody'); if (b) b.innerHTML = html;
+                const m = document.getElementById('fcCardModal'); if (m) m.classList.add('active');
+            }
+            function fcFecharCardModal() {
+                const m = document.getElementById('fcCardModal'); if (m) m.classList.remove('active');
+            }
+            function _fcLinha(label, valor) {
+                if (valor === undefined || valor === null || valor === '') return '';
+                return '<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--glass-border)"><span style="color:var(--text-secondary);font-size:0.85em">' + label + '</span><span style="font-weight:600;text-align:right">' + esc(String(valor)) + '</span></div>';
+            }
+            function fcDetEntradaHtml(o) {
+                if (!o) return '<h2>Detalhe</h2><div>Registro não encontrado.</div>';
+                const parc = o.parcela || ((o.parcelaNum && o.totalParcelas) ? (o.parcelaNum + '/' + o.totalParcelas) : '');
+                const status = o.status || (o.paga ? 'Pago' : 'Pendente');
+                let h = '<h2 style="margin-bottom:14px">📥 ' + esc(o.cliente || 'Entrada') + '</h2>';
+                h += _fcLinha('Valor', fcBRL(o.valor));
+                h += _fcLinha('Proposta', o.numeroProposta);
+                h += _fcLinha('Parcela', parc);
+                h += _fcLinha('Vendedor', o.vendedor);
+                h += _fcLinha('Forma', o.formaPagamento);
+                h += _fcLinha('Vencimento', o.vencimento || o.data);
+                h += _fcLinha('Pago em', o.dataPagamento);
+                h += _fcLinha('Status', status);
+                h += _fcLinha('Comprovante', o.comprovante);
+                h += _fcLinha('Observação', o.observacao);
+                return h;
+            }
+            function fcDetSaidaHtml(o) {
+                if (!o) return '<h2>Detalhe</h2><div>Registro não encontrado.</div>';
+                let h = '<h2 style="margin-bottom:14px">📤 ' + esc(o.parceiro || 'Saída') + '</h2>';
+                h += _fcLinha('Serviço', o.servico);
+                h += _fcLinha('Projeto', o.projeto);
+                h += _fcLinha('Acordado', fcBRL(o.valorAcordado));
+                h += _fcLinha('Pago', fcBRL(o.valorPago));
+                h += _fcLinha('Restante', fcBRL(o.valorRestante));
+                h += _fcLinha('Status', o.status);
+                h += _fcLinha('Previsão pagto', o.previsaoPagamento);
+                h += _fcLinha('Categoria', o.categoria);
+                h += _fcLinha('Observações', o.observacoes);
+                return h;
+            }
+            async function fcAbrirCardDetalhe(tipo, rowIndex) {
+                fcCardModalShow('<div style="text-align:center;opacity:0.6;padding:24px">Carregando…</div>');
+                try {
+                    if (tipo === 'entrada') {
+                        var arr = (typeof finParcelas !== 'undefined' && finParcelas.length) ? finParcelas : (((await finApi('listPayments', {})) || {}).parcelas || []);
+                        fcCardModalShow(fcDetEntradaHtml(arr.find(function (x) { return x.rowIndex == rowIndex; })));
+                    } else {
+                        var arr2 = (typeof tpItems !== 'undefined' && tpItems.length) ? tpItems : (((await finApi('listTopoPartners', {})) || {}).items || []);
+                        fcCardModalShow(fcDetSaidaHtml(arr2.find(function (x) { return x.rowIndex == rowIndex; })));
+                    }
+                } catch (e) { fcCardModalShow('<div style="padding:16px">Nao consegui carregar o detalhe.</div>'); }
             }
 
             async function fcMarcarParcelaPaga(rowIndex) {
