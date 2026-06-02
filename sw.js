@@ -6,7 +6,7 @@
  *  - Offline = serve o shell do cache.
  * Pra publicar nova versão: o network-first já entrega o HTML novo; bump CACHE só limpa o antigo.
  */
-const CACHE = 'toposcan-crm-v1';
+const CACHE = 'toposcan-crm-v2';
 const SHELL = [
   './',
   './index.html',
@@ -50,7 +50,7 @@ self.addEventListener('fetch', (event) => {
   const isHTML = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
   if (isHTML) {
     event.respondWith(
-      fetch(req)
+      fetch(req.url, { cache: 'no-store' })
         .then((res) => {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put('./index.html', copy)).catch(() => {});
