@@ -222,6 +222,25 @@
             color: var(--text-secondary);
             font-size: 0.9em;
         }
+        .notif-footer {
+            position: sticky;
+            bottom: 0;
+            border-top: 1px solid var(--glass-border);
+            padding: 8px;
+            background: var(--bg-secondary);
+        }
+        .notif-footer button {
+            width: 100%;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 9px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .notif-footer button:hover { background: var(--glass-bg); }
 
         @keyframes pulse {
             0% {
@@ -3021,6 +3040,7 @@
                     <div class="notification-dropdown" id="notifDropdown">
                         <div class="notif-empty" id="notifEmpty">Nenhum alerta pendente.</div>
                         <div id="notifList"></div>
+                        <div class="notif-footer"><button type="button" onclick="zerarNotificacoes()">✓ Zerar notificações</button></div>
                     </div>
                 </div>
 
@@ -3047,11 +3067,8 @@
 
         <div class="home-hero">
             <div class="saud" id="heroSaudacao">Olá 👋</div>
-            <div class="hero-grid">
-                <div class="ht"><div class="k">💰 Pipeline</div><div class="v" id="heroPipeline">R$ 0</div></div>
-                <div class="ht"><div class="k">📅 Previstas no mês</div><div class="v" id="heroPrevistas">0</div></div>
-                <div class="ht"><div class="k">🛠️ Em andamento</div><div class="v" id="heroAndamento">—</div></div>
-                <div class="ht win"><div class="k">📈 Conversão</div><div class="v" id="heroConversao">0%</div></div>
+            <div class="hero-grid" id="heroGrid">
+                <div class="ht"><div class="k">Carregando…</div><div class="v">—</div></div>
             </div>
             <div class="hero-fire" id="heroMaior">—</div>
         </div>
@@ -4703,12 +4720,11 @@
                 document.getElementById('pendentes').textContent = pendentes;
                 document.getElementById('enviadas').textContent = enviadas;
 
-                // Hero "resumo inteligente" v2 — reusa f_stats + produção
+                // Hero "resumo inteligente" v3 — personalizado por usuário (comercial vs operacional)
                 try {
-                    const fmtR = v => 'R$ ' + (v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+                    const agora = new Date(); const mm = agora.getMonth(), yy = agora.getFullYear();
                     const ativosArr = f_stats.filter(p => p.status !== 'Perdida' && p.status !== 'Fechada');
                     const pipelineVal = ativosArr.reduce((s, p) => s + (parseFloat(p.valor) || 0), 0);
-                    const agora = new Date(); const mm = agora.getMonth(), yy = agora.getFullYear();
                     const previstas = ativosArr.filter(p => {
                         const d = String(p.fechamentoPrevisto || '').split('/');
                         return d.length === 3 && (parseInt(d[1], 10) - 1) === mm && parseInt(d[2], 10) === yy;
@@ -4716,12 +4732,7 @@
                     const conv = total > 0 ? Math.round((fechadas / total) * 100) : 0;
                     let maior = null;
                     ativosArr.forEach(p => { const v = parseFloat(p.valor) || 0; if (!maior || v > maior.v) maior = { v: v, c: p.cliente || '—' }; });
-                    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-                    set('heroPipeline', fmtR(pipelineVal));
-                    set('heroPrevistas', previstas.length);
-                    set('heroConversao', conv + '%');
-                    const hm = document.getElementById('heroMaior');
-                    if (hm) hm.innerHTML = (maior && maior.v > 0) ? '🔥 Maior oportunidade aberta: <b>' + maior.c + '</b> — ' + fmtR(maior.v) : '🔥 Nenhuma oportunidade aberta no momento';
+                    window._heroClient = { pipelineVal: pipelineVal, previstas: previstas.length, conv: conv, maior: maior };
                     const hg = document.getElementById('heroSaudacao');
                     if (hg) {
                         const hr = agora.getHours();
@@ -4729,12 +4740,10 @@
                         const u = (sessionStorage.getItem('crm_auth') || '').split('@')[0];
                         hg.textContent = saud + (u ? ', ' + u.charAt(0).toUpperCase() + u.slice(1) : '') + ' 👋';
                     }
-                    if (!window._heroProdLoaded) {
-                        window._heroProdLoaded = true;
-                        finApi('listProducao', {}).then(pr => {
-                            const arr = (pr && (pr.itens || pr.tarefas)) ? (pr.itens || pr.tarefas) : [];
-                            set('heroAndamento', arr.filter(t => t.status === 'Em andamento').length);
-                        }).catch(() => {});
+                    renderHeroResumo();
+                    if (!window._heroKpisLoaded) {
+                        window._heroKpisLoaded = true;
+                        finApi('getCrossKPIs', {}).then(r => { if (r && r.kpis) { window._heroKpis = r.kpis; renderHeroResumo(); } }).catch(() => {});
                     }
                 } catch (e) { console.warn('hero', e); }
 
@@ -5751,7 +5760,10 @@
 
             // --- SISTEMA DE NOTIFICAÇÕES (SININHO) ---
             function toggleNotifications() {
-                document.getElementById('notifDropdown').classList.toggle('active');
+                const drop = document.getElementById('notifDropdown');
+                const abrindo = !drop.classList.contains('active');
+                drop.classList.toggle('active');
+                if (abrindo && typeof marcarNotifVistos === 'function') marcarNotifVistos(); // abrir o sino zera a contagem
             }
 
             // ===== PERFIL (avatar estilo Google) =====
@@ -5797,6 +5809,45 @@
             function toggleProfileMenu() {
                 const m = document.getElementById('profileMenu');
                 if (m) m.classList.toggle('active');
+            }
+
+            // ===== HERO RESUMO — personalizado por usuário (comercial × operacional) =====
+            function renderHeroResumo() {
+                const email = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
+                const nome = email.split('@')[0];
+                const isMarcelo = nome === 'marcelo';
+                const c = window._heroClient || {};
+                const k = window._heroKpis || null;
+                const grid = document.getElementById('heroGrid');
+                const fire = document.getElementById('heroMaior');
+                if (!grid) return;
+                const fmtR = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+                const fmtK = v => { v = Number(v) || 0; if (v >= 1000000) return 'R$ ' + (v / 1000000).toFixed(1).replace('.', ',') + 'M'; if (v >= 1000) return 'R$ ' + (v / 1000).toFixed(v >= 100000 ? 0 : 1).replace('.', ',') + 'k'; return fmtR(v); };
+                let cards = [];
+                if (isMarcelo) {
+                    cards = [
+                        { k: '🛠️ Projetos ativos', v: k ? k.engenharia.projetosAtivos : '—' },
+                        { k: '⏳ Em andamento', v: k ? k.engenharia.emAndamento : '—' },
+                        { k: '⚠️ Atrasadas', v: k ? k.engenharia.atrasadas : '—', alert: !!(k && k.engenharia.atrasadas > 0) },
+                        { k: '💸 Custo do mês', v: k ? fmtK(k.operacao.custoMesTotal) : '—' }
+                    ];
+                    let fl = '';
+                    if (k && k.engenharia.maisAtrasada) { const m = k.engenharia.maisAtrasada; fl += '⏰ <b>Mais atrasada:</b> ' + esc(m.projeto) + (m.fase ? ' · ' + esc(m.fase) : '') + ' — <b>' + m.dias + ' dias</b>'; }
+                    if (k && k.operacao.maiorCusto) { const o = k.operacao.maiorCusto; fl += (fl ? '<br>' : '') + '💰 <b>Maior custo:</b> ' + esc(o.parceiro || '—') + (o.servico ? ' · ' + esc(o.servico) : '') + ' — ' + fmtK(o.valor) + (o.restante > 0 ? ' <span style="opacity:.75">(resta ' + fmtK(o.restante) + ')</span>' : ''); }
+                    if (!fl) fl = k ? '✅ Nenhuma operação atrasada no momento.' : 'Carregando insights…';
+                    if (fire) fire.innerHTML = fl;
+                } else {
+                    cards = [
+                        { k: '🏆 Fechado ' + (k ? k.comercial.trimestreLabel : 'no tri'), v: k ? (k.comercial.fechadasTrimestre + ' · ' + fmtK(k.comercial.valorFechadoTrimestre)) : '—', win: true },
+                        { k: '💰 Pipeline', v: k ? fmtK(k.comercial.pipelineAtivo) : (c.pipelineVal != null ? fmtK(c.pipelineVal) : '—') },
+                        { k: '📅 Previstas no mês', v: c.previstas != null ? c.previstas : '—' },
+                        { k: '🛠️ Em andamento', v: k ? k.engenharia.emAndamento : '—' }
+                    ];
+                    if (fire) fire.innerHTML = (c.maior && c.maior.v > 0) ? '🔥 Maior oportunidade aberta: <b>' + esc(c.maior.c) + '</b> — ' + fmtR(c.maior.v) : '🔥 Nenhuma oportunidade aberta no momento';
+                }
+                grid.innerHTML = cards.map(function (x) {
+                    return '<div class="ht' + (x.win ? ' win' : '') + '"><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div></div>';
+                }).join('');
             }
             function logout() {
                 sessionStorage.clear();
@@ -5918,6 +5969,7 @@
 
                 let countAlertas = 0;
                 let htmlAlertas = '';
+                let alertaIds = [];
 
                 // Helper para interpretar datas "DD-MMM." (ex: 21-ago.) ou "DD/MM/YYYY"
                 function parseMisto(dataStr, defaultYear) {
@@ -6021,6 +6073,7 @@
 
                     if (pendencias.length > 0) {
                         countAlertas++;
+                        alertaIds.push(p.id);
                         htmlAlertas += `
                             <div class="notif-item" onclick="abrirEdicao('${p.id}'); toggleNotifications();">
                                 <div class="notif-title">⚠️ ${p.cliente || 'Sem Nome'}</div>
@@ -6034,25 +6087,46 @@
                     }
                 });
 
-                const badge = document.getElementById('notifBadge');
                 const list = document.getElementById('notifList');
                 const empty = document.getElementById('notifEmpty');
 
                 if (countAlertas > 0) {
-                    if (badge) {
-                        badge.textContent = countAlertas;
-                        badge.classList.add('active');
-                    }
                     if (list) {
                         list.innerHTML = htmlAlertas;
                         list.style.display = 'block';
                     }
                     if (empty) empty.style.display = 'none';
                 } else {
-                    if (badge) badge.classList.remove('active');
                     if (list) list.style.display = 'none';
                     if (empty) empty.style.display = 'block';
                 }
+                // Badge conta só os alertas NÃO vistos (abrir o sino zera a contagem)
+                window._notifIds = alertaIds;
+                atualizarNotifBadge();
+            }
+
+            // ===== Sino: contagem "não vista" (abrir zera; botão Zerar reseta) =====
+            function _notifSeenSet() {
+                try { return new Set(JSON.parse(localStorage.getItem('crm_notif_seen') || '[]')); } catch (e) { return new Set(); }
+            }
+            function atualizarNotifBadge() {
+                const badge = document.getElementById('notifBadge');
+                if (!badge) return;
+                const ids = (window._notifIds || []).map(String);
+                const seen = _notifSeenSet();
+                const naoVistos = ids.filter(id => !seen.has(id)).length;
+                if (naoVistos > 0) { badge.textContent = naoVistos; badge.classList.add('active'); }
+                else { badge.classList.remove('active'); }
+            }
+            function marcarNotifVistos() {
+                // "seen" = os alertas ativos no momento (mantém o conjunto pequeno e estável)
+                try { localStorage.setItem('crm_notif_seen', JSON.stringify((window._notifIds || []).map(String))); } catch (e) {}
+                atualizarNotifBadge();
+            }
+            function zerarNotificacoes() {
+                marcarNotifVistos();
+                const badge = document.getElementById('notifBadge');
+                if (badge) badge.classList.remove('active');
             }
             // -----------------------------------------
 
