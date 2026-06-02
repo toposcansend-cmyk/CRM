@@ -2703,13 +2703,28 @@
         padding-bottom: calc(8px + env(safe-area-inset-bottom));
         padding-left: calc(8px + env(safe-area-inset-left));
       }
+      /* Hamburger: ícone fixo no canto superior esquerdo (estilo Claude/GPT) */
       .menu-toggle {
         display: inline-flex !important;
-        width: auto;
+        position: fixed;
+        top: calc(env(safe-area-inset-top) + 12px);
+        left: 12px;
+        z-index: 60;
+        width: 44px;
+        height: 44px;
+        padding: 0 !important;
         align-items: center;
-        gap: 8px;
-        padding: 10px 14px;
+        justify-content: center;
+        border-radius: 12px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-card);
       }
+      .menu-toggle .menu-label { display: none; }
+      .menu-toggle span:first-child { font-size: 1.4em; line-height: 1; }
+      #tabsContainer { margin-bottom: 0 !important; min-height: 0; }
+      /* Cabeçalho: controles quebram linha em vez de vazar/cortar */
+      #mainHeader .header-right { flex-wrap: wrap; justify-content: center; }
       /* a lista de abas (#tabsMenu) vira gaveta fixa que desliza da esquerda */
       #tabsMenu {
         display: flex !important;
