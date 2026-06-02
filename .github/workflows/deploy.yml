@@ -32,6 +32,11 @@ jobs:
           cp logo.png deploy/logo.png
           cp logo-preto.png deploy/logo-preto.png
           cp logo-branca.png deploy/logo-branca.png
+          cp manifest.webmanifest deploy/manifest.webmanifest
+          cp sw.js deploy/sw.js
+          cp icon-192.png deploy/icon-192.png
+          cp icon-512.png deploy/icon-512.png
+          cp icon-512-maskable.png deploy/icon-512-maskable.png
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
