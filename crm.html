@@ -2698,6 +2698,32 @@
     #drawerOverlay { display: none; }
     /* Sino acima dos cards: lifta o contexto do cabecalho (senao o dropdown fica preso atras dos stat-cards) */
     #mainHeader { position: relative; z-index: 50; }
+    /* Perfil (avatar redondo estilo Google) */
+    .profile-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 2px solid var(--glass-border);
+      background: var(--accent); color: #fff; font-weight: 700; font-size: 1em;
+      cursor: pointer; padding: 0; overflow: hidden; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .profile-avatar:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.35); }
+    .profile-menu {
+      position: absolute; top: 52px; right: 0;
+      width: 240px; max-width: calc(100vw - 24px);
+      background: var(--bg-secondary); border: 1px solid var(--border);
+      border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+      padding: 8px; display: none; z-index: 1001;
+    }
+    .profile-menu.active { display: block; }
+    .profile-head { display: flex; gap: 12px; align-items: center; padding: 10px 10px 12px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
+    .profile-avatar-lg { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 1.2em; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+    .profile-info { min-width: 0; }
+    .profile-name { font-weight: 700; font-size: 0.95em; }
+    .profile-email { font-size: 0.76em; color: var(--text-secondary); word-break: break-all; }
+    .profile-item { width: 100%; text-align: left; background: transparent; border: none; color: var(--text-primary); padding: 11px 12px; border-radius: 10px; cursor: pointer; font-size: 0.9em; }
+    .profile-item:hover { background: var(--bg-tertiary); }
+    .profile-item-danger { color: #f87171; }
     @media (max-width: 768px) {
       body {
         padding-top: calc(8px + env(safe-area-inset-top));
@@ -2923,8 +2949,6 @@
             <img id="mainLogo" src="logo.png" alt="Toposcan" style="height:100px;max-width:200px;object-fit:contain;">
             <div class="header-right"
                 style="display:flex !important;flex-direction:row !important;align-items:center !important;gap:15px !important;">
-                <span id="loggedUser" style="color:#888;font-size:0.8em;white-space:nowrap;margin-right: -5px;"></span>
-
                 <!-- NOTIFICATION BELL -->
                 <div style="position: relative;">
                     <button class="notification-btn" id="notifBtn" onclick="toggleNotifications()" title="Alertas">
@@ -2937,12 +2961,20 @@
                     </div>
                 </div>
 
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <button onclick="sessionStorage.clear();localStorage.removeItem('crm_auth');localStorage.removeItem('crm_auth_time');location.reload()"
-                        style="background:#333;border:1px solid #555;padding:6px 12px;font-size:0.75em;border-radius:6px;color:#ccc;cursor:pointer;">Sair</button>
-                    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()"
-                        style="background:#333;border:1px solid #555;padding:8px 14px;font-size:0.85em;white-space:nowrap;border-radius:8px;">Modo
-                        Claro</button>
+                <!-- PERFIL (avatar redondo estilo Google) -->
+                <div style="position: relative;">
+                    <button class="profile-avatar" id="profileBtn" onclick="toggleProfileMenu()" title="Perfil"><span id="profileInitial">·</span></button>
+                    <div class="profile-menu" id="profileMenu">
+                        <div class="profile-head">
+                            <div class="profile-avatar-lg" id="profileAvatarLg">·</div>
+                            <div class="profile-info">
+                                <div class="profile-name" id="profileName">—</div>
+                                <div class="profile-email" id="profileEmail">—</div>
+                            </div>
+                        </div>
+                        <button class="profile-item" id="themeBtn" onclick="toggleTheme()">Modo Claro</button>
+                        <button class="profile-item profile-item-danger" onclick="logout()">🚪 Sair</button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -5610,6 +5642,53 @@
                 document.getElementById('notifDropdown').classList.toggle('active');
             }
 
+            // ===== PERFIL (avatar estilo Google) =====
+            const AVATAR_FOTOS = {
+                // parte do email antes do @ : URL/arquivo da foto. Vazio = inicial colorida.
+                // guilherme: 'fotos/guilherme.jpg',
+                // marcelo: 'fotos/marcelo.jpg',
+            };
+            function aplicarPerfil(email) {
+                const nome = (String(email).split('@')[0] || 'usuario');
+                const nomeCap = nome.charAt(0).toUpperCase() + nome.slice(1);
+                const inicial = nome.charAt(0).toUpperCase();
+                const foto = AVATAR_FOTOS[nome.toLowerCase()] || '';
+                let h = 0; for (let i = 0; i < nome.length; i++) h = nome.charCodeAt(i) + ((h << 5) - h);
+                const cor = 'hsl(' + (Math.abs(h) % 360) + ', 60%, 45%)';
+                const btn = document.getElementById('profileBtn');
+                const lg = document.getElementById('profileAvatarLg');
+                const ini = document.getElementById('profileInitial');
+                if (foto) {
+                    const img = '<img src="' + foto + '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+                    if (btn) btn.innerHTML = img;
+                    if (lg) lg.innerHTML = img;
+                } else {
+                    if (ini) ini.textContent = inicial;
+                    if (btn) btn.style.background = cor;
+                    if (lg) { lg.textContent = inicial; lg.style.background = cor; }
+                }
+                const nm = document.getElementById('profileName'); if (nm) nm.textContent = nomeCap;
+                const em = document.getElementById('profileEmail'); if (em) em.textContent = email;
+            }
+            function toggleProfileMenu() {
+                const m = document.getElementById('profileMenu');
+                if (m) m.classList.toggle('active');
+            }
+            function logout() {
+                sessionStorage.clear();
+                localStorage.removeItem('crm_auth');
+                localStorage.removeItem('crm_auth_time');
+                location.reload();
+            }
+            // fecha o menu de perfil ao clicar fora
+            document.addEventListener('click', function (event) {
+                const b = document.getElementById('profileBtn');
+                const m = document.getElementById('profileMenu');
+                if (b && m && !b.contains(event.target) && !m.contains(event.target)) {
+                    m.classList.remove('active');
+                }
+            });
+
             // Close dropdown when clicking outside
             document.addEventListener('click', function (event) {
                 const btn = document.getElementById('notifBtn');
@@ -6130,11 +6209,10 @@
                 container.innerHTML = html;
             }
 
-            // Show logged user in header
+            // Mostra o usuario logado no avatar de perfil (estilo Google)
             const authUser = sessionStorage.getItem('crm_auth');
-            if (authUser) {
-                const el = document.getElementById('loggedUser');
-                if (el) el.textContent = '👤 ' + authUser.charAt(0).toUpperCase() + authUser.slice(1);
+            if (authUser && typeof aplicarPerfil === 'function') {
+                aplicarPerfil(authUser);
             }
 
             // Final check to catch any racing conditions
