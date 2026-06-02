@@ -2765,6 +2765,17 @@
       }
       body.drawer-open #drawerOverlay { opacity: 1; pointer-events: auto; }
       body.drawer-open { overflow: hidden; }
+      /* Sino: dropdown de alertas como painel fixo limpo, acima de tudo, com safe-area */
+      .notification-dropdown {
+        position: fixed;
+        top: calc(env(safe-area-inset-top) + 62px);
+        right: 8px;
+        left: 8px;
+        width: auto;
+        max-width: none;
+        max-height: 62vh;
+        z-index: 10002;
+      }
     }
     </style>
 </head>
@@ -3009,8 +3020,7 @@
                     </div>
                     <div class="form-group">
                         <label>N Proposta</label>
-                        <input type="text" id="editNumeroPropostaInput" placeholder="Numero da proposta" readonly
-                            style="background:var(--bg-tertiary)">
+                        <input type="text" id="editNumeroPropostaInput" placeholder="Numero da proposta">
                     </div>
                 </div>
 
