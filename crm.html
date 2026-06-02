@@ -7493,12 +7493,9 @@ Data: ${h.data}`;
                 html += '<div class="eng-progress-label"><span>Progresso geral</span><span>' + pctMedio + '%</span></div>';
                 document.getElementById('engDetalheProgresso').innerHTML = html;
 
-                // Decide modo: se tem subitens, mostra matriz; se nao, lista linear
-                if (subitens.length > 0 && fases.length > 0) {
-                    engRenderMatriz(subitens, fases, itens);
-                } else {
-                    engRenderListaLinear(itens);
-                }
+                // V7.16: SEMPRE lista de cards (estilo R3) — a matriz subitem×fase ficou confusa.
+                // O card já mostra o subitem (📍) quando existe, então nada se perde e fica limpo.
+                engRenderListaLinear(itens);
             }
 
             function engRenderMatriz(subitens, fases, itens) {
@@ -7555,7 +7552,7 @@ Data: ${h.data}`;
             }
 
             function engRenderListaLinear(itens) {
-                itens.sort((a, b) => (a.ordemFase || 0) - (b.ordemFase || 0));
+                itens.sort((a, b) => ((a.ordemSubitem || 0) - (b.ordemSubitem || 0)) || ((a.ordemFase || 0) - (b.ordemFase || 0)));
                 let html = '<div style="font-size:0.75em;color:var(--text-secondary);margin-bottom:8px">💡 <b>Clique em qualquer campo</b> (fase, 👤 responsável, 📅 data) para editar inline. <b>Arraste a barra</b> para ajustar o %. <b>✏️</b> abre edição completa.</div>';
                 html += '<div class="eng-tarefas-lista">';
                 itens.forEach(r => {
