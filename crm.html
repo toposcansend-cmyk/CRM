@@ -241,6 +241,41 @@
             font-weight: 600;
         }
         .notif-footer button:hover { background: var(--glass-bg); }
+        .fin-hist-banner {
+            background: rgba(59,130,246,0.10);
+            border: 1px solid rgba(59,130,246,0.30);
+            color: var(--text-primary);
+            padding: 9px 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 0.85em;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+        }
+        .fin-hist-banner button {
+            background: rgba(59,130,246,0.20);
+            border: 1px solid rgba(59,130,246,0.45);
+            color: #60a5fa;
+            padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 0.92em; font-weight: 600;
+        }
+        /* Engenharia — pipeline de fases (gráfico de pontinhos) */
+        .eng-statline { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 16px; padding: 12px 16px; background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 12px; font-size: 0.88em; color: var(--text-secondary); }
+        .eng-statline b { color: var(--accent); font-size: 1.2em; margin-right: 4px; }
+        .eng-pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 14px; }
+        .eng-phase { background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 12px; padding: 12px 10px; min-height: 110px; }
+        .eng-phase-head { font-size: 0.78em; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; white-space: nowrap; }
+        .eng-phase-count { font-size: 1.7em; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+        .eng-dots { display: flex; flex-wrap: wrap; gap: 4px; }
+        .eng-dot { width: 11px; height: 11px; border-radius: 50%; background: #64748b; }
+        .eng-dot.and { background: #3b82f6; }
+        .eng-dot.rev { background: #a855f7; }
+        .eng-dot.nao { background: #64748b; }
+        .eng-dot.blo { background: #ef4444; }
+        .eng-dot.atr { background: #f59e0b; }
+        .eng-phase-empty { font-size: 0.75em; color: var(--text-secondary); opacity: 0.4; }
+        .eng-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; font-size: 0.76em; color: var(--text-secondary); }
+        .eng-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .eng-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        @media (max-width: 640px) { .eng-pipeline { grid-template-columns: repeat(2, 1fr); } }
 
         @keyframes pulse {
             0% {
@@ -4143,33 +4178,22 @@
                     </div>
                 </div>
 
-                <!-- KPIs -->
-                <div id="engKPIs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px">
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#06b6d4,#0284c7)">
-                        <div class="fin-kpi-label">📦 Projetos Ativos</div>
-                        <div class="fin-kpi-value" id="engKpiProjetos">0</div>
-                        <div class="fin-kpi-hint" id="engKpiTarefas">0 tarefas</div>
-                    </div>
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
-                        <div class="fin-kpi-label">✅ Concluídas</div>
-                        <div class="fin-kpi-value" id="engKpiConcluidas">0</div>
-                        <div class="fin-kpi-hint" id="engKpiConcluidasPct">0%</div>
-                    </div>
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#f59e0b,#b45309)">
-                        <div class="fin-kpi-label">🟡 Em Andamento</div>
-                        <div class="fin-kpi-value" id="engKpiAndamento">0</div>
-                        <div class="fin-kpi-hint" id="engKpiAndamentoPct">0%</div>
-                    </div>
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#64748b,#334155)">
-                        <div class="fin-kpi-label">⚫ Aguardando</div>
-                        <div class="fin-kpi-value" id="engKpiAguardando">0</div>
-                        <div class="fin-kpi-hint" id="engKpiBloqueadas">0 bloqueadas</div>
-                    </div>
-                    <div class="fin-kpi-card" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)">
-                        <div class="fin-kpi-label">📊 Progresso Médio</div>
-                        <div class="fin-kpi-value" id="engKpiProgresso">0%</div>
-                        <div class="fin-kpi-hint">média entre tarefas ativas</div>
-                    </div>
+                <!-- KPIs compactos + Pipeline de Produção (gráfico de fases) -->
+                <div class="eng-statline" id="engStatline">
+                    <span><b id="engKpiProjetos">0</b>projetos ativos</span>
+                    <span><b id="engKpiAndamento">0</b>em andamento</span>
+                    <span><b id="engKpiConcluidas">0</b>concluídas</span>
+                    <span><b id="engKpiProgresso">0%</b>progresso médio</span>
+                </div>
+                <div style="font-size:0.82em;font-weight:700;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">🛰️ Pipeline de produção — onde o trabalho está</div>
+                <div class="eng-pipeline" id="engPipeline"></div>
+                <div class="eng-legend">
+                    <span><i style="background:#3b82f6"></i>Em andamento</span>
+                    <span><i style="background:#a855f7"></i>Em revisão</span>
+                    <span><i style="background:#f59e0b"></i>Atrasada</span>
+                    <span><i style="background:#64748b"></i>Não iniciada</span>
+                    <span><i style="background:#ef4444"></i>Bloqueada</span>
+                    <span style="opacity:0.7">• cada ponto = 1 tarefa em aberto</span>
                 </div>
 
                 <!-- Filtros -->
@@ -4741,9 +4765,9 @@
                         hg.textContent = saud + (u ? ', ' + u.charAt(0).toUpperCase() + u.slice(1) : '') + ' 👋';
                     }
                     renderHeroResumo();
-                    if (!window._heroKpisLoaded) {
-                        window._heroKpisLoaded = true;
-                        finApi('getCrossKPIs', {}).then(r => { if (r && r.kpis) { window._heroKpis = r.kpis; renderHeroResumo(); } }).catch(() => {});
+                    if (!window._heroKpis && !window._heroKpisFetching) {
+                        window._heroKpisFetching = true;
+                        finApi('getCrossKPIs', {}).then(r => { window._heroKpisFetching = false; if (r && r.kpis) { window._heroKpis = r.kpis; renderHeroResumo(); } }).catch(() => { window._heroKpisFetching = false; });
                     }
                 } catch (e) { console.warn('hero', e); }
 
@@ -5821,13 +5845,22 @@
                 const grid = document.getElementById('heroGrid');
                 const fire = document.getElementById('heroMaior');
                 if (!grid) return;
+                // Fallback rápido p/ engenharia via cache local (engItens) enquanto getCrossKPIs não volta
+                const engK = k ? k.engenharia : null;
+                let emAnd = engK ? engK.emAndamento : null;
+                let projAt = engK ? engK.projetosAtivos : null;
+                if ((emAnd == null || projAt == null) && typeof engItens !== 'undefined' && engItens && engItens.length && typeof engComputarKPIs === 'function') {
+                    const _ef = engComputarKPIs(engItens);
+                    if (emAnd == null) emAnd = _ef.emAndamento;
+                    if (projAt == null) projAt = _ef.projetosAtivos;
+                }
                 const fmtR = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
                 const fmtK = v => { v = Number(v) || 0; if (v >= 1000000) return 'R$ ' + (v / 1000000).toFixed(1).replace('.', ',') + 'M'; if (v >= 1000) return 'R$ ' + (v / 1000).toFixed(v >= 100000 ? 0 : 1).replace('.', ',') + 'k'; return fmtR(v); };
                 let cards = [];
                 if (isMarcelo) {
                     cards = [
-                        { k: '🛠️ Projetos ativos', v: k ? k.engenharia.projetosAtivos : '—' },
-                        { k: '⏳ Em andamento', v: k ? k.engenharia.emAndamento : '—' },
+                        { k: '🛠️ Projetos ativos', v: projAt != null ? projAt : '—' },
+                        { k: '⏳ Em andamento', v: emAnd != null ? emAnd : '—' },
                         { k: '⚠️ Atrasadas', v: k ? k.engenharia.atrasadas : '—', alert: !!(k && k.engenharia.atrasadas > 0) },
                         { k: '💸 Custo do mês', v: k ? fmtK(k.operacao.custoMesTotal) : '—' }
                     ];
@@ -5841,7 +5874,7 @@
                         { k: '🏆 Fechado ' + (k ? k.comercial.trimestreLabel : 'no tri'), v: k ? (k.comercial.fechadasTrimestre + ' · ' + fmtK(k.comercial.valorFechadoTrimestre)) : '—', win: true },
                         { k: '💰 Pipeline', v: k ? fmtK(k.comercial.pipelineAtivo) : (c.pipelineVal != null ? fmtK(c.pipelineVal) : '—') },
                         { k: '📅 Previstas no mês', v: c.previstas != null ? c.previstas : '—' },
-                        { k: '🛠️ Em andamento', v: k ? k.engenharia.emAndamento : '—' }
+                        { k: '🛠️ Em andamento', v: emAnd != null ? emAnd : '—' }
                     ];
                     if (fire) fire.innerHTML = (c.maior && c.maior.v > 0) ? '🔥 Maior oportunidade aberta: <b>' + esc(c.maior.c) + '</b> — ' + fmtR(c.maior.v) : '🔥 Nenhuma oportunidade aberta no momento';
                 }
@@ -6953,6 +6986,7 @@ Data: ${h.data}`;
 
             let finParcelas = [];
             let finView = 'lista';
+            let finMostrarHistorico = false; // por padrão esconde recebimentos antigos (Pago antes do mês)
             let finLastLoad = 0;
             // Hidratacao inicial do cache (instantaneo, antes de qualquer fetch)
             try {
@@ -7639,10 +7673,17 @@ Data: ${h.data}`;
             // ----- Helpers de KPI ------
             function engComputarKPIs(itens) {
                 const projetos = new Set();
+                const projInfo = {}; // mesma definição de "ativo" do resto do sistema
                 let concluidas = 0, emAndamento = 0, naoIniciadas = 0, bloqueadas = 0;
                 let somaPct = 0, validasPct = 0;
                 itens.forEach(r => {
                     projetos.add(r.projeto || r.numeroProposta);
+                    const chave = r.projeto || ('Proposta ' + r.numeroProposta);
+                    if (!projInfo[chave]) projInfo[chave] = { total: 0, concl: 0 };
+                    if (r.status !== 'Retirada' && r.status !== 'N/A') {
+                        projInfo[chave].total++;
+                        if (r.status === 'Concluído') projInfo[chave].concl++;
+                    }
                     if (r.status === 'Concluído') concluidas++;
                     else if (r.status === 'Em andamento' || r.status === 'Em revisão') emAndamento++;
                     else if (r.status === 'Bloqueado') bloqueadas++;
@@ -7652,25 +7693,68 @@ Data: ${h.data}`;
                         somaPct += (parseFloat(r.percentual) || 0); validasPct++;
                     }
                 });
+                const projetosAtivos = Object.keys(projInfo).filter(p => { const g = projInfo[p]; return !(g.total > 0 && g.concl === g.total); }).length;
                 return {
-                    totalTarefas: itens.length, totalProjetos: projetos.size,
+                    totalTarefas: itens.length, totalProjetos: projetos.size, projetosAtivos: projetosAtivos,
                     concluidas, emAndamento, naoIniciadas, bloqueadas,
                     mediaProgressoPct: validasPct > 0 ? Math.round(somaPct / validasPct) : 0
                 };
             }
 
             function engRenderKPIs(k) {
-                document.getElementById('engKpiProjetos').textContent = k.totalProjetos;
-                document.getElementById('engKpiTarefas').textContent = k.totalTarefas + ' tarefas';
-                document.getElementById('engKpiConcluidas').textContent = k.concluidas;
-                const pctCon = k.totalTarefas > 0 ? Math.round((k.concluidas / k.totalTarefas) * 100) : 0;
-                document.getElementById('engKpiConcluidasPct').textContent = pctCon + '%';
-                document.getElementById('engKpiAndamento').textContent = k.emAndamento;
-                const pctAnd = k.totalTarefas > 0 ? Math.round((k.emAndamento / k.totalTarefas) * 100) : 0;
-                document.getElementById('engKpiAndamentoPct').textContent = pctAnd + '%';
-                document.getElementById('engKpiAguardando').textContent = k.naoIniciadas;
-                document.getElementById('engKpiBloqueadas').textContent = k.bloqueadas + ' bloqueadas';
-                document.getElementById('engKpiProgresso').textContent = k.mediaProgressoPct + '%';
+                const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+                set('engKpiProjetos', k.projetosAtivos);
+                set('engKpiAndamento', k.emAndamento);
+                set('engKpiConcluidas', k.concluidas);
+                set('engKpiProgresso', k.mediaProgressoPct + '%');
+                engRenderPipeline(engItens);
+            }
+
+            // Classifica uma tarefa numa FASE canônica de produção (a partir do texto livre de fase/subitem)
+            function engFaseCanonica(t) {
+                const s = ((t.fase || '') + ' ' + (t.subitem || '')).toLowerCase();
+                if (/campo|coleta|captura|voo|drone|laser|scanner|gnss|rtk|apoio topo|loca[çc][ãa]o|360 em campo/.test(s)) return 'campo';
+                if (/upload|entrega|confer[êe]nc|produto final|tour|matterport|edi[çc][ãa]o de foto|entrega ao cliente|^fotos$|\bfotos\b/.test(s)) return 'entrega';
+                if (/bim|ifc|revit|modelagem|modelo|planta|corte|eleva[çc]|cadastro|as ?built|arquitet/.test(s)) return 'bim';
+                if (/lpc|nuvem|ply|mesh|e57|point ?cloud/.test(s)) return 'lpc';
+                if (/process|registro|georref|limpeza|unifica|rcp|rcs/.test(s)) return 'processamento';
+                return 'processamento'; // default: meio do fluxo
+            }
+
+            function engRenderPipeline(itens) {
+                const cont = document.getElementById('engPipeline');
+                if (!cont) return;
+                const hojeMid = new Date(); hojeMid.setHours(0, 0, 0, 0);
+                const fases = [
+                    { key: 'campo', nome: '📡 Campo' },
+                    { key: 'processamento', nome: '⚙️ Processamento' },
+                    { key: 'lpc', nome: '☁️ LPC / Nuvem' },
+                    { key: 'bim', nome: '🏛️ BIM' },
+                    { key: 'entrega', nome: '📦 Entrega' }
+                ];
+                const buckets = {}; fases.forEach(f => buckets[f.key] = []);
+                (itens || []).forEach(t => {
+                    if (t.status === 'Concluído' || t.status === 'Retirada' || t.status === 'N/A') return; // só trabalho em aberto
+                    const f = engFaseCanonica(t);
+                    (buckets[f] || buckets['processamento']).push(t);
+                });
+                const cls = t => {
+                    const d = finParseDataBR(t.previsaoEntrega);
+                    if (d && d < hojeMid) return 'atr';                 // atrasada (previsão passou)
+                    if (t.status === 'Em andamento') return 'and';
+                    if (t.status === 'Em revisão') return 'rev';
+                    if (t.status === 'Bloqueado') return 'blo';
+                    return 'nao';
+                };
+                let html = '';
+                fases.forEach(f => {
+                    const arr = buckets[f.key];
+                    html += '<div class="eng-phase"><div class="eng-phase-head">' + f.nome + '</div><div class="eng-phase-count">' + arr.length + '</div><div class="eng-dots">';
+                    if (arr.length === 0) html += '<span class="eng-phase-empty">— vazio</span>';
+                    else arr.forEach(t => { html += '<span class="eng-dot ' + cls(t) + '" title="' + esc((t.projeto || t.numeroProposta || '?') + ' · ' + (t.fase || '—') + ' · ' + t.status) + '"></span>'; });
+                    html += '</div></div>';
+                });
+                cont.innerHTML = html;
             }
 
             async function engRefresh(opts) {
@@ -9785,11 +9869,26 @@ Data: ${h.data}`;
             function renderizarFinanceiro() {
                 const container = document.getElementById('finViewContainer');
                 if (!container) return;
-                const filtrado = finAplicarFiltros(finParcelas);
+                let filtrado = finAplicarFiltros(finParcelas);
 
                 if (finParcelas.length === 0) {
                     container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary)">📋 Nenhuma parcela cadastrada ainda.<br><small>Marque uma proposta como <b>Fechada</b> para registrar o pagamento.</small></div>';
                     return;
+                }
+
+                // Por padrão a aba foca no ACIONÁVEL: esconde recebimentos antigos (Pago antes
+                // do mês corrente). Sem sentido ver pagamento de 1 ano atrás todo dia.
+                const statusSel = (document.getElementById('finFilterStatus') || {}).value || 'todas';
+                window._finOcultosAntigos = 0;
+                if (!finMostrarHistorico && statusSel !== 'pago') {
+                    const hj = new Date(); const inicioMes = new Date(hj.getFullYear(), hj.getMonth(), 1);
+                    filtrado = filtrado.filter(p => {
+                        if (p.status !== 'Pago') return true;
+                        const ref = finParseDataBR(p.dataPagamento) || finParseDataBR(p.vencimento);
+                        if (ref && ref >= inicioMes) return true;
+                        window._finOcultosAntigos++;
+                        return false;
+                    });
                 }
 
                 if (finView === 'lista') return finRenderLista(container, filtrado);
@@ -9797,14 +9896,30 @@ Data: ${h.data}`;
                 if (finView === 'calendario') return finRenderCalendario(container, filtrado);
             }
 
+            function finToggleHistorico() {
+                finMostrarHistorico = !finMostrarHistorico;
+                renderizarFinanceiro();
+            }
+
             function finRenderLista(container, arr) {
+                const FAR = new Date(8640000000000000);
+                const prio = { 'Atrasado': 0, 'Pendente': 1, 'Pago': 2, 'Cancelado': 3 };
                 arr.sort((a, b) => {
-                    const da = finParseDataBR(a.vencimento) || new Date(8640000000000000);
-                    const db = finParseDataBR(b.vencimento) || new Date(8640000000000000);
-                    return da - db;
+                    const pa = prio[a.status] != null ? prio[a.status] : 5;
+                    const pb = prio[b.status] != null ? prio[b.status] : 5;
+                    if (pa !== pb) return pa - pb;                 // atrasado → pendente → pago
+                    const da = finParseDataBR(a.vencimento) || FAR;
+                    const db = finParseDataBR(b.vencimento) || FAR;
+                    return a.status === 'Pago' ? (db - da) : (da - db); // pago: recente 1º; resto: vence antes 1º
                 });
 
-                let html = '<div class="fin-header-row">';
+                let html = '';
+                if (window._finOcultosAntigos > 0) {
+                    html += '<div class="fin-hist-banner">💡 <b>' + window._finOcultosAntigos + '</b> recebimento(s) antigo(s) ocultos — a aba mostra o que está <b>em aberto</b> e o recebido <b>recente</b>. <button type="button" onclick="finToggleHistorico()">Ver histórico</button></div>';
+                } else if (finMostrarHistorico) {
+                    html += '<div class="fin-hist-banner">📜 Histórico completo visível. <button type="button" onclick="finToggleHistorico()">Voltar ao essencial</button></div>';
+                }
+                html += '<div class="fin-header-row">';
                 html += '<div>Cliente / Proposta</div><div>Vendedor</div><div>Parcela</div><div>Valor</div><div>Vencimento</div><div>Status</div><div></div>';
                 html += '</div>';
 
