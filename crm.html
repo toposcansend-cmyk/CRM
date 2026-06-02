@@ -2769,24 +2769,21 @@
       .menu-toggle .menu-label { display: none; }
       .menu-toggle span:first-child { font-size: 1.4em; line-height: 1; }
       #tabsContainer { margin-bottom: 0 !important; min-height: 0; }
-      /* App-bar: ☰ esquerda · logo TOPOSCAN centralizado · sino+avatar fixos na direita */
-      #mainHeader { position: relative; justify-content: center; min-height: 60px; }
+      /* App-bar: ☰ esquerda (fixo) · logo centralizado · sino+avatar NA BARRA à direita (sem sobrepor) */
+      #mainHeader { position: relative; justify-content: flex-end; align-items: center; min-height: 64px; padding: 10px 12px 10px 62px; }
       #mainLogo {
         position: absolute;
         left: 50%; top: 50%;
         transform: translate(-50%, -50%);
-        height: 46px !important;
-        max-width: 50vw;
+        height: 42px !important;
+        max-width: 44vw;
         margin: 0 !important;
       }
       #mainHeader .header-right {
-        position: fixed !important;
-        top: calc(env(safe-area-inset-top) + 13px);
-        right: 12px;
+        position: static !important;
         width: auto !important;
-        z-index: 61;
-        flex-wrap: nowrap !important;
         gap: 10px !important;
+        flex-wrap: nowrap !important;
       }
       /* a lista de abas (#tabsMenu) vira gaveta fixa que desliza da esquerda */
       #tabsMenu {
