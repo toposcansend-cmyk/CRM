@@ -10041,6 +10041,9 @@ Data: ${h.data}`;
                     const r = await finApi('markPaid', { rowIndex: rowIndex });
                     if (r && r.ok) {
                         await finRefresh({ skipCache: true });
+                        // Auto-saldo V7.14: markPaid já somou a entrada no caixa no BACKEND.
+                        // Reconcilia tb a tela do Fluxo de Caixa (senão o saldo exibido fica velho).
+                        if (typeof fcRefresh === 'function') fcRefresh({ skipCache: true }).catch(()=>{});
                     } else {
                         alert('Erro: ' + (r && r.error ? r.error : 'falha desconhecida'));
                     }

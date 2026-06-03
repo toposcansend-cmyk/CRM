@@ -150,12 +150,14 @@ function handleAgentRequest(data) {
   if (action === 'listPayments')     return respond(listPayments(data));
   if (action === 'updatePayment')    return respond(updatePayment(data));
   if (action === 'markPaid')         return respond(markPaid(data));
+  if (action === 'deletePayment')    return respond(deletePayment(data));
   if (action === 'getFinanceKPIs')   return respond(getFinanceKPIs(data));
   if (action === 'ensureFinanceiro') return respond(ensureFinanceiroSheet());
   if (action === 'seedHistorico')    return respond(bulkSeedHistorico());
 
   // ─── TopoPartners (V5.0) ───
   if (action === 'addTopoPartner')      return respond(addTopoPartner(data));
+  if (action === 'addTopoPartnerParcelado') return respond(addTopoPartnerParcelado(data));
   if (action === 'listTopoPartners')    return respond(listTopoPartners(data));
   if (action === 'updateTopoPartner')   return respond(updateTopoPartner(data));
   if (action === 'deleteTopoPartner')   return respond(deleteTopoPartner(data));
@@ -936,6 +938,16 @@ function markPaid(body) {
   return { ok: true, rowIndex: body.rowIndex, dataPagamento: dataPagto, saldoAtualizado: saldoAtualizado };
 }
 
+// Remove uma parcela (espelha deleteTopoPartner). NÃO mexe no caixa — saldo é
+// ajustado só em markPaid/updateTopoPartner. Usar só pra lixo/teste/duplicata.
+function deletePayment(body) {
+  if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
+  if (!body.rowIndex || body.rowIndex < 2) return { ok: false, error: 'rowIndex invalido' };
+  var sheet = _finSheet();
+  sheet.deleteRow(body.rowIndex);
+  return { ok: true, deleted: true, rowIndex: body.rowIndex };
+}
+
 function getFinanceKPIs(body) {
   if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
   const sheet = _finSheet();
@@ -1085,13 +1097,13 @@ const TP_HEADERS = [
   'id', 'parceiro', 'servico', 'projeto', 'descricao',
   'dataOperacao', 'valorAcordado', 'valorPago', 'valorRestante',
   'previsaoPagamento', 'status', 'avaliacao', 'observacoes',
-  'criadoEm', 'atualizadoEm', 'categoria'
+  'criadoEm', 'atualizadoEm', 'categoria', 'grupoId', 'parcela'
 ];
 const TP_COL = {
   id: 1, parceiro: 2, servico: 3, projeto: 4, descricao: 5,
   dataOperacao: 6, valorAcordado: 7, valorPago: 8, valorRestante: 9,
   previsaoPagamento: 10, status: 11, avaliacao: 12, observacoes: 13,
-  criadoEm: 14, atualizadoEm: 15, categoria: 16
+  criadoEm: 14, atualizadoEm: 15, categoria: 16, grupoId: 17, parcela: 18
 };
 const TP_CATEGORIAS = ['Parceiro/Serviço', 'Equipamento', 'Veículo', 'Cartão de Crédito', 'Outros'];
 
@@ -1183,6 +1195,84 @@ function addTopoPartner(body) {
   const startRow = sheet.getLastRow() + 1;
   sheet.getRange(startRow, 1, 1, TP_HEADERS.length).setValues([row]);
   return { ok: true, id: id, rowIndex: startRow };
+}
+
+// ─── Custo PARCELADO V7.17 — N parcelas ligadas por grupoId ──────────────
+// Cada parcela vira UMA linha (igual às parcelas de venda) pra conciliar 1:1 no
+// fluxo de caixa: cada uma tem sua previsaoPagamento e seu valor. As linhas
+// compartilham o grupoId e trazem o marcador 'i/N' (coluna parcela + sufixo no
+// servico, que é o que o fluxo de caixa exibe). NÃO mexe no caixa na criação
+// (são pagamentos FUTUROS); o caixa só baixa quando marcar valorPago via
+// updateTopoPartner (auto-saldo, ver E031). Campo manual segue pros imprevistos.
+// body: { parceiro, servico, projeto, categoria, descricao?, dataOperacao?,
+//         valorTotal?, observacoes?, parcelas: [{valor, previsao, valorPago?, observacoes?}] }
+function addTopoPartnerParcelado(body) {
+  if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
+  if (!body.parceiro || !body.servico) return { ok: false, error: 'parceiro e servico sao obrigatorios' };
+  var parcelas = body.parcelas;
+  if (!Array.isArray(parcelas) || parcelas.length === 0) {
+    return { ok: false, error: 'parcelas deve ser um array nao-vazio de {valor, previsao}' };
+  }
+  // Valida cada parcela e soma o total
+  var soma = 0;
+  for (var i = 0; i < parcelas.length; i++) {
+    var p = parcelas[i] || {};
+    var v = parseFloat(p.valor);
+    if (isNaN(v) || v <= 0) return { ok: false, error: 'parcela ' + (i + 1) + ': valor invalido (' + p.valor + ')' };
+    if (!p.previsao || !/^\d{2}\/\d{2}\/\d{4}$/.test(String(p.previsao))) {
+      return { ok: false, error: 'parcela ' + (i + 1) + ': previsao deve ser DD/MM/AAAA (recebido: ' + p.previsao + ')' };
+    }
+    soma += v;
+  }
+  soma = Math.round(soma * 100) / 100;
+  // Trava anti-erro-silencioso (ver E032): se valorTotal informado, a soma TEM que bater
+  if (body.valorTotal !== undefined && body.valorTotal !== null && body.valorTotal !== '') {
+    var total = Math.round(parseFloat(body.valorTotal) * 100) / 100;
+    if (soma !== total) {
+      return { ok: false, error: 'soma das parcelas (' + soma + ') difere do valorTotal informado (' + total + ')' };
+    }
+  }
+
+  var sheet = _tpSheet();
+  var grupoId = body.grupoId || ('GRP' + Date.now());
+  var n = parcelas.length;
+  var categoria = body.categoria || 'Parceiro/Serviço';
+  var agora = _now();
+  var startRow = sheet.getLastRow() + 1;
+  var rows = [];
+  var resumo = [];
+  for (var j = 0; j < n; j++) {
+    var pj = parcelas[j];
+    var valor = parseFloat(pj.valor);
+    var pago = parseFloat(pj.valorPago) || 0;
+    var marcador = (j + 1) + '/' + n;
+    var row = new Array(TP_HEADERS.length).fill('');
+    row[TP_COL.id - 1] = grupoId + '-' + (j + 1);
+    row[TP_COL.parceiro - 1] = body.parceiro;
+    row[TP_COL.servico - 1] = body.servico + ' (Parcela ' + marcador + ')';
+    row[TP_COL.projeto - 1] = body.projeto || '';
+    row[TP_COL.descricao - 1] = body.descricao || '';
+    row[TP_COL.dataOperacao - 1] = body.dataOperacao || '';
+    row[TP_COL.valorAcordado - 1] = valor;
+    row[TP_COL.valorPago - 1] = pago;
+    row[TP_COL.valorRestante - 1] = Math.max(0, valor - pago);
+    row[TP_COL.previsaoPagamento - 1] = pj.previsao;
+    row[TP_COL.status - 1] = _tpDerivarStatus(valor, pago);
+    row[TP_COL.avaliacao - 1] = body.avaliacao || '';
+    row[TP_COL.observacoes - 1] = pj.observacoes || body.observacoes || '';
+    row[TP_COL.criadoEm - 1] = agora;
+    row[TP_COL.atualizadoEm - 1] = agora;
+    row[TP_COL.categoria - 1] = categoria;
+    row[TP_COL.grupoId - 1] = grupoId;
+    row[TP_COL.parcela - 1] = marcador;
+    rows.push(row);
+    resumo.push({ rowIndex: startRow + j, parcela: marcador, valor: valor, previsao: pj.previsao });
+  }
+  // Força a coluna 'parcela' como TEXTO antes de escrever — senão o Sheets coage
+  // "1/2" em data (vira 01/02). O lado das vendas já faz isso; aqui é coluna nova.
+  sheet.getRange(startRow, TP_COL.parcela, n, 1).setNumberFormat('@');
+  sheet.getRange(startRow, 1, n, TP_HEADERS.length).setValues(rows);
+  return { ok: true, grupoId: grupoId, count: n, total: soma, parcelas: resumo };
 }
 
 function listTopoPartners(body) {
@@ -1480,16 +1570,23 @@ function getProducaoKPIs(body) {
   if (!_finAuthOK(body)) return { ok: false, error: 'Secret invalido' };
   const sheet = _prSheet();
   const last = sheet.getLastRow();
-  const zero = { totalTarefas: 0, totalProjetos: 0, concluidas: 0, emAndamento: 0, naoIniciadas: 0, bloqueadas: 0, mediaProgressoPct: 0 };
+  const zero = { totalTarefas: 0, totalProjetos: 0, projetosAtivos: 0, concluidas: 0, emAndamento: 0, naoIniciadas: 0, bloqueadas: 0, mediaProgressoPct: 0 };
   if (last < 2) return { ok: true, kpis: zero };
   const data = sheet.getRange(2, 1, last - 1, PR_HEADERS.length).getValues();
   const itens = data.map((row, i) => _prRowToObj(row, i + 2))
     .filter(r => (r.projeto && String(r.projeto).trim() !== '') || (r.numeroProposta && String(r.numeroProposta).trim() !== ''));
   const projetos = new Set();
+  const projInfo = {}; // mesma definicao de "ativo" do frontend/getCrossKPIs
   let concluidas = 0, emAndamento = 0, naoIniciadas = 0, bloqueadas = 0;
   let somaPct = 0, validasPct = 0;
   itens.forEach(r => {
     projetos.add(r.projeto || r.numeroProposta);
+    var chaveProj = r.projeto || ('Proposta ' + r.numeroProposta);
+    if (!projInfo[chaveProj]) projInfo[chaveProj] = { total: 0, concl: 0 };
+    if (r.status !== 'Retirada' && r.status !== 'N/A') {
+      projInfo[chaveProj].total++;
+      if (r.status === 'Concluído') projInfo[chaveProj].concl++;
+    }
     if (r.status === 'Concluído') concluidas++;
     else if (r.status === 'Em andamento' || r.status === 'Em revisão') emAndamento++;
     else if (r.status === 'Bloqueado') bloqueadas++;
@@ -1504,6 +1601,7 @@ function getProducaoKPIs(body) {
     kpis: {
       totalTarefas: itens.length,
       totalProjetos: projetos.size,
+      projetosAtivos: Object.keys(projInfo).filter(function (p) { var g = projInfo[p]; return !(g.total > 0 && g.concl === g.total); }).length,
       concluidas: concluidas,
       emAndamento: emAndamento,
       naoIniciadas: naoIniciadas,
@@ -1565,8 +1663,15 @@ function _centralColetarTudo() {
 
   // 1) PROPOSTAS (CRM Consolidado)
   var crmSheet = getSheet();
-  var crmData = readAllData(); // já trata
-  var propostas = (crmData && crmData.rows) ? crmData.rows : [];
+  // readAllData() retorna um ARRAY de propostas (não {rows}). Bug antigo lia .rows
+  // (undefined) → propostas ficava VAZIO, zerando TODO o comercial (pipeline/fechadas/alertas).
+  var propostas = (readAllData() || []).map(function(p) {
+    p.valorTotal = Number(p.valor) || 0;          // KPIs usam valorTotal; objeto tem valor
+    p.percentual = Number(p.probabilidade) || 0;  // KPIs usam percentual; objeto tem probabilidade
+    var _ult = _parseDataBR(p.ultimoFollowup || p.dataProposta || '');
+    if (_ult) p.atualizadoEm = _ult.toISOString(); // proxy de "última atividade" p/ deal travado
+    return p;
+  });
 
   // 2) FINANCEIRO
   var finSheet = _finSheet();
@@ -1800,9 +1905,15 @@ function getCrossKPIs(body) {
   var fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
   var em30d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 30);
   var em90d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 90);
+  // TRIMESTRE corrente (Q1 jan-mar, Q2 abr-jun, Q3 jul-set, Q4 out-dez)
+  var _q = Math.floor(hoje.getMonth() / 3);
+  var inicioTri = new Date(hoje.getFullYear(), _q * 3, 1);
+  var fimTri = new Date(hoje.getFullYear(), _q * 3 + 3, 0);
+  var nomesTri = ['1º tri', '2º tri', '3º tri', '4º tri'];
 
   // COMERCIAL
   var pipelineAtivo = 0, pipelinePonderado = 0, fechadasMes = 0, valorFechadoMes = 0;
+  var fechadasTri = 0, valorFechadoTri = 0;
   var dealsTravados = 0;
   d.propostas.forEach(function(p) {
     if (p.status === 'Fechada') {
@@ -1810,6 +1921,10 @@ function getCrossKPIs(body) {
       if (dataFech && dataFech >= inicioMes && dataFech <= fimMes) {
         fechadasMes++;
         valorFechadoMes += Number(p.valorTotal) || 0;
+      }
+      if (dataFech && dataFech >= inicioTri && dataFech <= fimTri) {
+        fechadasTri++;
+        valorFechadoTri += Number(p.valorTotal) || 0;
       }
     } else if (p.status !== 'Perdida') {
       var v = Number(p.valorTotal) || 0;
@@ -1838,17 +1953,30 @@ function getCrossKPIs(body) {
 
   // OPERAÇÃO
   var custoMesTotal = 0, custoMesPendente = 0;
+  var maiorCusto = null;
   d.custos.forEach(function(c) {
     var dt = _parseDataBR(c.dataOperacao);
     if (dt && dt >= inicioMes && dt <= fimMes) custoMesTotal += c.valorAcordado;
     if (c.status !== 'Pago') custoMesPendente += c.valorRestante;
+    // Insight Marcelo: operação de maior custo acordado
+    if ((Number(c.valorAcordado) || 0) > 0 && (!maiorCusto || c.valorAcordado > maiorCusto.valor)) {
+      maiorCusto = { parceiro: c.parceiro, servico: c.servico, projeto: c.projeto, valor: Number(c.valorAcordado) || 0, restante: Number(c.valorRestante) || 0, status: c.status };
+    }
   });
 
   // ENGENHARIA
-  var projetosAtivos = {};
+  var projInfo = {};
   var concluidasMes = 0, atrasadas = 0, bloqueadas = 0, emAndamento = 0;
+  var maisAtrasada = null;
   d.producao.forEach(function(t) {
-    if (t.projeto) projetosAtivos[t.projeto] = (projetosAtivos[t.projeto] || 0) + 1;
+    // Espelha EXATAMENTE engAgruparPorProjeto() do frontend: grupo por
+    // projeto OU "Proposta {num}", criado SEMPRE; conta só status válidos.
+    var chaveProj = t.projeto || ('Proposta ' + t.numeroProposta);
+    if (!projInfo[chaveProj]) projInfo[chaveProj] = { total: 0, concl: 0 };
+    if (t.status !== 'Retirada' && t.status !== 'N/A') {
+      projInfo[chaveProj].total++;
+      if (t.status === 'Concluído') projInfo[chaveProj].concl++;
+    }
     if (t.status === 'Concluído') {
       var dataConcl = t.dataConclusao ? _parseDataBR(t.dataConclusao) : null;
       if (dataConcl && dataConcl >= inicioMes && dataConcl <= fimMes) concluidasMes++;
@@ -1856,6 +1984,10 @@ function getCrossKPIs(body) {
       emAndamento++;
       if (t.diasAtraso > 0) atrasadas++;
     } else if (t.status === 'Bloqueado') bloqueadas++;
+    // Insight Marcelo: tarefa/projeto mais atrasado em andamento
+    if (t.diasAtraso > 0 && (!maisAtrasada || t.diasAtraso > maisAtrasada.dias)) {
+      maisAtrasada = { projeto: t.projeto || ('Proposta ' + t.numeroProposta), fase: t.fase || '', responsavel: t.responsavel || '', dias: t.diasAtraso, status: t.status };
+    }
   });
 
   // SAÚDE GERAL (score 0-100)
@@ -1880,6 +2012,9 @@ function getCrossKPIs(body) {
         pipelinePonderado: Math.round(pipelinePonderado),
         fechadasMes: fechadasMes,
         valorFechadoMes: valorFechadoMes,
+        fechadasTrimestre: fechadasTri,
+        valorFechadoTrimestre: valorFechadoTri,
+        trimestreLabel: nomesTri[_q] + '/' + hoje.getFullYear(),
         dealsTravados: dealsTravados
       },
       financeiro: {
@@ -1893,7 +2028,7 @@ function getCrossKPIs(body) {
         custoMesPendente: custoMesPendente
       },
       engenharia: {
-        projetosAtivos: Object.keys(projetosAtivos).length,
+        projetosAtivos: Object.keys(projInfo).filter(function (p) { var g = projInfo[p]; return !(g.total > 0 && g.concl === g.total); }).length,
         emAndamento: emAndamento,
         concluidasMes: concluidasMes,
         atrasadas: atrasadas,
