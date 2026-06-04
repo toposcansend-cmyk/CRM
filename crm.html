@@ -3284,13 +3284,13 @@
             </button>
             <div class="tabs-menu" id="tabsMenu">
                 <button class="tab-btn" id="tabBtnCentral" onclick="trocarTab('central')" style="display:none">🎯 Central</button>
-                <button class="tab-btn active" onclick="trocarTab('oportunidades')">Oportunidades</button>
-                <button class="tab-btn" onclick="trocarTab('pipeline')">Pipeline</button>
-                <button class="tab-btn" onclick="trocarTab('evolucao')">Evolucao</button>
+                <button class="tab-btn active" onclick="trocarTab('oportunidades')">🎯 Oportunidades</button>
+                <button class="tab-btn" onclick="trocarTab('pipeline')">📊 Pipeline</button>
+                <button class="tab-btn" onclick="trocarTab('evolucao')">📈 Evolução</button>
                 <button class="tab-btn" onclick="trocarTab('insights')" style="display:none">Insights</button>
                 <button class="tab-btn" onclick="trocarTab('kpi')" style="display:none">KPIs</button>
-                <button class="tab-btn" onclick="trocarTab('followup')">Follow-up</button>
-                <button class="tab-btn" onclick="trocarTab('orcamento')">Orcamento</button>
+                <button class="tab-btn" onclick="trocarTab('followup')">📞 Follow-up</button>
+                <button class="tab-btn" onclick="trocarTab('orcamento')">🧾 Orçamento</button>
                 <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
                 <button class="tab-btn" onclick="trocarTab('topopartners')">💼 Custos de Operação</button>
                 <button class="tab-btn" onclick="trocarTab('engenharia')">🛠️ Engenharia</button>
@@ -4961,7 +4961,7 @@
             }
 
             function evoParseDate(p) {
-                var data = (p.fechamentoPrevisto || p.dataProposta || '').trim();
+                var data = (p.dataFechamento || p.fechamentoPrevisto || p.dataProposta || '').trim();
                 if (!data) return null;
                 var parts = data.split('/');
                 if (parts.length === 3) {
