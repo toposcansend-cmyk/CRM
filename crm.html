@@ -2232,6 +2232,38 @@
             font-weight: 500;
         }
 
+        /* === Orcamento: re-tema dark, alinhado ao app (V7.17) === */
+        #orcamento .card { background: var(--bg-secondary); border: 1px solid var(--glass-border); }
+        #orcamento .subtitle, #orcamento .resultado-label, #orcamento .detalhes-table th { color: var(--text-secondary); }
+        #orcamento .card-title { color: var(--text-primary); border-bottom: 2px solid var(--glass-border); }
+        #orcamento label { color: var(--text-secondary); }
+        #orcamento input[type="text"], #orcamento input[type="number"], #orcamento select {
+            background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--glass-border);
+        }
+        #orcamento input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+        #orcamento input:focus, #orcamento select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,212,255,0.15); }
+        #orcamento .checkbox-item { background: var(--bg-tertiary); border: 1px solid var(--glass-border); color: var(--text-primary); }
+        #orcamento .checkbox-item:hover { border-color: var(--accent); }
+        #orcamento .checkbox-item.checked { background: var(--accent); border-color: var(--accent); color: #04121a; }
+        #orcamento .checkbox-item .checkmark { border-color: var(--glass-border); }
+        #orcamento .checkbox-item.checked .checkmark { background: #04121a; border-color: #04121a; color: var(--accent); }
+        #orcamento .btn-calcular { background: var(--gradient-1); color: #04121a; font-weight: 700; }
+        #orcamento .btn-calcular:hover { filter: brightness(1.08); transform: translateY(-2px); }
+        #orcamento .resultado-card { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); }
+        #orcamento .resultado-card .card-title { color: var(--text-primary); border-bottom-color: var(--glass-border); }
+        #orcamento .resultado-item { border-bottom: 1px solid var(--glass-border); }
+        #orcamento .resultado-valor { color: var(--text-primary); }
+        #orcamento .total-destaque { background: var(--gradient-1); color: #04121a; }
+        #orcamento .total-label { color: rgba(4,18,26,0.78); }
+        #orcamento .total-valor { color: #04121a; }
+        #orcamento .detalhes-table td { border-bottom: 1px solid var(--glass-border); color: var(--text-primary); }
+
+        /* === Polish global: foco acessivel + respeitar "reduzir movimento" === */
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+        }
+
         #orcamento .historico {
             margin-top: 30px;
         }
@@ -3618,7 +3650,7 @@
                         </div>
 
                         <div id="topopartnerFields"
-                            style="display: none; padding: 15px; background: #e8f5e9; border-radius: 8px; margin-bottom: 15px;">
+                            style="display: none; padding: 15px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px; margin-bottom: 15px;">
                             <div id="topopartnerCustos">
                                 <!-- Custos serão adicionados aqui -->
                             </div>
@@ -3764,7 +3796,7 @@
                             <div class="config-row">
                                 <div class="config-item">
                                     <label>Imposto (%)</label>
-                                    <input type="number" id="impostoPct" value="20">
+                                    <input type="number" id="impostoPct" value="11">
                                 </div>
                                 <div class="config-item">
                                     <label>Markup (%)</label>
@@ -3804,7 +3836,7 @@
                                 <span class="resultado-valor" id="custoTotal">R$ 0,00</span>
                             </div>
                             <div class="resultado-item">
-                                <span class="resultado-label">Imposto (<span id="impostoLabel">20</span>%)</span>
+                                <span class="resultado-label">Imposto (<span id="impostoLabel">11</span>%)</span>
                                 <span class="resultado-valor" id="valorImposto">R$ 0,00</span>
                             </div>
                             <div class="resultado-item">
@@ -4894,20 +4926,22 @@
             function renderizarKanban() {
                 const statuses = ['Lead', 'Enviada', 'Pendente', 'Standby', 'Fechada', 'Perdida'];
                 const cores = { 'Lead': '#8b5cf6', 'Enviada': '#3b82f6', 'Pendente': '#f59e0b', 'Standby': '#6b7280', 'Fechada': '#22c55e', 'Perdida': '#ef4444' };
+                const fmtK = v => 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR');
 
                 const board = document.getElementById('kanbanBoard');
                 board.innerHTML = statuses.map(s => {
                     const items = propostas.filter(p => p.status === s);
+                    const totalCol = items.reduce((acc, p) => acc + (Number(p.valor) || 0), 0);
                     return `
                     <div class="kanban-column">
-                        <h3 style="border-color:${cores[s]}">${s} (${items.length})</h3>
-                        ${items.slice(0, 10).map(p => `
-                            <div class="kanban-item">
+                        <h3 style="border-color:${cores[s]}">${s} (${items.length})<span style="float:right;font-size:0.78em;color:var(--text-secondary);font-weight:600">${fmtK(totalCol)}</span></h3>
+                        ${items.map(p => `
+                            <div class="kanban-item" onclick="abrirEdicao('${p.id}')" style="cursor:pointer">
                                 <div style="display:flex;justify-content:space-between">
                                     <span>${p.cliente}</span>
                                     <span style="font-size:0.8em;color:var(--text-secondary)">${p.vendedor || ''}</span>
                                 </div>
-                                <div class="valor">R$ ${p.valor.toLocaleString()}</div>
+                                <div class="valor">${fmtK(p.valor)}</div>
                             </div>
                         `).join('')}
                     </div>
@@ -6889,7 +6923,7 @@
 
                 // Tudo sobre a venda bruta (preço final)
                 // Fórmula: Preço Final = Custo / (1 - Imposto% - Markup% - Comissão%)
-                const pctImposto = (isNaN(impostoPct) ? 20 : impostoPct) / 100;
+                const pctImposto = (isNaN(impostoPct) ? 11 : impostoPct) / 100;
                 const pctMarkup = (isNaN(markupPct) ? 25 : markupPct) / 100;
                 const pctComissao = (isNaN(comissaoPct) ? 5 : comissaoPct) / 100;
                 const pctDesconto = (isNaN(descontoPct) ? 10 : descontoPct) / 100;
@@ -6904,7 +6938,7 @@
                 const precoDesconto = precoFinal * (1 - pctDesconto);
 
                 // Atualizar labels
-                document.getElementById('impostoLabel').textContent = isNaN(impostoPct) ? 20 : impostoPct;
+                document.getElementById('impostoLabel').textContent = isNaN(impostoPct) ? 11 : impostoPct;
                 document.getElementById('markupLabel').textContent = isNaN(markupPct) ? 25 : markupPct;
                 document.getElementById('comissaoLabel').textContent = isNaN(comissaoPct) ? 5 : comissaoPct;
                 document.getElementById('descontoLabel').textContent = isNaN(descontoPct) ? 10 : descontoPct;
