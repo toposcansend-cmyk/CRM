@@ -3146,8 +3146,6 @@
             <button onclick="abrirNovoLead()"
                 style="padding:10px;background:#22c55e;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold;white-space:nowrap">+
                 Nova Oportunidade</button>
-            <button onclick="syncToSheet()"
-                style="padding:10px;background:var(--accent);border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#000;font-weight:bold">Sincronizar</button>
             <div id="mobileSortContainer" style="width:100%;margin-top:10px">
                 <label style="font-size:0.8em;color:var(--text-secondary);margin-bottom:5px;display:block">Ordenar
                     por:</label>
@@ -5503,6 +5501,17 @@
                 }
             }
 
+            // Auto-flush de edicoes pendentes (substitui o botao Sincronizar manual):
+            // edicoes presas (ex.: feitas offline) sobem sozinhas ao abrir o app, ao focar e ao voltar a conexao.
+            function flushPendingEdits() {
+                try {
+                    var pend = JSON.parse(localStorage.getItem('crm_edits') || '{}');
+                    if (Object.keys(pend).length > 0 && navigator.onLine !== false) saveEditsToServer();
+                } catch (e) {}
+            }
+            window.addEventListener('online', flushPendingEdits);
+            document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') flushPendingEdits(); });
+
             // Load edits from persistence server - DISABLED in production
             // The localhost 127.0.0.1 server is never running on GitHub Pages
             async function loadEditsFromServer() {
@@ -5771,6 +5780,8 @@
 
             // Puxar da nuvem imediatamente
             puxarDadosDaNuvem();
+            // Sobe qualquer edicao que ficou presa (ex.: feita offline) — antes era manual via botao Sincronizar
+            flushPendingEdits();
 
             // Prefetch em background — Financeiro, TopoPartners, Engenharia e Fluxo de Caixa
             // Dispara apos 500ms para nao competir com puxarDadosDaNuvem (que e prioritario)
