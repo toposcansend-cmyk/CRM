@@ -5566,6 +5566,7 @@
                     if (result.status === 'ok') {
                         localStorage.removeItem('crm_edits');
                         localStorage.setItem('crm_last_sync', new Date().toISOString());
+                        if (typeof invalidarHero === 'function') invalidarHero();
                         alert('Sincronizado com sucesso! ' + (result.updated || 0) + ' campos atualizados.');
                     } else {
                         alert('Erro na sincronizacao: ' + (result.message || 'Erro desconhecido'));
@@ -5891,6 +5892,33 @@
                     return '<div class="ht' + (x.win ? ' win' : '') + '"><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div></div>';
                 }).join('');
             }
+
+            // Revalidacao do hero (cache invalidation cross-tab / mudancas out-of-band).
+            // O dado do CRM muda POR FORA deste navegador (5 IAs gerentes + API). Sem revalidar,
+            // o hero ficava congelado (cache 1x/sessao) — ex.: "Fechado em Junho: 0" depois de a
+            // venda ter sido fechada via API. Revalida apos cada escrita e ao voltar o foco pra aba.
+            let _heroKpisAt = 0;
+            function revalidarHeroKpis(force) {
+                if (window._heroKpisFetching) return;
+                if (window._heroKpisFresh && !force) return;
+                window._heroKpisFetching = true;
+                finApi('getCrossKPIs', {}).then(function (r) {
+                    window._heroKpisFetching = false;
+                    if (r && r.kpis) {
+                        window._heroKpis = r.kpis; window._heroKpisFresh = true; _heroKpisAt = Date.now();
+                        try { localStorage.setItem('crm_hero_kpis_v1', JSON.stringify(r.kpis)); } catch (e) {}
+                        renderHeroResumo();
+                    }
+                }).catch(function () { window._heroKpisFetching = false; });
+            }
+            function invalidarHero() { window._heroKpisFresh = false; revalidarHeroKpis(true); }
+            document.addEventListener('visibilitychange', function () {
+                if (document.visibilityState === 'visible' && (Date.now() - _heroKpisAt > 30000)) invalidarHero();
+            });
+            window.addEventListener('focus', function () {
+                if (Date.now() - _heroKpisAt > 30000) invalidarHero();
+            });
+
             function logout() {
                 sessionStorage.clear();
                 localStorage.removeItem('crm_auth');
@@ -7017,6 +7045,7 @@ Data: ${h.data}`;
                 if (_hk) window._heroKpis = JSON.parse(_hk);
             } catch (e) {}
 
+            const HERO_MUTATING_ACTIONS = new Set(['update', 'bulkUpdate', 'addLead', 'markPaid', 'addPaymentPlan', 'updatePayment', 'addTopoPartner', 'updateTopoPartner', 'deleteTopoPartner', 'addProducao', 'bulkAddProducao', 'updateProducao', 'deleteProducao', 'setCashBalance']);
             async function finApi(action, payload) {
                 const body = Object.assign({ action: action, secret: FIN_SECRET }, payload || {});
                 const r = await fetch(WEBHOOK_FIN_URL, {
@@ -7025,7 +7054,12 @@ Data: ${h.data}`;
                     body: JSON.stringify(body),
                     redirect: 'follow'
                 });
-                return r.json();
+                const json = await r.json();
+                // Cache invalidation: toda escrita que mexe em KPI revalida o hero (cross-tab)
+                try {
+                    if (json && json.ok && HERO_MUTATING_ACTIONS.has(action) && typeof invalidarHero === 'function') invalidarHero();
+                } catch (e) {}
+                return json;
             }
 
             function finFmtBRL(v) {
