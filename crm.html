@@ -4635,6 +4635,9 @@
         <script>
             console.log('=== CRM SCRIPT STARTING ===');
             const CACHE_VERSION = '2026-04-09-v18-newurl';
+            // Mapa numeroProposta -> [anexos ativos], pra mostrar selo de proposta nas listas
+            let anexosPorProposta = {};
+            try { anexosPorProposta = JSON.parse(localStorage.getItem('crm_anexos_v1') || '{}') || {}; } catch (e) { anexosPorProposta = {}; }
 
             // XSS sanitizer
             function esc(str) {
@@ -4934,7 +4937,7 @@
                     tableContainer.style.display = 'table';
                     cardsContainer.style.display = 'none';
                     tableContainer.innerHTML = f.map(p => `
-                        <td style="cursor:pointer;color:var(--accent);font-weight:bold" onclick="abrirEdicao('${p.id}')">${esc(p.cliente || '-')}</td>
+                        <td style="cursor:pointer;color:var(--accent);font-weight:bold" onclick="abrirEdicao('${p.id}')">${esc(p.cliente || '-')}${anexoBadge(p.numeroProposta, p.id)}</td>
                         <td style="font-size:0.85em;color:var(--text-secondary)">${esc(p.vendedor || '-')}</td>
                         <td>${esc(p.contato || '-')}</td>
                         <td>${esc(p.servico || '-')}</td>
@@ -4950,7 +4953,7 @@
                     cardsContainer.innerHTML = f.map(p => `
                     <div class="proposta-card" onclick="abrirEdicao('${p.id}')">
                         <div style="display:flex;justify-content:space-between;align-items:start">
-                            <div class="cliente">${esc(p.cliente || '-')}</div>
+                            <div class="cliente">${esc(p.cliente || '-')}${anexoBadge(p.numeroProposta, p.id)}</div>
                             <div style="font-size:0.7em;color:var(--text-secondary);background:var(--bg-tertiary);padding:2px 6px;border-radius:4px">${esc(p.vendedor || '-')}</div>
                         </div>
                         <div class="info">${esc(p.contato || '')} - ${esc(p.servico || '')}</div>
@@ -5867,6 +5870,7 @@
                 if (typeof tpRefresh === 'function') tpRefresh().catch(()=>{});
                 if (typeof engRefresh === 'function') engRefresh().catch(()=>{});
                 if (typeof fcRefresh === 'function') fcRefresh().catch(()=>{});
+                carregarTodosAnexos(true);
             }, 500);
 
             // Refresh periodically (optional, every 5 mins)
@@ -7184,11 +7188,16 @@ Data: ${h.data}`;
             function renderAnexos(arr) {
                 const el = document.getElementById('anexosLista');
                 if (!el) return;
+                const temProposta = arr.some(function (a) { return String(a.categoria) === 'proposta'; });
+                let alerta = '';
+                if (!temProposta) {
+                    alerta = '<div style="background:rgba(245,158,11,.12);border:1px solid #f59e0b;color:#f59e0b;padding:8px 10px;border-radius:6px;font-size:0.82em;margin-bottom:6px">⚠️ Falta anexar a <b>proposta</b> desta oportunidade.</div>';
+                }
                 if (!arr.length) {
-                    el.innerHTML = '<div style="font-size:0.8em;color:var(--text-secondary)">Nenhum anexo ainda.</div>';
+                    el.innerHTML = alerta + '<div style="font-size:0.8em;color:var(--text-secondary)">Nenhum anexo ainda.</div>';
                     return;
                 }
-                el.innerHTML = arr.map(function (a) {
+                el.innerHTML = alerta + arr.map(function (a) {
                     const nome = esc(a.nomeArquivo || 'arquivo');
                     const cat = esc(a.categoria || 'outro');
                     const isHttp = /^https?:\/\//i.test(String(a.url || ''));
@@ -7222,7 +7231,7 @@ Data: ${h.data}`;
                 if (r && r.ok) {
                     document.getElementById('anexoUrl').value = '';
                     document.getElementById('anexoNome').value = '';
-                    carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta);
+                    carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta); carregarTodosAnexos(true);
                 } else {
                     alert('Não consegui anexar: ' + ((r && r.error) || 'erro desconhecido'));
                 }
@@ -7231,7 +7240,7 @@ Data: ${h.data}`;
             async function removerAnexo(id) {
                 if (!confirm('Remover este anexo da lista?')) return;
                 const r = await finApi('deleteAttachment', { id: id });
-                if (r && r.ok) carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta);
+                if (r && r.ok) { carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta); carregarTodosAnexos(true); }
                 else alert('Não consegui remover: ' + ((r && r.error) || 'erro desconhecido'));
             }
 
@@ -7270,7 +7279,7 @@ Data: ${h.data}`;
                     const r = await finApi('uploadAttachment', { numeroProposta: _anexoCtx.numeroProposta, cliente: cliente, nomeArquivo: file.name, mimeType: file.type || '', tamanhoBytes: file.size, dataBase64: base64, categoria: categoria, enviadoPor: enviadoPor });
                     if (r && r.ok) {
                         if (status) status.textContent = '✅ ' + file.name + ' anexado';
-                        carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta);
+                        carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta); carregarTodosAnexos(true);
                         setTimeout(function () { if (status) status.textContent = ''; }, 3000);
                     } else {
                         if (status) status.textContent = '';
@@ -7280,6 +7289,40 @@ Data: ${h.data}`;
                     if (status) status.textContent = '';
                     alert('Erro ao ler/enviar o arquivo: ' + e);
                 }
+            }
+
+            // ─── Selo "tem proposta?" nas listas ───
+            async function carregarTodosAnexos(rerender) {
+                try {
+                    const r = await finApi('listAllAttachments', {});
+                    if (r && r.ok && r.byProposta) {
+                        anexosPorProposta = r.byProposta;
+                        try { localStorage.setItem('crm_anexos_v1', JSON.stringify(r.byProposta)); } catch (e) {}
+                        if (rerender && typeof filtrar === 'function') { try { filtrar(); } catch (e) {} }
+                    }
+                } catch (e) {}
+            }
+
+            function _anexoProposta(num) {
+                const arr = anexosPorProposta[String(num || '').trim()] || [];
+                return arr.find(function (a) { return String(a.categoria) === 'proposta'; }) || null;
+            }
+
+            function abrirOportunidadePorNumero(num) {
+                const p = (window.propostas || []).find(function (x) { return String(x.numeroProposta || '').trim() === String(num).trim(); });
+                if (p) abrirEdicao(p.id); else alert('Proposta ' + num + ' nao encontrada na lista de oportunidades.');
+            }
+
+            function anexoBadge(num, propId) {
+                num = String(num || '').trim();
+                const low = num.toLowerCase();
+                if (!num || low === 'lead' || low === 'sem contrato') return '';
+                const prop = _anexoProposta(num);
+                if (prop && /^https?:\/\//i.test(String(prop.url))) {
+                    return ' <a href="' + encodeURI(String(prop.url)) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Ver proposta anexada" style="text-decoration:none;font-size:0.82em;white-space:nowrap">📄</a>';
+                }
+                const onclick = propId ? ('abrirEdicao(\'' + esc(String(propId)) + '\')') : ('abrirOportunidadePorNumero(\'' + esc(num) + '\')');
+                return ' <span onclick="event.stopPropagation();' + onclick + '" title="Falta anexar a proposta — clique para anexar" style="cursor:pointer;font-size:0.7em;color:#f59e0b;white-space:nowrap;font-weight:600">⚠️ proposta</span>';
             }
 
             function finFmtBRL(v) {
@@ -7751,7 +7794,9 @@ Data: ${h.data}`;
                     const restCls = g.restante > 0 ? 'positivo' : 'zero';
                     html += '<div class="tp-proj-card">';
                     html += '<div class="tp-proj-header" onclick="tpToggleProjeto(\'' + g.projeto.replace(/'/g, "\\'") + '\')">';
-                    html += '<div><div class="pj-nome">' + esc(g.projeto) + '</div>';
+                    const _pjNum = (String(g.projeto).split(' - ').pop() || '').trim();
+                    const _pjBadge = (window.propostas || []).some(function (x) { return String(x.numeroProposta || '').trim() === _pjNum; }) ? anexoBadge(_pjNum, null) : '';
+                    html += '<div><div class="pj-nome">' + esc(g.projeto) + _pjBadge + '</div>';
                     // Linha de venda + margem real (com desconto de 11% de imposto)
                     if (g.valorVenda != null && g.valorVenda > 0) {
                         const TAX_RATE = 0.11;
