@@ -19,6 +19,30 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
 
+const SERVER_VERSION = '1.2.0';
+const SERVER_BUILD = '2026-06-09-anexos';
+
+// ───────────────────────────────────────────────
+// Telemetria estruturada — JSON lines pro Workers Logs / wrangler tail
+// ───────────────────────────────────────────────
+type LogKind = 'request' | 'tool_call' | 'webhook_call' | 'health_check' | 'error';
+
+function logEvent(kind: LogKind, data: Record<string, unknown>): void {
+  const entry = {
+    ts: new Date().toISOString(),
+    svc: 'toposcan-crm-mcp',
+    ver: SERVER_VERSION,
+    kind,
+    ...data,
+  };
+  console.log(JSON.stringify(entry));
+}
+
+function truncate(s: string | undefined, max = 200): string | undefined {
+  if (!s) return s;
+  return s.length <= max ? s : s.slice(0, max) + `…[${s.length - max}+]`;
+}
+
 // ───────────────────────────────────────────────
 // Helper: chama o webhook seguindo o redirect 302 do Apps Script
 // ───────────────────────────────────────────────
@@ -28,21 +52,41 @@ async function callWebhook(
   action: string,
   params: Record<string, unknown> = {}
 ): Promise<unknown> {
+  const start = Date.now();
   const payload = { action, secret, ...params };
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload),
-    redirect: 'follow',
-  });
-  if (!resp.ok) {
-    throw new Error(`Webhook HTTP ${resp.status}: ${await resp.text()}`);
-  }
-  const text = await resp.text();
+  let httpStatus: number | undefined;
+  let ok = false;
+  let errorMsg: string | undefined;
   try {
-    return JSON.parse(text);
-  } catch {
-    return { rawText: text, warning: 'Non-JSON response from webhook' };
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+      redirect: 'follow',
+    });
+    httpStatus = resp.status;
+    if (!resp.ok) {
+      const body = await resp.text();
+      throw new Error(`Webhook HTTP ${resp.status}: ${body.slice(0, 500)}`);
+    }
+    const text = await resp.text();
+    ok = true;
+    try {
+      return JSON.parse(text);
+    } catch {
+      return { rawText: text, warning: 'Non-JSON response from webhook' };
+    }
+  } catch (err) {
+    errorMsg = err instanceof Error ? err.message : String(err);
+    throw err;
+  } finally {
+    logEvent('webhook_call', {
+      action,
+      ok,
+      latency_ms: Date.now() - start,
+      http_status: httpStatus,
+      error: truncate(errorMsg),
+    });
   }
 }
 
@@ -126,6 +170,70 @@ const TOOLS: ToolDef[] = [
         numeroProposta: { type: 'string', description: 'Opcional — gerado automático se omitido' },
       },
       required: ['cliente', 'vendedor', 'servico', 'valorTotal'],
+      additionalProperties: false,
+    },
+  },
+
+  // ═══ ANEXOS (V8) ═══
+  {
+    name: 'crm_link_attachment',
+    description: 'Anexa a uma proposta um arquivo JÁ existente no Google Drive (guarda só o link). Use quando o usuário te der um link do Drive. Para subir o conteúdo do arquivo, use crm_upload_attachment.',
+    action: 'linkAttachment',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        numeroProposta: { type: 'string', description: 'Chave da proposta (ex: 06202534.0)' },
+        url: { type: 'string', description: 'Link do arquivo no Drive' },
+        nomeArquivo: { type: 'string', description: 'Nome amigável (ex: Proposta CB.pdf)' },
+        categoria: { type: 'string', enum: ['proposta', 'contrato', 'comprovante', 'outro'], default: 'proposta' },
+        cliente: { type: 'string' },
+        enviadoPor: { type: 'string', description: 'Quem anexou (ex: Rafaela, Guilherme)' },
+      },
+      required: ['numeroProposta', 'url'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'crm_upload_attachment',
+    description: 'Sobe um arquivo (conteúdo em base64) pro Drive da empresa e anexa à proposta. O servidor valida tipo (PDF/imagem/Word/Excel por magic-bytes) e tamanho (máx 7MB). Use para arquivos PEQUENOS; para grandes prefira crm_link_attachment com o link do Drive.',
+    action: 'uploadAttachment',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        numeroProposta: { type: 'string' },
+        nomeArquivo: { type: 'string', description: 'Nome com extensão (ex: Proposta.pdf)' },
+        dataBase64: { type: 'string', description: 'Conteúdo do arquivo em base64 (sem o prefixo data:...)' },
+        mimeType: { type: 'string', description: 'ex: application/pdf' },
+        categoria: { type: 'string', enum: ['proposta', 'contrato', 'comprovante', 'outro'], default: 'proposta' },
+        cliente: { type: 'string' },
+        enviadoPor: { type: 'string' },
+      },
+      required: ['numeroProposta', 'nomeArquivo', 'dataBase64'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'crm_list_attachments',
+    description: 'Lista os anexos (link + metadados) de uma proposta.',
+    action: 'listAttachments',
+    inputSchema: {
+      type: 'object',
+      properties: { numeroProposta: { type: 'string' } },
+      required: ['numeroProposta'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'crm_delete_attachment',
+    description: 'Remove um anexo (soft-delete por id, preserva auditoria). trashDrive:true também joga o arquivo do Drive na lixeira.',
+    action: 'deleteAttachment',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'id (UUID) do anexo retornado no list' },
+        trashDrive: { type: 'boolean', default: false },
+      },
+      required: ['id'],
       additionalProperties: false,
     },
   },
@@ -264,6 +372,41 @@ const TOOLS: ToolDef[] = [
         observacoes: { type: 'string' },
       },
       required: ['categoria', 'parceiro', 'servico', 'projeto', 'valorAcordado'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'crm_add_topo_partner_parcelado',
+    description: 'Registra um custo de parceiro PARCELADO: cria N parcelas LIGADAS (mesmo grupoId), cada uma com sua própria data e valor, conciliando 1:1 no fluxo de caixa (igual às parcelas de venda). Use quando o pagamento de um custo será dividido em datas diferentes (ex: R$5k na sexta + R$10k após receber do cliente). São PREVISÕES — não marca como pago; o caixa só baixa ao registrar valorPago via crm_update_topo_partner. Se informar valorTotal, a soma das parcelas TEM que bater (trava anti-erro).',
+    action: 'addTopoPartnerParcelado',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        categoria: { type: 'string', enum: ['Parceiro/Serviço', 'Equipamento', 'Veículo', 'Cartão de Crédito', 'Outros'], description: 'Default: Parceiro/Serviço' },
+        parceiro: { type: 'string', description: 'Nome do parceiro/fornecedor' },
+        servico: { type: 'string' },
+        projeto: { type: 'string', description: 'Formato: "Cliente - NumeroProposta"' },
+        descricao: { type: 'string' },
+        dataOperacao: { type: 'string', description: 'DD/MM/AAAA' },
+        valorTotal: { type: 'number', description: 'Opcional. Se informado, a soma das parcelas precisa bater exatamente.' },
+        observacoes: { type: 'string', description: 'Observação geral (cada parcela pode ter a sua também)' },
+        parcelas: {
+          type: 'array',
+          description: 'Lista de parcelas, na ordem. Cada item: {valor, previsao}. Opcionais: valorPago, observacoes.',
+          items: {
+            type: 'object',
+            properties: {
+              valor: { type: 'number' },
+              previsao: { type: 'string', description: 'DD/MM/AAAA' },
+              valorPago: { type: 'number', default: 0 },
+              observacoes: { type: 'string' },
+            },
+            required: ['valor', 'previsao'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['parceiro', 'servico', 'projeto', 'parcelas'],
       additionalProperties: false,
     },
   },
@@ -592,8 +735,8 @@ async function handleMcpRequest(req: JsonRpcRequest, env: Env): Promise<JsonRpcR
             capabilities: { tools: {} },
             serverInfo: {
               name: 'toposcan-crm-mcp',
-              version: '1.0.0',
-              description: 'Toposcan CRM webhook V7.12 wrapper — 33 ferramentas para Rafaela/Beatriz/Vanessa/Fernanda executarem ações reais',
+              version: SERVER_VERSION,
+              description: `Toposcan CRM webhook V7.12 wrapper — ${TOOLS.length} ferramentas para Rafaela/Beatriz/Vanessa/Fernanda executarem ações reais`,
             },
           },
         };
@@ -617,30 +760,60 @@ async function handleMcpRequest(req: JsonRpcRequest, env: Env): Promise<JsonRpcR
       }
 
       case 'tools/call': {
+        const toolStart = Date.now();
         const toolName = params.name as string;
         const args = (params.arguments as Record<string, unknown>) ?? {};
         const tool = TOOLS.find((t) => t.name === toolName);
         if (!tool) {
+          logEvent('tool_call', {
+            tool: toolName,
+            ok: false,
+            latency_ms: Date.now() - toolStart,
+            error_code: -32602,
+            error: 'tool_not_found',
+          });
           return {
             jsonrpc: '2.0',
             id,
             error: { code: -32602, message: `Tool not found: ${toolName}` },
           };
         }
-        const result = await callWebhook(env.WEBHOOK_URL, env.WEBHOOK_SECRET, tool.action, args);
-        return {
-          jsonrpc: '2.0',
-          id,
-          result: {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(result, null, 2),
-              },
-            ],
-            structuredContent: result,
-          },
-        };
+        let toolOk = false;
+        let toolErr: string | undefined;
+        try {
+          const result = await callWebhook(env.WEBHOOK_URL, env.WEBHOOK_SECRET, tool.action, args);
+          const upstreamOk = (result as { ok?: boolean } | null)?.ok;
+          toolOk = upstreamOk !== false;
+          if (!toolOk) {
+            const e = (result as { error?: string } | null)?.error;
+            toolErr = e ? String(e) : 'upstream_ok_false';
+          }
+          return {
+            jsonrpc: '2.0',
+            id,
+            result: {
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify(result, null, 2),
+                },
+              ],
+              structuredContent: result,
+            },
+          };
+        } catch (err) {
+          toolErr = err instanceof Error ? err.message : String(err);
+          throw err;
+        } finally {
+          logEvent('tool_call', {
+            tool: toolName,
+            action: tool.action,
+            ok: toolOk,
+            latency_ms: Date.now() - toolStart,
+            arg_keys: Object.keys(args),
+            error: truncate(toolErr),
+          });
+        }
       }
 
       case 'resources/list':
@@ -655,12 +828,14 @@ async function handleMcpRequest(req: JsonRpcRequest, env: Env): Promise<JsonRpcR
         };
     }
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logEvent('error', { method, error: truncate(msg, 500) });
     return {
       jsonrpc: '2.0',
       id,
       error: {
         code: -32603,
-        message: err instanceof Error ? err.message : String(err),
+        message: msg,
       },
     };
   }
@@ -673,25 +848,87 @@ async function handleMcpRequest(req: JsonRpcRequest, env: Env): Promise<JsonRpcR
 app.get('/', (c) =>
   c.json({
     name: 'toposcan-crm-mcp',
-    version: '1.0.0',
-    description: 'MCP server wrappeando webhook Toposcan CRM V7.12 — 33 ferramentas',
+    version: SERVER_VERSION,
+    build: SERVER_BUILD,
+    description: `MCP server wrappeando webhook Toposcan CRM V7.12 — ${TOOLS.length} ferramentas`,
     endpoints: {
       mcp: 'POST /mcp (JSON-RPC 2.0)',
       health: 'GET /health',
+      metrics: 'GET /metrics',
     },
     tools_count: TOOLS.length,
   })
 );
 
+// Tools críticas — verificadas em paralelo no /health
+const HEALTH_CRITICAL_TOOLS: { tool: string; action: string }[] = [
+  { tool: 'crm_get_cross_kpis', action: 'getCrossKPIs' },
+  { tool: 'crm_get_active_alerts', action: 'getActiveAlerts' },
+  { tool: 'crm_list_payments', action: 'listPayments' },
+];
+
 app.get('/health', async (c) => {
-  // Smoke test no webhook upstream
-  try {
-    const r = await callWebhook(c.env.WEBHOOK_URL, c.env.WEBHOOK_SECRET, 'getCrossKPIs');
-    const ok = (r as { ok?: boolean }).ok === true;
-    return c.json({ ok, mcp: 'alive', webhook: ok ? 'alive' : 'unexpected_response', tools_count: TOOLS.length });
-  } catch (e) {
-    return c.json({ ok: false, mcp: 'alive', webhook: 'error', error: String(e) }, 500);
+  const start = Date.now();
+  const checks = await Promise.all(
+    HEALTH_CRITICAL_TOOLS.map(async ({ tool, action }) => {
+      const cStart = Date.now();
+      try {
+        const r = (await callWebhook(c.env.WEBHOOK_URL, c.env.WEBHOOK_SECRET, action)) as { ok?: boolean };
+        return { tool, ok: r?.ok === true, latency_ms: Date.now() - cStart, error: null as string | null };
+      } catch (e) {
+        return {
+          tool,
+          ok: false,
+          latency_ms: Date.now() - cStart,
+          error: e instanceof Error ? e.message : String(e),
+        };
+      }
+    })
+  );
+  const allOk = checks.every((x) => x.ok);
+  const total_ms = Date.now() - start;
+  logEvent('health_check', { ok: allOk, latency_ms: total_ms, failed: checks.filter((x) => !x.ok).map((x) => x.tool) });
+  return c.json(
+    {
+      ok: allOk,
+      mcp: 'alive',
+      version: SERVER_VERSION,
+      build: SERVER_BUILD,
+      tools_count: TOOLS.length,
+      total_latency_ms: total_ms,
+      checks,
+    },
+    allOk ? 200 : 503
+  );
+});
+
+// /metrics — snapshot estático do servidor + lista de tools
+// Aggregação histórica vive nos Workers Logs (wrangler tail + console.log estruturado)
+app.get('/metrics', (c) => {
+  const toolsByPrefix: Record<string, number> = {};
+  for (const t of TOOLS) {
+    const m = t.name.match(/^crm_([a-z]+)/);
+    const prefix = m ? m[1] : 'other';
+    toolsByPrefix[prefix] = (toolsByPrefix[prefix] || 0) + 1;
   }
+  return c.json({
+    server: {
+      name: 'toposcan-crm-mcp',
+      version: SERVER_VERSION,
+      build: SERVER_BUILD,
+    },
+    tools: {
+      total: TOOLS.length,
+      by_prefix: toolsByPrefix,
+      list: TOOLS.map((t) => t.name),
+    },
+    observability: {
+      logs: 'structured JSON via console.log — wrangler tail / Workers Logs panel',
+      health_endpoint: '/health',
+      critical_tools_smoked: HEALTH_CRITICAL_TOOLS.map((x) => x.tool),
+    },
+    notes: 'Métricas históricas agregadas vivem nos Workers Logs. Para alerting, configurar Logpush -> R2.',
+  });
 });
 
 app.post('/mcp', async (c) => {
@@ -715,4 +952,62 @@ app.post('/', async (c) => {
   return c.json(result);
 });
 
-export default app;
+// ───────────────────────────────────────────────
+// Cron Trigger — auto-health check periódico (6h interval)
+// Falhas são registradas como Aprendizado na memória institucional do CRM,
+// fechando o loop: as 4 IAs gerentes enxergam o incidente sem alguém ter que avisar.
+// ───────────────────────────────────────────────
+async function runScheduledHealthCheck(env: Env): Promise<void> {
+  const start = Date.now();
+  const checks = await Promise.all(
+    HEALTH_CRITICAL_TOOLS.map(async ({ tool, action }) => {
+      const cStart = Date.now();
+      try {
+        const r = (await callWebhook(env.WEBHOOK_URL, env.WEBHOOK_SECRET, action)) as { ok?: boolean };
+        return { tool, ok: r?.ok === true, latency_ms: Date.now() - cStart, error: null as string | null };
+      } catch (e) {
+        return {
+          tool,
+          ok: false,
+          latency_ms: Date.now() - cStart,
+          error: e instanceof Error ? e.message : String(e),
+        };
+      }
+    })
+  );
+  const allOk = checks.every((x) => x.ok);
+  const total_ms = Date.now() - start;
+  const failedTools = checks.filter((x) => !x.ok).map((x) => x.tool);
+
+  logEvent('health_check', {
+    source: 'cron',
+    ok: allOk,
+    latency_ms: total_ms,
+    failed: failedTools,
+    checks,
+  });
+
+  if (!allOk) {
+    // Registra incidente como Aprendizado (V7.12). Best-effort — não trava o cron.
+    try {
+      await callWebhook(env.WEBHOOK_URL, env.WEBHOOK_SECRET, 'addLearning', {
+        titulo: `MCP health falhou: ${failedTools.join(', ')}`,
+        conteudo: `Cron health check em ${new Date().toISOString()} detectou falha em ${failedTools.length} tool(s).\n\n${JSON.stringify(checks, null, 2)}`,
+        categoria: 'Tecnico',
+        tags: 'mcp,health,incidente,cron',
+      });
+    } catch (e) {
+      logEvent('error', {
+        context: 'addLearning_from_cron',
+        error: truncate(e instanceof Error ? e.message : String(e), 300),
+      });
+    }
+  }
+}
+
+export default {
+  fetch: app.fetch.bind(app),
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(runScheduledHealthCheck(env));
+  },
+};

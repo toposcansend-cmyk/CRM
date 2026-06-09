@@ -11,3 +11,8 @@ WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDP
 
 [observability]
 enabled = true
+
+# Cron triggers — auto-health check sem precisar de humano
+# 6h interval (4x/dia): 00:00, 06:00, 12:00, 18:00 UTC
+[triggers]
+crons = ["0 */6 * * *"]
