@@ -4919,16 +4919,16 @@
                     cardsContainer.innerHTML = f.map(p => `
                     <div class="proposta-card" onclick="abrirEdicao('${p.id}')">
                         <div style="display:flex;justify-content:space-between;align-items:start">
-                            <div class="cliente">${p.cliente || '-'}</div>
-                            <div style="font-size:0.7em;color:var(--text-secondary);background:var(--bg-tertiary);padding:2px 6px;border-radius:4px">${p.vendedor || '-'}</div>
+                            <div class="cliente">${esc(p.cliente || '-')}</div>
+                            <div style="font-size:0.7em;color:var(--text-secondary);background:var(--bg-tertiary);padding:2px 6px;border-radius:4px">${esc(p.vendedor || '-')}</div>
                         </div>
-                        <div class="info">${p.contato || ''} - ${p.servico || ''}</div>
+                        <div class="info">${esc(p.contato || '')} - ${esc(p.servico || '')}</div>
                         <div style="font-size:0.8em;color:var(--text-secondary);margin:4px 0">
-                            Proposta: ${p.dataProposta || '-'} | Previsto: ${p.fechamentoPrevisto || p.dataFechamento || '-'}
+                            Proposta: ${esc(p.dataProposta || '-')} | Previsto: ${esc(p.fechamentoPrevisto || p.dataFechamento || '-')}
                         </div>
                         <div class="valor">R$ ${(p.valor || 0).toLocaleString()}</div>
                         <div class="footer">
-                            <span class="status ${(p.status || 'lead').toLowerCase()}">${p.probabilidade || p.status || 'Lead'}</span>
+                            <span class="status ${(p.status || 'lead').toLowerCase()}">${esc(p.probabilidade || p.status || 'Lead')}</span>
                         </div>
                     </div>
                 `).join('');
@@ -4950,8 +4950,8 @@
                         ${items.map(p => `
                             <div class="kanban-item" onclick="abrirEdicao('${p.id}')" style="cursor:pointer">
                                 <div style="display:flex;justify-content:space-between">
-                                    <span>${p.cliente}</span>
-                                    <span style="font-size:0.8em;color:var(--text-secondary)">${p.vendedor || ''}</span>
+                                    <span>${esc(p.cliente)}</span>
+                                    <span style="font-size:0.8em;color:var(--text-secondary)">${esc(p.vendedor || '')}</span>
                                 </div>
                                 <div class="valor">${fmtK(p.valor)}</div>
                             </div>
@@ -5106,12 +5106,12 @@
                     items.forEach(function(p) {
                         var statusClass = (p.status || '').toLowerCase();
                         html += '<tr>';
-                        html += '<td style="font-weight:600">' + (p.cliente || '-') + '</td>';
-                        html += '<td>' + (p.servico || '-') + '</td>';
+                        html += '<td style="font-weight:600">' + esc(p.cliente || '-') + '</td>';
+                        html += '<td>' + esc(p.servico || '-') + '</td>';
                         html += '<td style="color:var(--accent);font-weight:700">R$ ' + (p.valor || 0).toLocaleString('pt-BR') + '</td>';
-                        html += '<td>' + (p.fechamentoPrevisto || p.dataProposta || '-') + '</td>';
-                        html += '<td>' + (p.vendedor || '-') + '</td>';
-                        html += '<td><span class="status ' + statusClass + '">' + (p.status || '-') + '</span></td>';
+                        html += '<td>' + esc(p.fechamentoPrevisto || p.dataProposta || '-') + '</td>';
+                        html += '<td>' + esc(p.vendedor || '-') + '</td>';
+                        html += '<td><span class="status ' + statusClass + '">' + esc(p.status || '-') + '</span></td>';
                         html += '</tr>';
                     });
                     html += '</tbody></table>';
@@ -5681,8 +5681,8 @@
                     html += '<div class="proposta-card" onclick="abrirEdicao(\'' + p.id + '\')" style="border-left:4px solid ' + cor + ';cursor:pointer">';
                     html += '<div style="display:flex;justify-content:space-between;align-items:start">';
                     html += '<div>';
-                    html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
-                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">' + esc(p.cliente) + '</div>';
+                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + esc(p.servico || '-') + '</div>';
                     html += '</div>';
                     html += '<div style="text-align:right">';
                     html += '<span style="font-size:0.7em;padding:3px 8px;border-radius:10px;background:' + cor + ';color:#fff">' + urgencia + '</span>';
@@ -5693,7 +5693,7 @@
                     html += '</div>';
                     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">';
                     html += '<div>';
-                    html += '<span class="status ' + (p.status || 'lead').toLowerCase() + '">' + (p.probabilidade || p.status || 'Lead') + '</span>';
+                    html += '<span class="status ' + (p.status || 'lead').toLowerCase() + '">' + esc(p.probabilidade || p.status || 'Lead') + '</span>';
                     html += '<span style="font-size:0.8em;color:var(--text-secondary);margin-left:8px">' + (p.dias < 999 ? p.dias + ' dias' : 'sem data') + '</span>';
                     html += '</div>';
                     html += '<div style="font-weight:bold;color:var(--accent)">R$ ' + (p.valor || 0).toLocaleString() + '</div>';
@@ -5873,7 +5873,7 @@
                     const btn = document.getElementById('profileBtn');
                     const lg = document.getElementById('profileAvatarLg');
                     if (foto) {
-                        const img = '<img src="' + foto + '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
+                        const img = '<img src="' + String(foto).replace(/"/g, '&quot;') + '" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">';
                         if (btn) btn.innerHTML = img;
                         if (lg) lg.innerHTML = img;
                     } else {
@@ -6212,7 +6212,7 @@
                         alertaIds.push(p.id);
                         htmlAlertas += `
                             <div class="notif-item" onclick="abrirEdicao('${p.id}'); toggleNotifications();">
-                                <div class="notif-title">⚠️ ${p.cliente || 'Sem Nome'}</div>
+                                <div class="notif-title">⚠️ ${esc(p.cliente || 'Sem Nome')}</div>
                                 <div class="notif-desc">
                                     <ul style="margin: 4px 0 0 16px; padding: 0;">
                                         ${pendencias.map(pend => `<li>${pend}</li>`).join('')}
@@ -6493,8 +6493,8 @@
                     const cor = score > 70 ? '#ef4444' : score > 50 ? '#f59e0b' : '#22c55e';
                     html += '<div class="proposta-card" onclick="abrirEdicao(\'' + p.id + '\')" style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">';
                     html += '<div>';
-                    html += '<div style="font-weight:bold;color:var(--accent)">' + p.cliente + '</div>';
-                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + (p.servico || '-') + '</div>';
+                    html += '<div style="font-weight:bold;color:var(--accent)">' + esc(p.cliente) + '</div>';
+                    html += '<div style="font-size:0.8em;color:var(--text-secondary)">' + esc(p.servico || '-') + '</div>';
                     html += '<div style="font-size:0.75em;color:var(--accent);margin-top:4px">📅 Fechamento: ' + (p.fechamentoPrevisto || p.dataFechamento || '-') + '</div>';
                     html += '</div>';
                     html += '<div style="text-align:right">';
