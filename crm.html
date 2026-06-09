@@ -3304,18 +3304,32 @@
                 <div class="form-group" id="anexosGroup">
                     <label>📎 Anexos (proposta, contrato, comprovante)</label>
                     <div id="anexosLista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                        <input type="text" id="anexoUrl" placeholder="Cole o link do arquivo no Drive" style="flex:2;min-width:180px">
-                        <input type="text" id="anexoNome" placeholder="Nome (ex: Proposta.pdf)" style="flex:1;min-width:110px">
+                    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+                        <span style="font-size:0.8em;color:var(--text-secondary)">Tipo:</span>
                         <select id="anexoCategoria" style="flex:0 0 auto">
                             <option value="proposta">Proposta</option>
                             <option value="contrato">Contrato</option>
                             <option value="comprovante">Comprovante</option>
                             <option value="outro">Outro</option>
                         </select>
-                        <button type="button" class="btn btn-secondary" onclick="adicionarAnexoLink()" style="padding:8px 12px">+ Anexar</button>
+                        <span id="anexoStatus" style="font-size:0.78em;color:var(--accent);flex:1"></span>
                     </div>
-                    <div style="font-size:0.72em;color:var(--text-secondary);margin-top:4px">Suba o arquivo no Drive da empresa e cole o link aqui. (Em breve: arrastar o arquivo direto.)</div>
+                    <div id="anexoDropZone" onclick="document.getElementById('anexoFileInput').click()"
+                        ondragover="_anexoDragOver(event)" ondragleave="_anexoDragLeave(event)" ondrop="_anexoDrop(event)"
+                        style="border:2px dashed var(--border,#444);border-radius:8px;padding:16px;text-align:center;cursor:pointer;font-size:0.85em;color:var(--text-secondary);transition:border-color .15s">
+                        📤 Arraste o arquivo aqui ou <b style="color:var(--accent)">clique para escolher</b><br>
+                        <span style="font-size:0.72em">PDF, imagem, Word ou Excel · até 7MB</span>
+                    </div>
+                    <input type="file" id="anexoFileInput" style="display:none"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx" onchange="_anexoFileChosen(this)">
+                    <details style="margin-top:6px">
+                        <summary style="font-size:0.75em;color:var(--text-secondary);cursor:pointer">ou colar um link do Drive (arquivos grandes)</summary>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px">
+                            <input type="text" id="anexoUrl" placeholder="Cole o link do Drive" style="flex:2;min-width:160px">
+                            <input type="text" id="anexoNome" placeholder="Nome (opcional)" style="flex:1;min-width:100px">
+                            <button type="button" class="btn btn-secondary" onclick="adicionarAnexoLink()" style="padding:8px 12px">+ Linkar</button>
+                        </div>
+                    </details>
                 </div>
 
                 <div style="background:var(--bg-tertiary);padding:10px;border-radius:8px;margin-bottom:15px">
@@ -7219,6 +7233,53 @@ Data: ${h.data}`;
                 const r = await finApi('deleteAttachment', { id: id });
                 if (r && r.ok) carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta);
                 else alert('Não consegui remover: ' + ((r && r.error) || 'erro desconhecido'));
+            }
+
+            // ─── Upload de arquivo (arrastar/escolher) — Fase 2 ───
+            function _anexoDragOver(ev) { ev.preventDefault(); const z = document.getElementById('anexoDropZone'); if (z) z.style.borderColor = 'var(--accent)'; }
+            function _anexoDragLeave(ev) { const z = document.getElementById('anexoDropZone'); if (z) z.style.borderColor = 'var(--border,#444)'; }
+            function _anexoDrop(ev) {
+                ev.preventDefault(); _anexoDragLeave(ev);
+                const f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+                if (f) enviarAnexoArquivo(f);
+            }
+            function _anexoFileChosen(input) {
+                const f = input.files && input.files[0];
+                if (f) enviarAnexoArquivo(f);
+                input.value = '';
+            }
+
+            async function enviarAnexoArquivo(file) {
+                if (_anexoCtx.isNew || !_anexoCtx.numeroProposta) { alert('Salve a proposta primeiro para anexar arquivos.'); return; }
+                const MAX = 7 * 1024 * 1024;
+                if (file.size > MAX) { alert('Arquivo muito grande (' + (file.size / 1048576).toFixed(1) + 'MB). Máx 7MB — para maiores, use "colar um link do Drive".'); return; }
+                const status = document.getElementById('anexoStatus');
+                if (status) status.textContent = 'Enviando ' + file.name + '…';
+                try {
+                    const dataUrl = await new Promise(function (res, rej) {
+                        const fr = new FileReader();
+                        fr.onload = function () { res(fr.result); };
+                        fr.onerror = function () { rej(fr.error); };
+                        fr.readAsDataURL(file);
+                    });
+                    const base64 = String(dataUrl).split(',')[1] || '';
+                    const categoria = document.getElementById('anexoCategoria').value;
+                    let enviadoPor = '';
+                    try { enviadoPor = (JSON.parse(localStorage.getItem('crm_auth') || '{}').email) || ''; } catch (e) {}
+                    const cliente = document.getElementById('editCliente').value || '';
+                    const r = await finApi('uploadAttachment', { numeroProposta: _anexoCtx.numeroProposta, cliente: cliente, nomeArquivo: file.name, mimeType: file.type || '', tamanhoBytes: file.size, dataBase64: base64, categoria: categoria, enviadoPor: enviadoPor });
+                    if (r && r.ok) {
+                        if (status) status.textContent = '✅ ' + file.name + ' anexado';
+                        carregarAnexos(_anexoCtx.numeroProposta, _anexoCtx.numeroProposta);
+                        setTimeout(function () { if (status) status.textContent = ''; }, 3000);
+                    } else {
+                        if (status) status.textContent = '';
+                        alert('Não consegui enviar: ' + ((r && r.error) || 'erro desconhecido'));
+                    }
+                } catch (e) {
+                    if (status) status.textContent = '';
+                    alert('Erro ao ler/enviar o arquivo: ' + e);
+                }
             }
 
             function finFmtBRL(v) {
