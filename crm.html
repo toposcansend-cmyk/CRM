@@ -7326,17 +7326,20 @@ Data: ${h.data}`;
                 return true;
             }
 
-            function anexoBadge(num, propId, exige) {
+            function anexoBadge(num, propId, exige, label) {
                 num = String(num || '').trim();
                 const low = num.toLowerCase();
                 if (!num || low === 'lead' || low === 'sem contrato') return '';
                 const prop = _anexoProposta(num);
                 if (prop && /^https?:\/\//i.test(String(prop.url))) {
-                    return ' <a href="' + encodeURI(String(prop.url)) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Ver proposta anexada" style="text-decoration:none;font-size:0.82em;white-space:nowrap">📄</a>';
+                    const txt = label ? '📄 Proposta' : '📄';
+                    const st = label ? 'color:var(--accent);font-weight:600;font-size:0.82em' : 'font-size:0.82em';
+                    return ' <a href="' + encodeURI(String(prop.url)) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="Abrir a proposta anexada" style="text-decoration:none;white-space:nowrap;' + st + '">' + txt + '</a>';
                 }
                 if (!exige) return ''; // leads / sem valor / perdidas: sem alerta
                 const onclick = propId ? ('abrirEdicao(\'' + esc(String(propId)) + '\')') : ('abrirOportunidadePorNumero(\'' + esc(num) + '\')');
-                return ' <span onclick="event.stopPropagation();' + onclick + '" title="Falta anexar a proposta — clique para anexar" style="cursor:pointer;font-size:0.7em;color:#f59e0b;white-space:nowrap;font-weight:600">⚠️ proposta</span>';
+                const txt2 = label ? '⚠️ sem proposta' : '⚠️ proposta';
+                return ' <span onclick="event.stopPropagation();' + onclick + '" title="Falta anexar a proposta — clique para anexar" style="cursor:pointer;font-size:0.72em;color:#f59e0b;white-space:nowrap;font-weight:600">' + txt2 + '</span>';
             }
 
             function finFmtBRL(v) {
@@ -8230,7 +8233,10 @@ Data: ${h.data}`;
                     html += '<div class="eng-projeto-card" onclick="engAbrirDetalhe(\'' + projetoKey + '\')">';
                     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">';
                     html += '<div style="flex:1;min-width:240px">';
-                    html += '<div class="eng-proj-titulo">' + esc(g.projeto) + '</div>';
+                    const _engNum = String(g.numeroProposta || '').trim();
+                    const _engProp = (window.propostas || []).find(function (x) { return String(x.numeroProposta || '').trim() === _engNum; });
+                    const _engBadge = _engNum ? anexoBadge(_engNum, _engProp ? _engProp.id : null, _engProp ? _exigeProposta(_engProp) : true, true) : '';
+                    html += '<div class="eng-proj-titulo">' + esc(g.projeto) + ' ' + _engBadge + '</div>';
                     html += '<div class="eng-proj-sub">' + g.itens.length + ' tarefa(s)' +
                             (g.subitens.size > 0 ? ' · ' + g.subitens.size + ' subitens' : '') +
                             (respsArr.length > 0 ? ' · 👤 ' + esc(respsArr.join(', ')) : '') +
