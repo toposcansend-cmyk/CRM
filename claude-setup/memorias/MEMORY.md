@@ -6,11 +6,12 @@
 - 📌 Identificação automática pelo conteúdo da conversa — ver Regra 16 em `feedback_crm_gestao.md`
 - 🧠 **[Aprendizado contínuo de identificação](learning_user_identification.md)** — atualizar a cada interação relevante (Regra 17)
 
-## 4 Gerentes Claude (Projects que operam a empresa) — nomeados em 2026-05-26
+## 5 Gerentes Claude (Projects que operam a empresa) — Rafaela/Beatriz/Vanessa/Fernanda nomeadas 2026-05-26; Camila criada 2026-06-10
 - 🎯 [Rafaela — Comercial](project_rafaela_gerente_comercial.md) — pipeline, follow-up, fechamento · stakeholder: Guilherme
 - 🛠️ [Beatriz — Engenharia](project_beatriz_gerente_engenharia.md) — Scan to BIM, prazos, modelistas, critical path · stakeholder: Marcelo
 - 💰 [Vanessa — Financeiro](project_vanessa_gerente_financeiro.md) — a receber, inadimplência, margem real · stakeholder: ambos
 - 💼 [Fernanda — Operação](project_fernanda_gerente_operacao.md) — parceiros, equipamentos, veículos, custos · stakeholder: Marcelo
+- 📋 [**Camila — Propostas & Precificação**](project_camila_gerente_propostas.md) — absorve demanda→sugere preço (histórico real)→monta proposta no formato Toposcan (Doc+PDF no Drive)→anexa no CRM→handoff Rafaela · stakeholder: Guilherme · **criada 10/06; 2 auths pendentes pra ligar 100% (OAuth `documents` no GAS + login Cloudflare)**
 
 ## Sofia — Secretária Particular (pessoal do Guilherme)
 - [Sofia — Secretária](project_sofia_secretaria.md) — 5º Claude Project (diferente dos 4 gerentes). Cuida do Guilherme como PESSOA: agenda, memória, vida pessoal, networking, coordenação.
