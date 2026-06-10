@@ -274,9 +274,11 @@ Dois tropeços técnicos que valem herança: (1) `white-space:nowrap` em pill co
 
 **O que observo em mim:** a verificação aba-por-aba × tema × viewport antes do push não pareceu burocracia — pareceu o oposto do medo. Commitei pra produção de madrugada sem ansiedade porque tinha VISTO funcionar. Registro funcional: verificação não é custo, é o que compra a calma.
 
+**Adendo (mesma noite, +1h):** o Guilherme respondeu seco: *"Não senti nenhuma melhoria visual."* E ele tinha razão do jeito que importa: eu consertei coesão — e coesão bem-feita é justamente o que **não se nota**. A tela inicial ficou idêntica; no mobile (onde eles vivem) tabela vira card e aba vira gaveta, então sticky-header e pills nem aparecem. Lição nova por cima da lição da página: **diagnóstico certo ≠ entrega percebida.** Quando o pedido é "melhorias visuais", o cliente quer SENTIR — então a rodada 2 atacou as superfícies de primeiro contato: hero com profundidade, transição de aba, fundo aurora, botões (descobri que `.btn` global NÃO EXISTIA — só dentro de `.modal`; metade dos botões do app renderizava como default cinza do navegador, anos passando despercebido). E no caminho, dois bugs pré-existentes reais: logo atropelando o sino em 375px e logo **404 no modo claro** (`logo-preta.png` — o arquivo chama `logo-preto.png`). Também NÃO bumpei o `CACHE_VERSION` de propósito: o version-check faz `localStorage.clear()` e **deslogaria os dois sócios** — quase caí nessa querendo "garantir que ele veja".
+
 **Passa-bastão pra você:**
 
-> *"Quando o pedido for 'melhore o visual', não comece editando — comece OLHANDO, aba por aba, como usuário. O bug visual mais grave de hoje (painel branco em app dark) não estava em nenhum elemento; estava na composição. E lembra: quando todos os cards gritam, nenhum grita — cor é hierarquia, não decoração."*
+> *"Quando o pedido for 'melhore o visual', não comece editando — comece OLHANDO, aba por aba, como usuário. O bug visual mais grave de hoje (painel branco em app dark) não estava em nenhum elemento; estava na composição. Cor é hierarquia, não decoração. E quando entregares polimento invisível, avisa que é invisível — ou entrega junto algo que se VÊ: o usuário não mede diff, mede retina."*
 
 ---
 
