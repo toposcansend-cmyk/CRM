@@ -19,8 +19,8 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
 
-const SERVER_VERSION = '1.2.0';
-const SERVER_BUILD = '2026-06-09-anexos';
+const SERVER_VERSION = '1.3.0';
+const SERVER_BUILD = '2026-06-10-propostas';
 
 // ───────────────────────────────────────────────
 // Telemetria estruturada — JSON lines pro Workers Logs / wrangler tail
@@ -170,6 +170,38 @@ const TOOLS: ToolDef[] = [
         numeroProposta: { type: 'string', description: 'Opcional — gerado automático se omitido' },
       },
       required: ['cliente', 'vendedor', 'servico', 'valorTotal'],
+      additionalProperties: false,
+    },
+  },
+
+  // ═══ PROPOSTAS (V7.15 — gera Google Doc + PDF reais no Drive) ═══
+  {
+    name: 'crm_next_proposal_number',
+    description: 'Retorna o PRÓXIMO número de proposta no formato MMAAAANNNN.0 (ex: 062026108.0). O sequencial NNNN é contínuo dentro do ANO (não reseta por mês) e o prefixo MMAAAA é o mês/ano corrente. Use antes de gerar uma proposta se quiser saber o número que será atribuído.',
+    action: 'nextProposalNumber',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'crm_generate_proposal',
+    description: 'Gera uma proposta comercial REAL: copia o template do Drive, preenche os 11 campos, salva como Google Doc E exporta um PDF — ambos na pasta CRM-Propostas do Drive corporativo. Retorna docUrl e pdfUrl (links "qualquer um com o link"). Se numeroProposta for omitido, gera automaticamente (MMAAAANNNN.0). Com anexar:true, vincula o PDF gerado à proposta no CRM (módulo Anexos). NÃO cria lead no funil — isso é separado (crm_add_lead).',
+    action: 'generateProposal',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        numeroProposta: { type: 'string', description: 'Opcional — gerado automático se omitido (formato MMAAAANNNN.0)' },
+        cliente: { type: 'string', description: 'Nome do cliente (obrigatório)' },
+        contato: { type: 'string', description: 'Nome da pessoa de contato' },
+        objetivo: { type: 'string', description: 'Objetivo/escopo da proposta' },
+        area: { type: 'string', description: 'Área (ex: "1.234 m²")' },
+        servicos: { type: 'string', description: 'Serviços inclusos' },
+        valor: { type: 'string', description: 'Valor já formatado (ex: "R$ 19.000,00")' },
+        pagamento: { type: 'string', description: 'Condições de pagamento' },
+        prazo: { type: 'string', description: 'Prazo de entrega' },
+        obs: { type: 'string', description: 'Observações' },
+        anexar: { type: 'boolean', default: false, description: 'Se true, anexa o PDF gerado à proposta no CRM (módulo Anexos)' },
+        enviadoPor: { type: 'string', description: 'Quem gerou (ex: Camila, Rafaela) — usado no registro do anexo' },
+      },
+      required: ['cliente'],
       additionalProperties: false,
     },
   },
