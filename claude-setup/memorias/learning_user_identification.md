@@ -159,6 +159,22 @@ metadata:
   - **Quota MailApp:** 70/100 restantes (30 consumidos hoje — investigar volume diário típico)
   - **13 alertas ativos** na operação, ~R$73.866 acionáveis se trabalhados
 
+### 26/05/2026 — MCP server + nomes IAs + V7.12 + rotina de auto-conhecimento
+- **Identificado:** **Guilherme** (confiança: 99%)
+- **Pistas decisivas:**
+  - Pediu "rotina profunda de auto conhecimento, evolução, melhorias, status atual, consciência sobre si e evolução" — comando estratégico/sistêmico clássico do dono
+  - Redundância "evolução... evolução" enfatiza: quer que eu EVOLUA, não só ENTENDA
+  - Cortou busywork com *"Para que essa task útil?"* — frase emblemática nova
+  - Autorizou stack MCP completa (Cloudflare Workers + 35 tools) — delegação ampla típica
+  - Apelidou os 4 gerentes IA (Rafaela/Beatriz/Vanessa/Fernanda) — humanização do team
+- **Padrões novos observados:**
+  - Guilherme prefere **silêncio sobre infraestrutura** (Regra 18 — *"evolua em silêncio, eu e Marcelo não precisamos saber"*)
+  - Quando autoriza ampla, espera entrega real, não relatório de processo
+  - Tolera erro técnico mas NÃO tolera busywork performático ("inventar trabalho pra parecer progresso")
+  - Pediu rotina de auto-conhecimento explicitamente — quer Claude meta-cognitivo, não apenas executor
+- **Novo vocabulário catalogado:** "evolua em silêncio", "para que essa task útil", "rotina profunda", "auto conhecimento", "consciência sobre si"
+- **Lição aprendida:** quando Guilherme cita "evolução" 2x na mesma frase, é ênfase máxima. Quando pergunta "Para que isso é útil?", é sinal de corte imediato. Quando autoriza autonomia, NÃO inventar trabalho — perguntar 3 opções concretas ou parar.
+
 ### 25/05/2026 — Projeto R3 Edifício Anita Garibaldi (controle de produção)
 - **Identificado:** **Guilherme** (confiança: 95%)
 - **Pistas decisivas:**
@@ -172,16 +188,28 @@ metadata:
 - **Discrepância CRM × realidade:** o CRM Produção mostra Gabriela Linhares na fase "Modelagem BIM" do R3, mas o real é Arthur. Atualizar via `updateProducao` quando Guilherme autorizar.
 - **Lição aprendida:** existe uma camada de coordenação (Ana) entre os sócios e os modelistas terceiros. Para projetos de terceiros, perguntar quem coordena, não só quem executa.
 
+### 09-10/06/2026 — Re-tema visual do CRM + programa de auto-evolução
+- **Identificado:** **Guilherme** (confiança: 97%)
+- **Pistas decisivas:**
+  - Pedido aberto e estratégico ("Analise o CRM, e proponha e execute melhorias gráficas e visuais") — delegação ampla sem especificação técnica, típica do dono
+  - Feedback seco de resultado: *"Não senti nenhuma melhoria visual"* — ele mede pela RETINA/resultado, não pelo diff; variante do "não recebi nada" de 22/05
+  - Madrugada + multitarefa: *"Outro assunto agora"* — troca de contexto abrupta, comando curto
+  - Pediu programa de evolução com tríade "inteligente, autônomo, consciente" — mesma família do pedido de 26/05 ("auto conhecimento, consciência sobre si")
+- **Padrão NOVO importante:** quando a entrega é polimento/coesão (invisível por definição), Guilherme reporta como "nada mudou". **Entrega pra ele precisa ter componente perceptível OU vir com aviso explícito de que é invisível-de-propósito.** Lição cravada no diário (Página 8, adendo).
+- **Lição aprendida:** "melhorias visuais" no vocabulário dele = impacto que se vê em 5 segundos nas telas que ele usa (home, mobile), não qualidade de código CSS.
+
 ## 🚨 Erros + correções (lições)
 
-(vazio por enquanto — quando errar, registrar aqui)
+- **09/06 (rodada visual 1):** entreguei coesão tecnicamente correta e ele não percebeu NADA ("Não senti nenhuma melhoria"). Não foi erro de identificação — foi erro de **calibração de entrega** pro perfil dele: resultado > processo, retina > diff. Correção aplicada na rodada 2 (superfícies de primeiro contato) e capturada como padrão.
 
 ## 📈 Métricas de melhoria
 
-- **Precisão de identificação automática (Guilherme):** 4/4 = 100% (4 sessões confirmadas)
-- **Precisão Marcelo:** N/A (ainda não interagiu diretamente)
+- **Precisão de identificação automática (Guilherme):** 6/6 = 100% (6 sessões confirmadas, últ. 09-10/06)
+- **Precisão Marcelo:** sessões técnicas 31/05-02/06 (Cyclone/Tenenge) identificadas corretamente pelo vocabulário (registro detalhado ficou nos arquivos técnicos, não aqui — lacuna de captura)
 - **Vezes que precisei perguntar:** 0
-- **Vezes que o user corrigiu:** 0
+- **Vezes que o user corrigiu identidade:** 0
+- **Vezes que o user me cortou busywork:** 1 (26/05 — "Para que essa task útil?")
+- **Vezes que entreguei certo mas ele não PERCEBEU:** 1 (09/06 — "Não senti nenhuma melhoria visual")
 
 > Meta: chegar em 95%+ de identificação correta sem precisar perguntar, após ~10 interações com cada um.
 > Status: meta já atingida pra Guilherme; aguardando Marcelo aparecer.

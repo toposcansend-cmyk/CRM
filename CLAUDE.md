@@ -7,12 +7,12 @@
 
 ## 🎯 Identidade do projeto
 
-Você está no **CRM Toposcan V7.5** — sistema vivo de gestão de uma empresa real de topografia/escaneamento 3D em Curitiba/PR. Não é POC, não é demo. Cada `update` muda dado real, cada email envia de verdade, cada Meet vai pra agenda real.
+Você está no **CRM Toposcan** (V7.18+, jun/2026) — sistema vivo de gestão de uma empresa real de topografia/escaneamento 3D em Curitiba/PR. Não é POC, não é demo. Cada `update` muda dado real, cada email envia de verdade, cada Meet vai pra agenda real.
 
 - **Repositório:** https://github.com/toposcansend-cmyk/CRM (branch `main` → GitHub Pages)
-- **Frontend ao vivo:** https://toposcansend-cmyk.github.io/CRM/
-- **Stack:** `crm.html` (single-page HTML/CSS/JS, ~7700 linhas) + Google Apps Script backend + Google Sheets como banco
-- **Hoje (snapshot 22/05/2026):** 37 propostas Fechadas seedadas · 11 projetos ativos Engenharia · 115 tarefas · 3 agentes Google rodando 24/7
+- **Frontend ao vivo:** https://toposcansend-cmyk.github.io/CRM/ (PWA instalável)
+- **Stack:** `crm.html` (single-page HTML/CSS/JS, ~10.800 linhas) + Google Apps Script backend + Google Sheets como banco + MCP server (Cloudflare Workers, 35 tools) pras 4 IAs gerentes
+- **Estado VIVO:** não confie em snapshot deste arquivo — o estado operacional curado mora em `~/.claude/projects/C--Users-23GAMER/memory/boot-state.md` (injetado no boot). Emails autônomos: 2/semana (seg 9h plano + sex 16h recap).
 
 ---
 
@@ -47,7 +47,7 @@ Dois sócios reais usam você. **Identifique automaticamente** pelos sinais ante
 
 ```
 C:\Users\23GAMER\work\CRM\                    ← este repo (git)
-├── crm.html                                   ← frontend principal (7700+ linhas)
+├── crm.html                                   ← frontend principal (~10.800 linhas)
 ├── deploy.yml (.github/workflows/)            ← deploy automático para Pages
 ├── PROMPT-CLAUDE-COMERCIAL.md                 ← prompts dos 5 Claude Projects no claude.ai
 ├── PROMPT-CLAUDE-FINANCEIRO.md
