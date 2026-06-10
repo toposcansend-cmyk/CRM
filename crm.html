@@ -2331,6 +2331,114 @@
         .modo-claro .btn-danger { color: #b91c1c; }
         .modo-claro .btn-danger:hover { color: #fff; }
 
+        /* === V7.18 — Upgrade visual perceptível ===================================
+           Camada de "sentir": base global de botões (antes só existia dentro de
+           .modal — botão fora de modal renderizava como default do navegador),
+           transição de aba, hero com profundidade, números-assinatura, fundo
+           aurora e cor de status nos cards mobile. */
+
+        /* Base global de botões — conserta os "Atualizar" cinza-default */
+        .btn {
+            padding: 10px 16px;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.88em;
+            font-weight: 600;
+            transition: transform .15s ease, box-shadow .15s ease, filter .15s ease, background .2s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--gradient-1); color: #fff; border: none; }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(0,212,255,0.35); filter: brightness(1.06); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); }
+        .btn-secondary:hover { background: var(--glass-bg); border-color: rgba(0,212,255,0.3); }
+        .modal .btn-danger { background: rgba(239,68,68,0.14); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+        .modal .btn-danger:hover { background: #ef4444; color: #fff; }
+
+        /* Transição de conteúdo ao trocar de aba — resposta tátil no app inteiro */
+        @keyframes sectionIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        .section.active { animation: sectionIn 0.32s cubic-bezier(0.22, 1, 0.36, 1); }
+
+        /* Fundo aurora — profundidade sem ruído */
+        body {
+            background-image:
+                radial-gradient(ellipse at 15% -5%, rgba(0,212,255,0.09) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 5%, rgba(124,58,237,0.09) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 110%, rgba(34,197,94,0.05) 0%, transparent 55%);
+            background-attachment: fixed;
+        }
+        body.modo-claro {
+            background-image:
+                radial-gradient(ellipse at 15% -5%, rgba(2,132,199,0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 5%, rgba(109,40,217,0.06) 0%, transparent 50%);
+        }
+
+        /* Header com hairline de marca */
+        header { position: relative; }
+        header::after {
+            content: ''; position: absolute; left: 14px; right: 14px; bottom: -1px;
+            height: 2px; border-radius: 2px; background: var(--gradient-1); opacity: 0.5;
+        }
+
+        /* Hero da home — primeira impressão */
+        .home-hero {
+            position: relative; overflow: hidden; padding: 22px;
+            border-color: rgba(0,212,255,0.25);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .home-hero::before {
+            content: ''; position: absolute; top: -120px; right: -60px; width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(0,212,255,0.20), transparent 65%); pointer-events: none;
+        }
+        .home-hero::after {
+            content: ''; position: absolute; bottom: -130px; left: -50px; width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(124,58,237,0.18), transparent 65%); pointer-events: none;
+        }
+        .home-hero > * { position: relative; z-index: 1; }
+        .home-hero .saud { font-size: 1.35em; margin-bottom: 18px; }
+        .home-hero .hero-grid { gap: 14px 18px; }
+        .home-hero .ht .v { font-size: 1.6em; }
+        .home-hero .hero-fire { margin-top: 16px; }
+
+        /* Stat cards: número com gradiente de marca */
+        .stat-card .value {
+            font-size: 1.75em;
+            background: var(--gradient-1);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-card.fechado .value { background: none; -webkit-text-fill-color: #fff; }
+
+        /* Profundidade sutil nos cards (highlight de vidro no topo) */
+        .card { box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255,255,255,0.04); }
+
+        /* Títulos de seção com tick de marca */
+        .section h2 { position: relative; padding-left: 14px; }
+        .section h2::before {
+            content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+            width: 4px; height: 1em; background: var(--gradient-1); border-radius: 2px;
+        }
+
+        /* Logo do app-bar: nunca atropelar sino/avatar em tela estreita (fix de overlap pré-existente) */
+        @media (max-width: 768px) {
+            #mainLogo {
+                height: auto !important;
+                max-height: 42px;
+                max-width: calc(100vw - 248px) !important;
+            }
+        }
+
+        /* Cards de proposta (mobile): cor do status na borda */
+        .proposta-card { border-left: 4px solid var(--glass-border); }
+        .proposta-card.st-lead     { border-left-color: #8b5cf6; }
+        .proposta-card.st-enviada  { border-left-color: #3b82f6; }
+        .proposta-card.st-pendente { border-left-color: #f59e0b; }
+        .proposta-card.st-standby  { border-left-color: #6b7280; }
+        .proposta-card.st-fechada  { border-left-color: #22c55e; }
+        .proposta-card.st-perdida  { border-left-color: #ef4444; }
+
         #orcamento .historico {
             margin-top: 30px;
         }
@@ -3255,7 +3363,7 @@
                 <option value="Sem nome">Sem nome</option>
             </select>
             <button onclick="abrirNovoLead()"
-                style="padding:10px;background:#22c55e;border:none;border-radius:8px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:bold;white-space:nowrap">+
+                style="padding:10px 16px;background:var(--gradient-2);border:none;border-radius:10px;cursor:pointer;font-size:0.85em;color:#fff;font-weight:700;white-space:nowrap;box-shadow:0 4px 14px rgba(34,197,94,0.30)">+
                 Nova Oportunidade</button>
             <div id="mobileSortContainer" style="width:100%;margin-top:10px">
                 <label style="font-size:0.8em;color:var(--text-secondary);margin-bottom:5px;display:block">Ordenar
@@ -4724,9 +4832,9 @@
 
             function updateLogos(isClaro) {
                 const mainLogo = document.getElementById('mainLogo');
-                if (mainLogo) mainLogo.src = isClaro ? 'logo-preta.png' : 'logo.png';
+                if (mainLogo) mainLogo.src = isClaro ? 'logo-preto.png' : 'logo.png';
                 const loginLogo = document.querySelector('.login-box img');
-                if (loginLogo) loginLogo.src = isClaro ? 'logo-preta.png' : 'logo-branca.png';
+                if (loginLogo) loginLogo.src = isClaro ? 'logo-preto.png' : 'logo-branca.png';
                 const btn = document.getElementById('themeBtn');
                 if (btn) btn.textContent = isClaro ? 'Modo Escuro' : 'Modo Claro';
             }
@@ -5017,7 +5125,7 @@
                     tableContainer.style.display = 'none';
                     cardsContainer.style.display = 'block';
                     cardsContainer.innerHTML = f.map(p => `
-                    <div class="proposta-card" onclick="abrirEdicao('${p.id}')">
+                    <div class="proposta-card st-${(p.status || 'lead').toLowerCase()}" onclick="abrirEdicao('${p.id}')">
                         <div style="display:flex;justify-content:space-between;align-items:start">
                             <div class="cliente">${esc(p.cliente || '-')}${anexoBadge(p.numeroProposta, p.id, _exigeProposta(p))}</div>
                             <div style="font-size:0.7em;color:var(--text-secondary);background:var(--bg-tertiary);padding:2px 6px;border-radius:4px">${esc(p.vendedor || '-')}</div>
