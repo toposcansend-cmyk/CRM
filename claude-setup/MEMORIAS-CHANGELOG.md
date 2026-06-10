@@ -179,3 +179,7 @@
 
 **Ação necessária:** o que o outro sócio deve fazer
 ```
+
+## 2026-06-10
+- boot-state.md — sessao re-tema visual CRM (kpi-tint, orcamento parte 3, sticky th) + spawn_task deploy.yml Node 24
+- claude_journal.md — Pagina 8 (olhar antes de mexer; cor e hierarquia)
