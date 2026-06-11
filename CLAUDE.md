@@ -11,7 +11,7 @@ Você está no **CRM Toposcan** (V7.18+, jun/2026) — sistema vivo de gestão d
 
 - **Repositório:** https://github.com/toposcansend-cmyk/CRM (branch `main` → GitHub Pages)
 - **Frontend ao vivo:** https://toposcansend-cmyk.github.io/CRM/ (PWA instalável)
-- **Stack:** `crm.html` (single-page HTML/CSS/JS, ~10.800 linhas) + Google Apps Script backend + Google Sheets como banco + MCP server (Cloudflare Workers, 35 tools) pras 4 IAs gerentes
+- **Stack:** `crm.html` (single-page HTML/CSS/JS, ~10.800 linhas) + Google Apps Script backend + Google Sheets como banco + MCP server (Cloudflare Workers, 42 tools) pras 4 IAs gerentes
 - **Estado VIVO:** não confie em snapshot deste arquivo — o estado operacional curado mora em `~/.claude/projects/C--Users-23GAMER/memory/boot-state.md` (injetado no boot). Emails autônomos: 2/semana (seg 9h plano + sex 16h recap).
 
 ---

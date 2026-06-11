@@ -65,13 +65,17 @@ curl -X PUT "https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/workers/scri
 | 🎯 Central | `get_cross_kpis`, `get_active_alerts`, `get_daily_briefing` |
 | 🧠 Aprendizados V7.12 | `ensure_aprendizados`, `add_learning`, `get_learnings`, `update_learning`, `delete_learning` |
 | 📧🗓️ Assistente | `send_email`, `create_meet_event`, `list_meet_suggestions`, `list_upcoming_events` |
+| 📋 Propostas (Camila, 10/06) | `next_proposal_number`, `generate_proposal` |
+
+> **v1.3.0 (10/06/2026):** 42 tools (era 35) — +`crm_next_proposal_number` +`crm_generate_proposal` pra Camila (5ª gerente). Deploy confirmado: health `tools_count:42`, Version ID `bd6a6438`.
+> ⚠️ Verificar: `nextProposalNumber` retornou 108 (GAS direto) e 201 (via MCP) em chamadas próximas — checar determinismo do scan de sequencial (possível E032).
 
 ## Como conecta nas IAs
 
 1. Criado em `claude.ai → Personalizar → Conectores → "+" → Adicionar conector personalizado`
 2. Nome: **"Toposcan CRM"** — URL: o endpoint MCP acima
 3. **Account-level** → propaga AUTOMATICAMENTE pros 4 Projects (Rafaela, Beatriz, Vanessa, Fernanda)
-4. Cada IA vê as 35 tools no toolbox dela
+4. Cada IA vê as 42 tools no toolbox dela (35 + 2 Camila = 42; jun/2026)
 
 ## Smoke test ao vivo (26/05/2026)
 
