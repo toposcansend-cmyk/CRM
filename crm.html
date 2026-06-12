@@ -2457,9 +2457,10 @@
         .fechadas-card .fc-info { font-size: 0.82em; color: var(--text-secondary); margin-bottom: 4px; }
         .fechadas-card .fc-valor { font-weight: 800; font-size: 1.05em; color: #22c55e; margin: 6px 0; }
         .fechadas-card .fc-meta { font-size: 0.8em; color: var(--text-secondary); display: flex; justify-content: space-between; gap: 8px; }
-        /* Hint "toque para ver" no tile clicavel do hero */
-        .home-hero .ht.clickable { cursor: pointer; }
-        .home-hero .ht .ht-hint { font-size: 0.62em; color: var(--accent); font-weight: 700; margin-top: 4px; opacity: 0.9; }
+        /* Tiles clicaveis do hero: cursor + chevron de afford ncia no canto */
+        .home-hero .ht.clickable { cursor: pointer; position: relative; }
+        .home-hero .ht.clickable::after { content: '›'; position: absolute; top: 4px; right: 8px; color: var(--accent); font-weight: 800; font-size: 1.05em; line-height: 1; opacity: 0.5; }
+        .home-hero .ht.clickable:active { opacity: 0.85; }
 
         #orcamento .historico {
             margin-top: 30px;
@@ -5043,7 +5044,9 @@
                     const conv = total > 0 ? Math.round((fechadas / total) * 100) : 0;
                     let maior = null;
                     ativosArr.forEach(p => { const v = parseFloat(p.valor) || 0; if (!maior || v > maior.v) maior = { v: v, c: p.cliente || '—' }; });
-                    window._heroClient = { pipelineVal: pipelineVal, previstas: previstas.length, conv: conv, maior: maior };
+                    // previstasList: guarda a lista exata (com filtros da home aplicados) p/ o drill-down
+                    // do tile "Previstas no mês" bater com o número — o hero respeita o filtro de vendedor.
+                    window._heroClient = { pipelineVal: pipelineVal, previstas: previstas.length, previstasList: previstas, conv: conv, maior: maior };
                     const hg = document.getElementById('heroSaudacao');
                     if (hg) {
                         const hr = agora.getHours();
@@ -6172,11 +6175,11 @@
                 let cards = [];
                 if (isMarcelo) {
                     cards = [
-                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true, click: "abrirFechadasModal('mes')", wide: true },
-                        { k: '🛠️ Projetos ativos', v: projAt != null ? projAt : '—' },
-                        { k: '⏳ Em andamento', v: emAnd != null ? emAnd : '—' },
-                        { k: '⚠️ Atrasadas', v: k ? k.engenharia.atrasadas : '—', alert: !!(k && k.engenharia.atrasadas > 0) },
-                        { k: '💸 Custo do mês', v: k ? fmtK(k.operacao.custoMesTotal) : '—' }
+                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true, click: "abrirDrillModal('fechadas-mes')", wide: true },
+                        { k: '🛠️ Projetos ativos', v: projAt != null ? projAt : '—', click: "abrirDrillModal('projetos-ativos')" },
+                        { k: '⏳ Em andamento', v: emAnd != null ? emAnd : '—', click: "abrirDrillModal('em-andamento')" },
+                        { k: '⚠️ Atrasadas', v: k ? k.engenharia.atrasadas : '—', alert: !!(k && k.engenharia.atrasadas > 0), click: "abrirDrillModal('atrasadas')" },
+                        { k: '💸 Custo do mês', v: k ? fmtK(k.operacao.custoMesTotal) : '—', click: "abrirDrillModal('custo-mes')" }
                     ];
                     let fl = '';
                     if (k && k.engenharia.maisAtrasada) { const m = k.engenharia.maisAtrasada; fl += '⏰ <b>Mais atrasada:</b> ' + esc(m.projeto) + (m.fase ? ' · ' + esc(m.fase) : '') + ' — <b>' + m.dias + ' dias</b>'; }
@@ -6185,18 +6188,17 @@
                     if (fire) fire.innerHTML = fl;
                 } else {
                     cards = [
-                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true, click: "abrirFechadasModal('mes')" },
-                        { k: '💰 Pipeline', v: k ? fmtK(k.comercial.pipelineAtivo) : (c.pipelineVal != null ? fmtK(c.pipelineVal) : '—') },
-                        { k: '📅 Previstas no mês', v: c.previstas != null ? c.previstas : '—' },
-                        { k: '🛠️ Em andamento', v: emAnd != null ? emAnd : '—' }
+                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true, click: "abrirDrillModal('fechadas-mes')" },
+                        { k: '💰 Pipeline', v: k ? fmtK(k.comercial.pipelineAtivo) : (c.pipelineVal != null ? fmtK(c.pipelineVal) : '—'), click: "abrirDrillModal('pipeline')" },
+                        { k: '📅 Previstas no mês', v: c.previstas != null ? c.previstas : '—', click: "abrirDrillModal('previstas-mes')" },
+                        { k: '🛠️ Em andamento', v: emAnd != null ? emAnd : '—', click: "abrirDrillModal('em-andamento')" }
                     ];
                     if (fire) fire.innerHTML = (c.maior && c.maior.v > 0) ? '🔥 Maior oportunidade aberta: <b>' + esc(c.maior.c) + '</b> — ' + fmtR(c.maior.v) : '🔥 Nenhuma oportunidade aberta no momento';
                 }
                 grid.innerHTML = cards.map(function (x) {
                     var clickAttr = x.click ? ' onclick="' + x.click + '" role="button" tabindex="0"' : '';
-                    var hint = x.click ? '<div class="ht-hint">toque para ver →</div>' : '';
                     var tileStyle = x.wide ? ' style="grid-column:1/-1"' : '';
-                    return '<div class="ht' + (x.win ? ' win' : '') + (x.click ? ' clickable' : '') + '"' + tileStyle + clickAttr + '><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div>' + hint + '</div>';
+                    return '<div class="ht' + (x.win ? ' win' : '') + (x.click ? ' clickable' : '') + '"' + tileStyle + clickAttr + '><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div></div>';
                 }).join('');
             }
 
@@ -6641,61 +6643,191 @@
                 document.getElementById('editModal').classList.remove('active');
             }
 
-            // Drill-down do numero da home: lista as propostas Fechadas.
-            // scope 'mes' = ganhas no mes corrente (casa com o tile "Fechado em [mes]");
-            // scope 'todas' = todas as fechadas (respeitando filtros de ano/vendedor da home).
-            function abrirFechadasModal(scope) {
-                scope = scope || 'mes';
-                var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-                var now = new Date();
-                var lista = (window.propostas || []).filter(function(p) { return p.status === 'Fechada'; });
-                var titulo;
-                if (scope === 'mes') {
-                    lista = lista.filter(function(p) {
-                        var d = evoParseDate(p);
-                        return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-                    });
-                    titulo = '🏆 Fechadas em ' + meses[now.getMonth()] + ' ' + now.getFullYear();
-                } else {
-                    var fAno = (document.getElementById('anoFilter') || {}).value || '';
-                    var fVend = (document.getElementById('vendedorFilter') || {}).value || '';
-                    if (fAno) lista = lista.filter(function(p) { var d = evoParseDate(p); return d && d.getFullYear() === parseInt(fAno); });
-                    if (fVend) lista = lista.filter(function(p) { return (p.vendedor || '') === fVend; });
-                    titulo = '✅ Propostas fechadas' + (fAno ? ' · ' + fAno : '');
-                }
-                lista.sort(function(a, b) {
-                    var da = evoParseDate(a), db = evoParseDate(b);
-                    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
-                });
-                var total = lista.reduce(function(s, p) { return s + (p.valor || 0); }, 0);
-                var fmt = function(v) { return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR'); };
+            // ===== Drill-down dos tiles do dashboard =====
+            // Cada numero do hero abre um modal com a lista por tras dele.
+            // Os numeros BATEM com os tiles porque replicam a logica do backend (getCrossKPIs em Code.js):
+            //   atrasada   = tarefa "Em andamento"/"Em revisao" com previsaoEntrega vencida;
+            //   custo do mes = soma de valorAcordado dos custos com dataOperacao no mes corrente.
+            var MESES_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+            function drillFmt(v) { return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR'); }
+            function drillParseBR(s) { s = String(s || '').trim(); var p = s.split('/'); if (p.length !== 3) return null; var a = parseInt(p[2], 10); if (p[2].length === 2) a += 2000; return new Date(a, parseInt(p[1], 10) - 1, parseInt(p[0], 10)); }
+            function drillCorProposta(st) { return ({ 'Lead':'#8b5cf6','Enviada':'#3b82f6','Pendente':'#f59e0b','Standby':'#6b7280','Fechada':'#22c55e','Perdida':'#ef4444' })[st] || '#3b82f6'; }
 
-                document.getElementById('fechadasModalTitulo').textContent = titulo;
-                document.getElementById('fechadasModalResumo').textContent =
-                    lista.length + ' proposta' + (lista.length !== 1 ? 's' : '') + ' · ' + fmt(total);
-
-                var cont = document.getElementById('fechadasModalLista');
-                if (!lista.length) {
-                    cont.innerHTML = '<div style="padding:28px 0;text-align:center;color:var(--text-secondary)">Nenhuma proposta fechada neste período.</div>';
-                } else {
-                    cont.innerHTML = lista.map(function(p) {
-                        var dataStr = p.dataFechamento || p.fechamentoPrevisto || p.dataProposta || '—';
-                        var loc = (p.localizacao || '').trim();
-                        var num = (p.numeroProposta || '').trim();
-                        // numeroProposta desambigua jobs iguais nos campos visiveis (ex: 2 "Fotos de Drone"
-                        // do mesmo cliente/valor mas em cidades diferentes). NAO mostrar o placeholder "NOVO".
-                        var numShow = (num && num.toUpperCase() !== 'NOVO') ? num : '';
-                        return '<div class="fechadas-card" onclick="fecharFechadasModal(); abrirEdicao(\'' + p.id + '\')">' +
-                            '<div class="fc-cliente">' + esc(p.cliente || '—') + '</div>' +
-                            (p.servico ? '<div class="fc-info">' + esc(p.servico) + '</div>' : '') +
-                            (loc ? '<div class="fc-info">📍 ' + esc(loc) + '</div>' : '') +
-                            '<div class="fc-valor">' + fmt(p.valor) + '</div>' +
-                            '<div class="fc-meta"><span>📅 ' + esc(dataStr) + (numShow ? ' · Nº ' + esc(numShow) : '') + '</span><span>' + esc(p.vendedor || '') + '</span></div>' +
-                        '</div>';
-                    }).join('');
-                }
-                document.getElementById('fechadasModal').classList.add('active');
+            // Datasets de Engenharia/Operacao carregados sob demanda no 1o clique.
+            async function drillEnsureEng() {
+                if (typeof engItens !== 'undefined' && engItens && engItens.length) return engItens;
+                try {
+                    var r = await finApi('listProducao', {});
+                    if (r && r.itens) { engItens = r.itens; try { localStorage.setItem('crm_eng_itens_v1', JSON.stringify(engItens)); } catch (e) {} }
+                } catch (e) {}
+                return (typeof engItens !== 'undefined' && engItens) ? engItens : [];
             }
+            async function drillEnsurePartners() {
+                if (window._drillPartners) return window._drillPartners;
+                var r = await finApi('listTopoPartners', {});
+                window._drillPartners = (r && (r.items || r.itens)) || [];
+                return window._drillPartners;
+            }
+
+            // Renderiza 1 card normalizado.
+            function drillCard(it) {
+                var style = 'border-left-color:' + (it.cor || '#22c55e') + (it.click ? ';cursor:pointer' : ';cursor:default');
+                var clickAttr = it.click ? ' onclick="' + it.click + '"' : '';
+                return '<div class="fechadas-card" style="' + style + '"' + clickAttr + '>' +
+                    '<div class="fc-cliente">' + esc(it.titulo || '—') + '</div>' +
+                    (it.sub ? '<div class="fc-info">' + esc(it.sub) + '</div>' : '') +
+                    (it.loc ? '<div class="fc-info">📍 ' + esc(it.loc) + '</div>' : '') +
+                    (it.valor != null ? '<div class="fc-valor">' + drillFmt(it.valor) + '</div>' : '') +
+                    ((it.metaL || it.metaR) ? '<div class="fc-meta"><span>' + esc(it.metaL || '') + '</span><span>' + esc(it.metaR || '') + '</span></div>' : '') +
+                '</div>';
+            }
+
+            // Resolve {titulo, itens[], resumo, vazio} por tipo de tile. async (eng/op buscam dados).
+            async function drillData(tipo) {
+                var now = new Date(); var mes = now.getMonth(), ano = now.getFullYear();
+                var props = window.propostas || [];
+
+                if (tipo === 'fechadas-mes' || tipo === 'fechadas-todas') {
+                    var fechadas = props.filter(function(p){ return p.status === 'Fechada'; });
+                    var tit;
+                    if (tipo === 'fechadas-mes') {
+                        fechadas = fechadas.filter(function(p){ var d = evoParseDate(p); return d && d.getMonth()===mes && d.getFullYear()===ano; });
+                        tit = '🏆 Fechadas em ' + MESES_PT[mes] + ' ' + ano;
+                    } else {
+                        var fAno = (document.getElementById('anoFilter')||{}).value || '';
+                        var fVend = (document.getElementById('vendedorFilter')||{}).value || '';
+                        if (fAno) fechadas = fechadas.filter(function(p){ var d = evoParseDate(p); return d && d.getFullYear()===parseInt(fAno); });
+                        if (fVend) fechadas = fechadas.filter(function(p){ return (p.vendedor||'')===fVend; });
+                        tit = '✅ Propostas fechadas' + (fAno ? ' · ' + fAno : '');
+                    }
+                    fechadas.sort(function(a,b){ var da=evoParseDate(a), db=evoParseDate(b); return (db?db.getTime():0)-(da?da.getTime():0); });
+                    var totF = fechadas.reduce(function(s,p){ return s+(p.valor||0); },0);
+                    return { titulo: tit, resumo: fechadas.length + ' proposta' + (fechadas.length!==1?'s':'') + ' · ' + drillFmt(totF), vazio: 'Nenhuma proposta fechada neste período.',
+                        itens: fechadas.map(function(p){
+                            var num = (p.numeroProposta||'').trim(); var numShow = (num && num.toUpperCase()!=='NOVO') ? num : '';
+                            var dataStr = p.dataFechamento || p.fechamentoPrevisto || p.dataProposta || '—';
+                            return { titulo:p.cliente, sub:p.servico, loc:(p.localizacao||'').trim(), valor:p.valor, cor:'#22c55e',
+                                metaL:'📅 '+dataStr+(numShow?' · Nº '+numShow:''), metaR:p.vendedor, click:"fecharFechadasModal(); abrirEdicao('"+p.id+"')" };
+                        }) };
+                }
+
+                if (tipo === 'pipeline') {
+                    var ativos = props.filter(function(p){ return p.status!=='Fechada' && p.status!=='Perdida'; });
+                    ativos.sort(function(a,b){ return (parseFloat(b.valor)||0)-(parseFloat(a.valor)||0); });
+                    var totP = ativos.reduce(function(s,p){ return s+(parseFloat(p.valor)||0); },0);
+                    return { titulo:'💰 Pipeline ativo', resumo: ativos.length + ' oportunidade' + (ativos.length!==1?'s':'') + ' · ' + drillFmt(totP), vazio:'Nenhuma oportunidade aberta.',
+                        itens: ativos.map(function(p){
+                            var prev = (p.fechamentoPrevisto||'').trim();
+                            return { titulo:p.cliente, sub:p.servico, loc:(p.localizacao||'').trim(), valor:parseFloat(p.valor)||0, cor:drillCorProposta(p.status),
+                                metaL:(p.status||'')+(prev?' · prev '+prev:''), metaR:p.vendedor, click:"fecharFechadasModal(); abrirEdicao('"+p.id+"')" };
+                        }) };
+                }
+
+                if (tipo === 'previstas-mes') {
+                    var hc = window._heroClient || {};
+                    // Reusa a lista que o filtrar() ja computou (respeita o filtro de vendedor da home),
+                    // pra bater com o numero do tile. Fallback: computa sem filtro.
+                    var prevMes = Array.isArray(hc.previstasList) ? hc.previstasList.slice() : props.filter(function(p){
+                        if (p.status==='Fechada' || p.status==='Perdida') return false;
+                        var d = String(p.fechamentoPrevisto||'').split('/');
+                        return d.length===3 && (parseInt(d[1],10)-1)===mes && parseInt(d[2],10)===ano;
+                    });
+                    prevMes.sort(function(a,b){ return (parseFloat(b.valor)||0)-(parseFloat(a.valor)||0); });
+                    var totPv = prevMes.reduce(function(s,p){ return s+(parseFloat(p.valor)||0); },0);
+                    return { titulo:'📅 Previstas para ' + MESES_PT[mes], resumo: prevMes.length + ' oportunidade' + (prevMes.length!==1?'s':'') + ' · ' + drillFmt(totPv), vazio:'Nenhuma oportunidade com fechamento previsto neste mês.',
+                        itens: prevMes.map(function(p){
+                            return { titulo:p.cliente, sub:p.servico, loc:(p.localizacao||'').trim(), valor:parseFloat(p.valor)||0, cor:drillCorProposta(p.status),
+                                metaL:'📅 prev '+(p.fechamentoPrevisto||'—'), metaR:p.vendedor, click:"fecharFechadasModal(); abrirEdicao('"+p.id+"')" };
+                        }) };
+                }
+
+                if (tipo === 'em-andamento' || tipo === 'projetos-ativos' || tipo === 'atrasadas') {
+                    var eng = await drillEnsureEng();
+                    var hoje = new Date(); hoje.setHours(0,0,0,0);
+                    var diasAtraso = function(t){
+                        if (!(t.status==='Em andamento'||t.status==='Em revisão'||t.status==='Não iniciado')) return 0;
+                        var pe = drillParseBR(t.previsaoEntrega); if (!pe || pe>=hoje) return 0;
+                        return Math.round((hoje-pe)/86400000);
+                    };
+                    if (tipo === 'em-andamento') {
+                        var ea = eng.filter(function(t){ return t.status==='Em andamento'||t.status==='Em revisão'; });
+                        ea.sort(function(a,b){ return (parseFloat(b.percentual)||0)-(parseFloat(a.percentual)||0); });
+                        return { titulo:'🛠️ Tarefas em andamento', resumo: ea.length + ' tarefa' + (ea.length!==1?'s':''), vazio:'Nenhuma tarefa em andamento.',
+                            itens: ea.map(function(t){ var d = diasAtraso(t);
+                                return { titulo:t.projeto || ('Proposta '+t.numeroProposta), sub:(t.subitem?t.subitem+' · ':'')+(t.fase||''), cor: d>0 ? '#ef4444' : '#3b82f6',
+                                    metaL:(parseFloat(t.percentual)||0)+'%'+(t.previsaoEntrega?' · prev '+t.previsaoEntrega:'')+(d>0?' · '+d+'d atraso':''), metaR:t.responsavel||'' };
+                            }) };
+                    }
+                    if (tipo === 'atrasadas') {
+                        var at = eng.filter(function(t){ return (t.status==='Em andamento'||t.status==='Em revisão') && diasAtraso(t)>0; });
+                        at.sort(function(a,b){ return diasAtraso(b)-diasAtraso(a); });
+                        return { titulo:'⚠️ Tarefas atrasadas', resumo: at.length + ' tarefa' + (at.length!==1?'s':''), vazio:'Nenhuma tarefa atrasada. 🎉',
+                            itens: at.map(function(t){ var d = diasAtraso(t);
+                                return { titulo:t.projeto || ('Proposta '+t.numeroProposta), sub:(t.subitem?t.subitem+' · ':'')+(t.fase||''), cor:'#ef4444',
+                                    metaL:'prev '+(t.previsaoEntrega||'—')+' · '+d+'d atraso', metaR:t.responsavel||'' };
+                            }) };
+                    }
+                    var grupos = {};
+                    eng.forEach(function(t){
+                        var chave = t.projeto || ('Proposta '+t.numeroProposta);
+                        if (!grupos[chave]) grupos[chave] = { total:0, concl:0, somaPct:0, validas:0, resp:{} };
+                        var g = grupos[chave];
+                        if (t.status!=='Retirada' && t.status!=='N/A') {
+                            g.total++; if (t.status==='Concluído') g.concl++;
+                            g.somaPct += (parseFloat(t.percentual)||0); g.validas++;
+                            if (t.responsavel) g.resp[t.responsavel] = 1;
+                        }
+                    });
+                    var ativProj = Object.keys(grupos).filter(function(k){ var g=grupos[k]; return !(g.total>0 && g.concl===g.total); });
+                    ativProj.sort(function(a,b){ var pa=grupos[a].validas?grupos[a].somaPct/grupos[a].validas:0, pb=grupos[b].validas?grupos[b].somaPct/grupos[b].validas:0; return pa-pb; });
+                    return { titulo:'🛠️ Projetos ativos', resumo: ativProj.length + ' projeto' + (ativProj.length!==1?'s':''), vazio:'Nenhum projeto ativo.',
+                        itens: ativProj.map(function(k){ var g = grupos[k]; var pct = g.validas? Math.round(g.somaPct/g.validas):0;
+                            var resps = Object.keys(g.resp); var respShow = resps.slice(0,2).join(', ') + (resps.length>2 ? ' +'+(resps.length-2) : '');
+                            return { titulo:k, sub: g.concl+'/'+g.total+' tarefas concluídas', cor: pct>=80?'#22c55e':(pct>=40?'#f59e0b':'#3b82f6'),
+                                metaL: pct+'% concluído', metaR: respShow };
+                        }) };
+                }
+
+                if (tipo === 'custo-mes') {
+                    var partners = await drillEnsurePartners();
+                    var custos = partners.filter(function(c){ var dt = String(c.dataOperacao||'').split('/'); return dt.length===3 && (parseInt(dt[1],10)-1)===mes && parseInt(dt[2],10)===ano; });
+                    custos.sort(function(a,b){ return (Number(b.valorAcordado)||0)-(Number(a.valorAcordado)||0); });
+                    var totC = custos.reduce(function(s,c){ return s+(Number(c.valorAcordado)||0); },0);
+                    var corCusto = function(st){ return st==='Pago'?'#22c55e':(st==='Parcial'?'#3b82f6':'#f59e0b'); };
+                    return { titulo:'💸 Custo de ' + MESES_PT[mes], resumo: custos.length + ' lançamento' + (custos.length!==1?'s':'') + ' · ' + drillFmt(totC), vazio:'Nenhum custo lançado neste mês.',
+                        itens: custos.map(function(c){
+                            return { titulo:c.parceiro || '—', sub:c.servico, valor:Number(c.valorAcordado)||0, cor:corCusto(c.status),
+                                metaL:'📅 '+(c.dataOperacao||'—')+(c.categoria?' · '+c.categoria:''), metaR:c.status||'' };
+                        }) };
+                }
+
+                return { titulo:'—', resumo:'', vazio:'Sem dados.', itens:[] };
+            }
+
+            // Abre o modal generico de drill-down (mesma casca do antigo modal de fechadas).
+            async function abrirDrillModal(tipo) {
+                var modal = document.getElementById('fechadasModal');
+                var titEl = document.getElementById('fechadasModalTitulo');
+                var resEl = document.getElementById('fechadasModalResumo');
+                var listEl = document.getElementById('fechadasModalLista');
+                modal.classList.add('active');
+                titEl.textContent = 'Carregando…'; resEl.textContent = '';
+                listEl.innerHTML = '<div style="padding:28px 0;text-align:center;color:var(--text-secondary)">Carregando…</div>';
+                try {
+                    var cfg = await drillData(tipo);
+                    titEl.textContent = cfg.titulo;
+                    resEl.textContent = cfg.resumo || '';
+                    listEl.innerHTML = (cfg.itens && cfg.itens.length)
+                        ? cfg.itens.map(drillCard).join('')
+                        : '<div style="padding:28px 0;text-align:center;color:var(--text-secondary)">' + esc(cfg.vazio || 'Nada para mostrar.') + '</div>';
+                } catch (e) {
+                    titEl.textContent = 'Ops';
+                    listEl.innerHTML = '<div style="padding:24px 0;text-align:center;color:#ef4444">Erro ao carregar: ' + esc(e && e.message ? e.message : String(e)) + '</div>';
+                }
+            }
+
+            // Back-compat: chamadas antigas do tile de fechadas.
+            function abrirFechadasModal(scope) { return abrirDrillModal(scope === 'todas' ? 'fechadas-todas' : 'fechadas-mes'); }
 
             function fecharFechadasModal() {
                 document.getElementById('fechadasModal').classList.remove('active');
