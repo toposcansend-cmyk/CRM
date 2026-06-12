@@ -6172,6 +6172,7 @@
                 let cards = [];
                 if (isMarcelo) {
                     cards = [
+                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true, click: "abrirFechadasModal('mes')", wide: true },
                         { k: '🛠️ Projetos ativos', v: projAt != null ? projAt : '—' },
                         { k: '⏳ Em andamento', v: emAnd != null ? emAnd : '—' },
                         { k: '⚠️ Atrasadas', v: k ? k.engenharia.atrasadas : '—', alert: !!(k && k.engenharia.atrasadas > 0) },
@@ -6194,7 +6195,8 @@
                 grid.innerHTML = cards.map(function (x) {
                     var clickAttr = x.click ? ' onclick="' + x.click + '" role="button" tabindex="0"' : '';
                     var hint = x.click ? '<div class="ht-hint">toque para ver →</div>' : '';
-                    return '<div class="ht' + (x.win ? ' win' : '') + (x.click ? ' clickable' : '') + '"' + clickAttr + '><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div>' + hint + '</div>';
+                    var tileStyle = x.wide ? ' style="grid-column:1/-1"' : '';
+                    return '<div class="ht' + (x.win ? ' win' : '') + (x.click ? ' clickable' : '') + '"' + tileStyle + clickAttr + '><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div>' + hint + '</div>';
                 }).join('');
             }
 
@@ -6678,11 +6680,17 @@
                 } else {
                     cont.innerHTML = lista.map(function(p) {
                         var dataStr = p.dataFechamento || p.fechamentoPrevisto || p.dataProposta || '—';
+                        var loc = (p.localizacao || '').trim();
+                        var num = (p.numeroProposta || '').trim();
+                        // numeroProposta desambigua jobs iguais nos campos visiveis (ex: 2 "Fotos de Drone"
+                        // do mesmo cliente/valor mas em cidades diferentes). NAO mostrar o placeholder "NOVO".
+                        var numShow = (num && num.toUpperCase() !== 'NOVO') ? num : '';
                         return '<div class="fechadas-card" onclick="fecharFechadasModal(); abrirEdicao(\'' + p.id + '\')">' +
                             '<div class="fc-cliente">' + esc(p.cliente || '—') + '</div>' +
                             (p.servico ? '<div class="fc-info">' + esc(p.servico) + '</div>' : '') +
+                            (loc ? '<div class="fc-info">📍 ' + esc(loc) + '</div>' : '') +
                             '<div class="fc-valor">' + fmt(p.valor) + '</div>' +
-                            '<div class="fc-meta"><span>📅 ' + esc(dataStr) + '</span><span>' + esc(p.vendedor || '') + '</span></div>' +
+                            '<div class="fc-meta"><span>📅 ' + esc(dataStr) + (numShow ? ' · Nº ' + esc(numShow) : '') + '</span><span>' + esc(p.vendedor || '') + '</span></div>' +
                         '</div>';
                     }).join('');
                 }
