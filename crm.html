@@ -2439,6 +2439,28 @@
         .proposta-card.st-fechada  { border-left-color: #22c55e; }
         .proposta-card.st-perdida  { border-left-color: #ef4444; }
 
+        /* Drill-down do numero da home: modal com a lista de propostas fechadas.
+           Classe propria (nao depende do .proposta-card, que so tem estilo no mobile). */
+        .fechadas-card {
+            background: var(--bg-tertiary);
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid #22c55e;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+        .fechadas-card:hover { background: rgba(34,197,94,0.08); transform: translateX(2px); }
+        .fechadas-card:active { transform: scale(0.99); }
+        .fechadas-card .fc-cliente { font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+        .fechadas-card .fc-info { font-size: 0.82em; color: var(--text-secondary); margin-bottom: 4px; }
+        .fechadas-card .fc-valor { font-weight: 800; font-size: 1.05em; color: #22c55e; margin: 6px 0; }
+        .fechadas-card .fc-meta { font-size: 0.8em; color: var(--text-secondary); display: flex; justify-content: space-between; gap: 8px; }
+        /* Hint "toque para ver" no tile clicavel do hero */
+        .home-hero .ht.clickable { cursor: pointer; }
+        .home-hero .ht .ht-hint { font-size: 0.62em; color: var(--accent); font-weight: 700; margin-top: 4px; opacity: 0.9; }
+
         #orcamento .historico {
             margin-top: 30px;
         }
@@ -2963,8 +2985,11 @@
                 font-size: 1.1em;
             }
             .evo-detail-table {
-                display: block;
+                /* !important pra vencer o `table { display:none !important }` global do mobile (linha ~1813),
+                   que esconde a tabela principal mas tambem matava esta lista de detalhe. */
+                display: block !important;
                 overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
         }
     /* ===== PWA UX V7.15 — safe-area (encaixe no aparelho) + menu lateral (drawer) estilo Claude/GPT ===== */
@@ -3376,6 +3401,18 @@
                     <option value="valor:desc">Maior Valor</option>
                     <option value="cliente:asc">Cliente (A-Z)</option>
                 </select>
+            </div>
+        </div>
+
+        <!-- Modal: drill-down das propostas Fechadas (clique no numero da home) -->
+        <div id="fechadasModal" class="modal" onclick="if(event.target===this)fecharFechadasModal()">
+            <div class="modal-content" style="max-width:560px">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px">
+                    <h2 id="fechadasModalTitulo" style="margin:0">🏆 Fechadas</h2>
+                    <button onclick="fecharFechadasModal()" class="btn btn-secondary" style="padding:6px 12px;min-width:auto">✕</button>
+                </div>
+                <div id="fechadasModalResumo" style="color:var(--text-secondary);font-size:0.9em;margin-bottom:16px"></div>
+                <div id="fechadasModalLista"></div>
             </div>
         </div>
 
@@ -6147,7 +6184,7 @@
                     if (fire) fire.innerHTML = fl;
                 } else {
                     cards = [
-                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true },
+                        { k: '🏆 Fechado em ' + _mesNome, v: k ? (k.comercial.fechadasMes + ' · ' + fmtK(k.comercial.valorFechadoMes)) : '—', win: true, click: "abrirFechadasModal('mes')" },
                         { k: '💰 Pipeline', v: k ? fmtK(k.comercial.pipelineAtivo) : (c.pipelineVal != null ? fmtK(c.pipelineVal) : '—') },
                         { k: '📅 Previstas no mês', v: c.previstas != null ? c.previstas : '—' },
                         { k: '🛠️ Em andamento', v: emAnd != null ? emAnd : '—' }
@@ -6155,7 +6192,9 @@
                     if (fire) fire.innerHTML = (c.maior && c.maior.v > 0) ? '🔥 Maior oportunidade aberta: <b>' + esc(c.maior.c) + '</b> — ' + fmtR(c.maior.v) : '🔥 Nenhuma oportunidade aberta no momento';
                 }
                 grid.innerHTML = cards.map(function (x) {
-                    return '<div class="ht' + (x.win ? ' win' : '') + '"><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div></div>';
+                    var clickAttr = x.click ? ' onclick="' + x.click + '" role="button" tabindex="0"' : '';
+                    var hint = x.click ? '<div class="ht-hint">toque para ver →</div>' : '';
+                    return '<div class="ht' + (x.win ? ' win' : '') + (x.click ? ' clickable' : '') + '"' + clickAttr + '><div class="k">' + x.k + '</div><div class="v"' + (x.alert ? ' style="color:#ef4444"' : '') + '>' + x.v + '</div>' + hint + '</div>';
                 }).join('');
             }
 
@@ -6598,6 +6637,60 @@
 
             function fecharModal() {
                 document.getElementById('editModal').classList.remove('active');
+            }
+
+            // Drill-down do numero da home: lista as propostas Fechadas.
+            // scope 'mes' = ganhas no mes corrente (casa com o tile "Fechado em [mes]");
+            // scope 'todas' = todas as fechadas (respeitando filtros de ano/vendedor da home).
+            function abrirFechadasModal(scope) {
+                scope = scope || 'mes';
+                var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                var now = new Date();
+                var lista = (window.propostas || []).filter(function(p) { return p.status === 'Fechada'; });
+                var titulo;
+                if (scope === 'mes') {
+                    lista = lista.filter(function(p) {
+                        var d = evoParseDate(p);
+                        return d && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                    });
+                    titulo = '🏆 Fechadas em ' + meses[now.getMonth()] + ' ' + now.getFullYear();
+                } else {
+                    var fAno = (document.getElementById('anoFilter') || {}).value || '';
+                    var fVend = (document.getElementById('vendedorFilter') || {}).value || '';
+                    if (fAno) lista = lista.filter(function(p) { var d = evoParseDate(p); return d && d.getFullYear() === parseInt(fAno); });
+                    if (fVend) lista = lista.filter(function(p) { return (p.vendedor || '') === fVend; });
+                    titulo = '✅ Propostas fechadas' + (fAno ? ' · ' + fAno : '');
+                }
+                lista.sort(function(a, b) {
+                    var da = evoParseDate(a), db = evoParseDate(b);
+                    return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+                });
+                var total = lista.reduce(function(s, p) { return s + (p.valor || 0); }, 0);
+                var fmt = function(v) { return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR'); };
+
+                document.getElementById('fechadasModalTitulo').textContent = titulo;
+                document.getElementById('fechadasModalResumo').textContent =
+                    lista.length + ' proposta' + (lista.length !== 1 ? 's' : '') + ' · ' + fmt(total);
+
+                var cont = document.getElementById('fechadasModalLista');
+                if (!lista.length) {
+                    cont.innerHTML = '<div style="padding:28px 0;text-align:center;color:var(--text-secondary)">Nenhuma proposta fechada neste período.</div>';
+                } else {
+                    cont.innerHTML = lista.map(function(p) {
+                        var dataStr = p.dataFechamento || p.fechamentoPrevisto || p.dataProposta || '—';
+                        return '<div class="fechadas-card" onclick="fecharFechadasModal(); abrirEdicao(\'' + p.id + '\')">' +
+                            '<div class="fc-cliente">' + esc(p.cliente || '—') + '</div>' +
+                            (p.servico ? '<div class="fc-info">' + esc(p.servico) + '</div>' : '') +
+                            '<div class="fc-valor">' + fmt(p.valor) + '</div>' +
+                            '<div class="fc-meta"><span>📅 ' + esc(dataStr) + '</span><span>' + esc(p.vendedor || '') + '</span></div>' +
+                        '</div>';
+                    }).join('');
+                }
+                document.getElementById('fechadasModal').classList.add('active');
+            }
+
+            function fecharFechadasModal() {
+                document.getElementById('fechadasModal').classList.remove('active');
             }
 
             function salvarEdicao() {
