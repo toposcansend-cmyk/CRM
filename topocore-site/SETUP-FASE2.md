@@ -20,14 +20,20 @@ Copie para a raiz do `topocore-site` (mantendo a estrutura de pastas):
 `index.html`, `robots.txt`, `sitemap.xml`, `marca/og-cover.png` e
 `.github/workflows/deploy-hostgator.yml`.
 
-### 2. Criar o usuário FTP na HostGator + secrets no GitHub
-1. cPanel → **Contas FTP** → criar usuário (ex.: `deploy@topocore.com.br`) apontando para `public_html`.
-2. No repo `topocore-site` → Settings → Secrets and variables → Actions → criar:
-   - `FTP_SERVER` = host FTP (ex.: `ftp.topocore.com.br` ou o IP/servidor do cPanel)
-   - `FTP_USERNAME` = usuário FTP criado
-   - `FTP_PASSWORD` = senha do usuário FTP
-3. Se o usuário FTP já cair direto na pasta do domínio, troque no workflow
-   `server-dir: ./public_html/` por `server-dir: ./`.
+### 2. Secrets de FTP no GitHub (dados reais da conta HostGator)
+No repo `topocore-site` → Settings → Secrets and variables → Actions → criar:
+- `FTP_SERVER`   = `162.241.63.58`  (servidor br1098)
+- `FTP_USERNAME` = `guil5788`       (usuário cPanel/FTP)
+- `FTP_PASSWORD` = senha do cPANEL/FTP (você cola direto no GitHub — não precisa me mandar)
+
+Observações:
+- Como `guil5788` é o usuário principal do cPanel, ele cai na home e o site fica em
+  `public_html/` → o workflow já está com `server-dir: ./public_html/`. Mantém assim.
+- Recomendado (mais seguro): criar um usuário FTP dedicado em cPanel → **Contas FTP**
+  apontando direto para `public_html`, e usar esse no lugar do `guil5788`. Aí troque
+  `server-dir` para `./`.
+- O deploy roda nos runners do GitHub (têm FTP liberado). O ambiente do Claude Code
+  **não** tem egress FTP, por isso o deploy não sai daqui — sai do Action.
 
 ### 3. Dar push na main
 O Action roda sozinho e publica em `topocore.com.br`. Dá pra rodar manualmente também
