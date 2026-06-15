@@ -424,6 +424,213 @@ Alternativa: evitar emojis no append e usar header ASCII (`## Auto-log` em vez d
 
 ---
 
+## E028 — ReCap Pro 2026 crasha silenciosamente com coordenadas WGS84 absolutas grandes
+
+**Sintoma:** Importar .e57/.las/.laz de aerolevantamento (drone) com coordenadas geográficas absolutas (lat -25, lng -50, alt 850-950m). Barra de indexação ReCap salta direto do 0% pro 100% em poucos segundos. RCS final tem ~1 MB independente do source (8 GB de origem → 1 MB de RCS). Viewport abre vazia. Sem erro visível na UI.
+
+**Causa raiz:** Parser do ReCap não suporta bounding-box em escala global (centenas de quilômetros). Crash silencioso durante indexação. Logs em `%LOCALAPPDATA%\Autodesk\CER\<hash>\cer.log` confirmam exception. Driver NVIDIA antigo contribui mas não é a causa única. **Mesmo problema no GUI E no decap.exe CLI.**
+
+**Solução:** Exportar o point cloud direto do **Metashape via Python CLI** com Local Coordinates:
+```python
+chunk.exportPointCloud(
+    output_path,
+    format=Metashape.PointCloudFormat.PointCloudFormatLAS,
+    crs=Metashape.CoordinateSystem()  # vazio = Local Coords, origem em 0,0,0
+)
+```
+- `crs=None` retorna `invalid value type` em Metashape 2.1.3
+- Comando: `metashape.exe -r script.py projeto.psx saida.las "LAS"`
+- Importar o LAS resultante no ReCap GUI → funciona normalmente
+
+**Comprovado em 5 projetos (27/05/2026):** Memorial Tropeirismo, São Sebastião, São José, São João Paulo II, Polacos. RCS final proporcional aos pontos (530 MB a 4.47 GB).
+
+**Detalhe completo em:** [[technical-patterns-metashape-recap-pipeline]]
+
+**Detectado em:** 27/05/2026 (após 5 tentativas falhas via e57/las/decap CLI)
+
+---
+
+## E029 — MCP `set_cash_balance` exige campo `valor`, não `saldo`
+
+**Sintoma:** Chamar a tool `crm_set_cash_balance` com `{saldo: 12594.46}` (conforme o JSONSchema publicado) retorna `{ok:false, error:"Faltou: valor"}`. O saldo NÃO é gravado.
+
+**Causa raiz:** O schema da tool declara o parâmetro como `saldo` (required), mas o backend GAS/webhook espera `valor`. Discrepância schema-publicado × API-real (mesmo gênero de E018 e E023). Pista do nome correto: `get_cash_balance` retorna a chave `valor`.
+
+**Solução (✅ RESOLVIDO 01/06/2026 — deploy @33):** Backend `setCashBalanceAction` agora aceita **`valor` OU `saldo`**:
+```javascript
+var rawValor = (body.valor !== undefined && body.valor !== null) ? body.valor : body.saldo;
+```
+A tool MCP continua mandando `saldo` (schema inalterado) e agora funciona. Verificado end-to-end: GAS direto (ambas as chaves) + tool `crm_set_cash_balance` real (IA→Worker→GAS) → `{ok:true}`. Não precisou mexer no MCP server.
+
+**Detectado em:** 29/05/2026 (reconciliação de caixa — 3 saídas pagas a parceiros Alexandre/Ana/Amilton não baixaram o saldo manual; saldo é manual, `mark_paid` não o toca). **Corrigido em:** 01/06/2026 (Vanessa não conseguiu gravar saldo via MCP; ver também E031).
+
+---
+
+## E031 — Auto-saldo: marcar recebido/pago ajusta o caixa no BACKEND (V7.14)
+
+**Sintoma:** Pede pra uma IA gerente (ex: Vanessa) "lançar as entradas que caíram" e o **SALDO ATUAL EM CAIXA não muda**, mesmo as parcelas ficando `Pago`. Parece que o caixa "não atualizou".
+
+**Causa raiz:** A auto-atualização do caixa ao dar baixa numa parcela vive **só no frontend** (`crm.html` → `fcAjustarSaldoApos`, calcula `saldo += delta` e chama `setCashBalance` com `valor`). O backend `markPaid` (Code.js ~916) **NÃO** toca `CAIXA_BALANCE` — só grava `dataPagamento`/status. Logo, quando a baixa vem pela **IA/MCP** (`crm_mark_paid`) ou por `addPaymentPlan`, o caixa fica parado. Só a baixa feita **clicando no card do Fluxo de Caixa na web** mexe no saldo.
+
+**Solução (✅ IMPLEMENTADO V7.14 — 01/06/2026, deploy @34):** Ajuste movido pro **backend** (fonte única da verdade): `markPaid` SOMA a entrada (idempotente — lê o status ANTES, só soma na transição p/ Pago) e `updateTopoPartner` SUBTRAI a saída pelo delta de `valorPago`. Agora vale em **qualquer canal** (site OU IAs). Pra não contar 2×, o frontend (`fcAjustarSaldoApos` em crm.html) parou de persistir via `setCashBalance` — só faz update otimista de tela; o `fcRefresh` reconcilia com o backend. Helper: `_ajustaCaixa(delta, obs)`. O campo manual (`setCashBalanceAction`) segue pros imprevistos. Testado E2E: entrada +0,01 via tool MCP `crm_mark_paid`, idempotência (2ª marcação não soma), saída −0,01 via `crm_update_topo_partner`. Gerentes avisados: aprendizado **APR-0060**.
+
+**Detectado e implementado em:** 01/06/2026 — Guilherme: "entrou dinheiro mas o caixa não atualizou" → "deve sempre calcular em cima do último valor conforme marca recebido/pago, + campo manual pros imprevistos". Relacionado: E029.
+
+---
+
+## E030 — Nuvem registrada SEM pontos de controle fica em coords locais (não georreferencia em UTM)
+
+**Sintoma:** Nuvem RTC360/Faro registrada no Cyclone REGISTER 360 cai a centenas de km de outra fonte georreferenciada (ex.: LIDAR em UTM) quando unificadas; ou o RCP exportado tem `CoordinateSystem=""` e coords pequenas (origem ~0). No CGH Cachoeira do Lageado: FS01/FS02 ficaram **436km** fora do LIDAR UTM 22S.
+
+**Causa raiz:** O registro foi feito só com **VIS + cloud-to-cloud** = posição **relativa** entre cenas, em coords **locais**. O GPS embarcado do RTC360 tem precisão de só **±10m** — insuficiente pra topografia. Sem **pontos de controle** picados em alvos B&W via Cyclone FIELD 360 (CSV/TXT → target fitting → transformação), não existe amarração ao sistema de mundo. **Não é bug do software — é método de campo sem controle.**
+
+**Solução:**
+1. **Certo (prevenir):** georreferenciar com **control points** no FIELD 360 / painel Georeferencing do REGISTER 360 — aplicado **por último** (depois de georref os setups travam e o bundle não recalcula).
+2. **Remediar sem controle:** alinhar manualmente por **ponto comum** identificável nas duas nuvens (ReCap GUI / UCS-on-control), ou **subtrair o offset UTM** do dado georreferenciado (junta visual, perde georref).
+
+**Detalhe completo:** [[technical-patterns-register360-scene-registration]] §7. Caso: [[project-cgh-cachoeira-lageado]].
+
+**Detectado em:** 25/05/2026 (CGH Cachoeira) — consolidado como padrão no estudo de registro 360 em 30/05/2026.
+
+---
+
+## E032 — Array tratado como objeto `{rows}` → comercial do Central zerado silenciosamente
+
+**Sintoma:** `getCrossKPIs` e `getActiveAlerts` retornavam **0** em tudo que é comercial (pipeline, fechadas, deals travados) e **nenhum alerta comercial** disparava — sem erro, sem log. Só apareceu quando fui calcular "fechamento do trimestre" e vi `pipelineAtivo: 0` com 37+ propostas na base.
+
+**Causa raiz:** `_centralColetarTudo()` fazia `var crmData = readAllData(); var propostas = (crmData && crmData.rows) ? crmData.rows : [];`. Mas `readAllData()` retorna um **ARRAY**, não `{rows:[...]}`. Logo `crmData.rows === undefined` → `propostas = []` SEMPRE. O `forEach` rodava sobre vazio = zero, sem estourar.
+
+**Agravante:** mesmo populando, os KPIs liam `p.valorTotal`/`p.percentual`, mas o objeto da proposta tem `p.valor`/`p.probabilidade` (e **não há** coluna "atualizadoEm" na planilha — col 1-16 são vendedor…observacao).
+
+**Solução (deploy @39):**
+1. `var propostas = (readAllData() || []).map(...)` — usar o array direto.
+2. Normalizar aliases: `p.valorTotal = Number(p.valor)`, `p.percentual = Number(p.probabilidade)`.
+3. `p.atualizadoEm` = último follow-up parseado (`_parseDataBR(...).toISOString()`) como proxy de "última atividade" p/ deal-travado.
+
+**Lição geral:** falha **silenciosa** (array como objeto → `[]` em vez de erro) só se pega **verificando o NÚMERO real**, não `ok:true`. Pipeline R$ 0 com base cheia = red flag. Ver [[reference-crm-api]]. Aprendizado: **APR-0062**.
+
+**Detectado em:** 02/06/2026 (ao construir hero por usuário + fechamento do trimestre).
+
+---
+
+## E033 — wrangler OAuth token autorizado SEM marcar a conta → 10000 em tudo account-scoped
+
+**Sintoma:** `wrangler deploy` falha com `Authentication error [code: 10000]` / "Failed to retrieve account IDs". O mesmo token como `CLOUDFLARE_API_TOKEN` → `GET /accounts` volta `result:[]` (vazio, success:true) e qualquer `/accounts/{id}/workers/...` dá 10000. **Refresh do token via refresh_token NÃO resolve** (mantém o mesmo grant). O token TEM `workers_scripts:write` no escopo — não é falta de permissão de Workers.
+
+**Causa raiz:** Na tela de consentimento do `wrangler login` ("Wrangler wants to access your account") existe uma seção **"Select account(s)"** com a conta **DESMARCADA** por padrão (e "Grant access to all accounts" OFF). Se aprovar SEM marcar a conta, o token nasce sem vínculo de conta → não enxerga conta nenhuma → 10000 em toda chamada account-scoped. Erro silencioso clássico: o login "deu certo", o token existe, mas é inútil pra deploy.
+
+**Solução:** `cd work/CRM/mcp-server && npx wrangler login` → na tela de consentimento **MARCAR o checkbox da conta** ("Toposcan.send@gmail.com's Account") OU ligar "Grant access to all accounts" → "Review permissions" → "Allow". Depois `CLOUDFLARE_ACCOUNT_ID=9857af7323ac99bc3bda79b163b2f2ae npx wrangler deploy`.
+- **Account ID:** `9857af7323ac99bc3bda79b163b2f2ae` (toposcan.send@gmail.com).
+- **Automação headless do login NÃO funciona:** a página `/login` do dash trava no spinner em aba background (SPA throttled pelo Chrome; precisa de foreground) e corre contra o timeout (~2 min) do callback do `wrangler login` em `localhost:8976`.
+- Alternativa durável: API Token (dash → My Profile → API Tokens → template "Edit Cloudflare Workers"), usado via `CLOUDFLARE_API_TOKEN`.
+
+**Detectado em:** 02/06/2026 (deploy da tool `crm_add_topo_partner_parcelado` no MCP — token OAuth do wrangler não autenticava).
+
+---
+
+## E034 — `crm_update` rejeita `percentual`; o campo certo é `probabilidade`
+
+**Sintoma:** `crm_update` com `updates:{percentual:100}` (nome que a DESCRIÇÃO da tool MCP sugere — *"status, percentual, valor, observacoes"*) retorna `{ok:false, error:"Campo inválido: percentual"}` e **rejeita o update inteiro** (nenhum campo grava).
+
+**Causa raiz:** schema/descrição da tool MCP desalinhado do backend GAS (mesmo gênero de E029/E023/E018). Campos VÁLIDOS do `update` (vindos do próprio erro): `vendedor, numeroProposta, cliente, contato, telefoneEmail, email, servico, proximoFollowup, ultimoFollowup, dataFollowup, localizacao, dataProposta, fechamentoPrevisto, dataFechamento, valor, probabilidade, status, observacao`. Pegadinhas: `probabilidade` (NÃO `percentual`), `observacao` singular (NÃO `observacoes`), `dataFechamento`/`fechamentoPrevisto` (NÃO `previsaoFechamento`).
+
+**Solução:** usar `probabilidade:"100%"` (string com %), `observacao` (singular), `dataFechamento` (real) / `fechamentoPrevisto` (forecast). **Lado bom:** a validação é estrita e fail-closed — rejeita no 1º campo inválido, então **nada grava pela metade** e a cascata de "Fechada" NÃO dispara num update barrado (seguro corrigir e reenviar).
+
+**Detectado em:** 03/06/2026 (fechamento Tenenge Topografia `05202669.3` — 1ª tentativa barrada por `percentual`).
+
+---
+
+## E035 — Cascata de "Fechada" envia e-mail com valor R$0 / campos trocados
+
+**Sintoma:** ao mudar status p/ `Fechada` via `crm_update`, a resposta traz `cascade:{emailEnviado:true, valor:0, numeroProposta:"Guilherme"}` — `valor` zerado e o NOME DO VENDEDOR caindo no campo `numeroProposta`. O e-mail automático *"🎉 Fechou!"* pros sócios sai com **R$ 0** em vez do valor real.
+
+**Causa raiz:** o builder do payload da cascata (backend, pós-update) lê campos errados/desatualizados da linha — provável leitura antes do write consolidar, ou mapeamento de índice trocado (mesmo gênero de E032: aliases `valor`/`valorTotal`, `numeroProposta`/`vendedor`). **Cosmético:** a PLANILHA grava certo (verificado: valor R$108.000 na linha + parcela + fluxo OK). Só o e-mail sai torto.
+
+**Solução:** não bloqueia — ao fechar, avisar o sócio que o valor no e-mail automático pode vir R$0 e que a fonte da verdade é a planilha/Financeiro. Fix de verdade: corrigir o builder em `Code.js` (montar a partir do objeto JÁ gravado, com aliases `valor||valorTotal` e vendedor no campo certo). **Candidato a corrigir junto com E032.**
+
+**Detectado em:** 03/06/2026 (fechamento Tenenge Topografia — `cascade.valor:0`).
+
+---
+
+## E036 — Deploy do CRM: app vivo é `index.html` (raiz); `/CRM/crm.html` dá 404
+
+**Sintoma:** após `git push` do `crm.html` + deploy Pages OK, `curl https://toposcansend-cmyk.github.io/CRM/crm.html` retorna **404** (9.379 bytes = página de erro do GitHub Pages). Dá impressão de que o deploy não pegou.
+
+**Causa raiz:** o Pages publica o app na **raiz como `index.html`** (≈541 KB), não em `/crm.html`. O `index.html` LOCAL do repo (186 KB, antigo 19/05) NÃO é o que vai pro ar — o conteúdo do `crm.html` é servido como `index.html`. Logo o app vivo é `https://toposcansend-cmyk.github.io/CRM/` (= index.html) e `/crm.html` não existe no site publicado.
+
+**Solução (verificar deploy):** conferir SEMPRE a **raiz**, nunca `/crm.html`:
+```bash
+curl -sI "https://toposcansend-cmyk.github.io/CRM/"            # 200 + Content-Length ~541KB + Last-Modified recente
+curl -s  "https://toposcansend-cmyk.github.io/CRM/" | grep -c "MEU_MARCADOR_DE_CODIGO"
+```
+⚠️ **Service Worker (`sw.js`):** o navegador do usuário pode servir o bundle ANTIGO do cache mesmo com o servidor já atualizado → pedir 1 hard-refresh (ou `forcarAtualizar()`, que limpa caches + desregistra o SW).
+
+**Detectado em:** 03/06/2026 (deploy do fix de cache-invalidation do hero — verifiquei `/crm.html` e tomei 404 antes de checar a raiz).
+
+---
+
+## E037 — "Fechado do mês" diverge entre hero e Evolução (2 backends, 2 convenções de data)
+
+**Sintoma:** o hero ("Fechado em Junho") mostra **1 · R$108k** e a aba Evolução mostra **2 · R$109k** pro MESMO mês. Números de fechamento não batem entre telas.
+
+**Causa raiz (dupla):**
+1. **Dois backends:** o frontend (lista/Evolução) lê do **Cloud Bridge legado** `AKfycbwh…?action=getdata` (`puxarDadosDaNuvem`, crm.html ~5740); o hero/KPIs lê do **canônico** `AKfycbz…` (`getCrossKPIs`). Ambos leem a MESMA planilha, mas computam diferente.
+2. **Convenções de data diferentes:** `getCrossKPIs` conta Fechada por **`dataFechamento` ∈ mês** (Code.js ~1920); `evoParseDate` (crm.html ~4964) datava por **`fechamentoPrevisto || dataProposta`** (nunca olhava `dataFechamento`). Deal Fechada SEM `dataFechamento` → hero ignora, Evolução pega pela proposta. **7 de 46 Fechadas estavam sem `dataFechamento`** (fechadas pela via de vendas legada, que não carimba a data).
+
+**Solução (03/06/2026):**
+- Frontend `evoParseDate` prioriza `dataFechamento` (`dataFechamento || fechamentoPrevisto || dataProposta`) — deploy `0a1c943`.
+- Backend `getCrossKPIs` ganha o MESMO fallback de data — clasp deploy **@43** (deployment estável `AKfycbz…`).
+- Backfill da `dataFechamento` faltante (Ruan Pablo `062026105.0` → 03/06). Os outros 6 sem-data passam a contar pelo fallback → **trimestre subiu 16→19 (+R$8,3k que estava invisível)**.
+- ⚠️ **Pendência (causa na origem):** a via de fechamento legada (`syncToSheet` → `AKfycbwh`) NÃO carimba `dataFechamento` ao marcar Fechada. Enquanto não corrigir lá, vão reaparecer Fechadas sem data.
+
+**Lição geral:** dois backends + duas convenções de data = divergência silenciosa. A data de FATURAMENTO tem que ser o **fechamento real**, não a previsão/proposta.
+
+**Detectado em:** 03/06/2026 (Guilherme: "por que 109k/2 na Evolução e 108k/1 no dashboard?").
+
+---
+
+## E038 — Mobile: `table { display:none !important }` global esconde TODA tabela; override sem `!important` perde
+
+**Sintoma:** no celular, tocar num período da aba **Evolução** "não fazia nada" / tela "truncada" — o painel de detalhe renderizava o cabeçalho ("06/2026 — 26 propostas (4 fechadas)") mas a **lista de propostas sumia**. `getComputedStyle(table).display === 'none'`, `clientWidth: 0`.
+
+**Causa raiz (cascata CSS):** no `@media (max-width:768px)` existe `table { display:none !important }` (crm.html ~1813) — criada pra trocar a tabela principal por `.proposta-card` no mobile, mas pega **todas** as tabelas. O override que devia reexibir a de detalhe (`.evo-detail-table { display:block; overflow-x:auto }`, ~2965) **não tinha `!important`** → `!important` vence especificidade, então a tabela continuava `none`. A lista existia no DOM, só invisível.
+
+**Solução (11/06/2026):** `.evo-detail-table { display:block !important; overflow-x:auto; -webkit-overflow-scrolling:touch }` — deploy `e3d3d14`. Verificado no preview mobile 375px: 26 linhas visíveis, rola horizontal (654px em 331px).
+
+**Lição geral:** quando o mobile usa "esconder tabela → mostrar cards" com `!important` blanket, QUALQUER tabela que precise aparecer no mobile precisa de `!important` no override. ⚠️ **Provável colateral não auditado:** outras tabelas de detalhe/KPI podem estar invisíveis no mobile pela mesma regra — auditar se reclamarem.
+
+**Bônus da mesma sessão:** o número "🏆 Fechado em [mês]" do hero não tinha `onclick` (era só display) → ninguém via QUAIS deals fechou. Virou clicável → modal `fechadasModal` (cards via `.fechadas-card`, classe própria porque `.proposta-card` só tem estilo dentro do `@media` mobile). Usa `evoParseDate` (`dataFechamento` first, ver [[error-patterns]] E037) pra casar com o hero. `.stats` (Total/Fechadas/etc) está `display:none` GLOBAL — só o hero aparece, então o tile do hero era o único alvo de clique possível.
+
+**Detectado em:** 11/06/2026 (Guilherme, no celular: "clico no número no home não acontece nada, e no Evolução também, está meio truncado").
+
+**Follow-up (mesma noite) — "duplicata" que NÃO era duplicata:** Guilherme viu 2 cards iguais no modal ("Jonathan-China · Fotos de Drone · R$2.500 · Marcelo") e pediu "corrija, tá duplicado". `crm_find cliente=Jonathan` mostrou que são **2 jobs reais distintos**: `05202699.0` (drone Campinas-SP) × `062026108.0` (6 igrejas Cotia-SP, parceiro Alexandre Scussel R$800) — e a observação do 2º já dizia "Trabalho NOVO, distinto da prop 05202699.0". Apagar teria sumido com R$2.500 reais + custo de parceiro vinculado. **Lição:** "parece duplicado" no UI ≠ duplicado no dado. Antes de exclusão irreversível em prod, SEMPRE `crm_find` e ler observação/numeroProposta/localização. O fix certo foi de APRESENTAÇÃO: o card passou a mostrar `📍 localização` + `Nº numeroProposta` (a chave única desambigua jobs iguais nos campos visíveis) — deploy `dcb29ec`. Não existe tool MCP de delete de proposta de Vendas, o que reforça: exclusão é manual e deliberada, nunca o reflexo. No mesmo deploy o tile "🏆 Fechado em [mês]" foi pro dashboard do **Marcelo** (full-width `grid-column:1/-1`, clicável → mesmo modal).
+
+---
+
+## E039 — `proximoFollowup` nunca foi auto-linkado; prompt da Camila com regra ERRADA (+5 ≠ padrão +7)
+
+**Sintoma:** Guilherme (14/06) apontou que a Camila subiu a proposta Galeria Ramal `062026202.0` com `proximoFollowup = 16/06` (= dataProposta 11/06 **+5**), enquanto o padrão da casa é **+7 dias corridos** ("já linka com a própria data").
+
+**Causa raiz (2 camadas):** (1) **Nunca houve auto-compute** de `+7` no backend (`Code.js`) nem no frontend (`crm.html` só lê/escreve o campo verbatim). O "já linka" era convenção, não código. (2) O prompt da Camila (`PROMPT-CLAUDE-PROPOSTAS.md`) codificava regra DIFERENTE e errada: Passo 9 dizia "agenda proximoFollowup **+3-5 dias úteis** **na observação**" — ela aplicou +5 e no campo. Prompt ≠ padrão real.
+
+**Solução (V7.20 @57):** (a) `agentAddLead` auto-preenche `proximoFollowup = _addDiasBR(dataProposta, 7)` quando o campo vem vazio (helper `_addDiasBR`, soma dias CORRIDOS; não sobrescreve valor explícito). (b) Prompt da Camila corrigido (Passos 7/9 + Regra de ouro 18); +7 propagado pro prompt da Rafaela (Comercial Regra 18) e `shared-files/regras_gestao.md` §8. (c) Aprendizado `APR-0167` (categoria Regra). Registro corrigido p/ 18/06. **E2E verificado:** addLead(11/06)→18/06; sem data→hoje+7.
+
+**Lição:** "o sistema já faz X automaticamente" dito pelo sócio ≠ o sistema faz. Grep o código antes de assumir auto-comportamento. E o prompt de uma IA é fonte de erro tão real quanto o código — auditar prompt junto.
+
+## E040 — `linkAttachment` sem dedup → regerar empilha N anexos; o MAIS RECENTE pode ser o PIOR
+
+**Sintoma:** Camila deixou **3 PDFs** da mesma proposta `062026202.0` no CRM. Regerou o documento 3× (15:19, 15:36, 16:06) e cada chamada de `generate_proposal anexar:true` empilhou um anexo novo.
+
+**Causa raiz:** `linkAttachment` (`Code.js`) fazia `appendRow` incondicional — zero checagem de duplicado. `generate_proposal` chama `linkAttachment` toda vez. Nenhuma guarda, nenhuma limpeza.
+
+**Armadilha (verify-before-delete):** a versão MAIS RECENTE (16:06, 121KB) era a PIOR — re-export degradado SEM capa, SEM figuras, SEM assinaturas. As 15:19/15:36 (426KB) tinham as imagens+assinaturas reais. 15:19 tinha pgto ERRADO (30/35/35); **15:36 era a boa** (50/50 + capa+figuras+assinaturas). Um "latest-wins" cego teria mantido a quebrada. Confirmei abrindo os 3 PDFs (get_file_metadata + download + Read visual) antes de apagar. Mantido 15:36; removidos 15:19 e 16:06 (soft-delete, Drive preservado).
+
+**Solução (V7.20 @57):** dedup em `linkAttachment` por (numeroProposta+nomeArquivo+categoria): mesmo `driveFileId` ativo = IDEMPOTENTE (não duplica); arquivo novo c/ mesmo nome = SUBSTITUI (antigo→'excluido', latest-wins). Flag `allowDuplicate:true` escapa. Prompt da Camila: Passo 6 (conferir capa+figuras+assinaturas antes de anexar; 1 anexo ativo) + Regra 19 + 3 itens em "NUNCA FAZ". Aprendizado `APR-0168` (Fluxo). **E2E verificado:** mesmo arquivo→idempotente; arquivo novo→substitui; lista=1.
+
+**Lição:** par do E038/Jonathan (lá "parecia duplicado e não era"; aqui "ERA duplicado mas o mais novo era lixo"). Regra única: **antes de exclusão irreversível em prod, INSPECIONAR o conteúdo real** — nº/observação pra desambiguar, e abrir o arquivo pra ver qual versão presta. Nunca confie no timestamp.
+
+---
+
 ## 🆕 Template para novo padrão
 
 ```markdown
@@ -442,8 +649,8 @@ Alternativa: evitar emojis no append e usar header ASCII (`## Auto-log` em vez d
 
 ## 📊 Estatísticas
 
-- **Total catalogado:** 26 padrões únicos (E001-E011 + E013-E027; E012 pulado historicamente)
-- **Última atualização:** 2026-05-26 (noite — E027 = evolução paralela: outra sessão adicionou observability v1.1.0 ao MCP enquanto eu trabalhava no sync script; detectada via system-reminders + git pull)
-- **Padrões mais comuns:** OAuth/auth (3), UI automation (6 incl. claude.ai), state management (3), Cloudflare/MCP deploy (4), Sheets schema (3), PowerShell encoding (2), parallel evolution (1), Windows sandboxing (1)
+- **Total catalogado:** 29 padrões únicos (E001-E011 + E013-E030; E012 pulado historicamente)
+- **Última atualização:** 2026-05-30 (E030 = registro sem control points fica em coords locais / não georref; E029 = MCP `set_cash_balance` exige `valor`; E028 = ReCap crash com WGS84 absoluto)
+- **Padrões mais comuns:** OAuth/auth (3), UI automation (6 incl. claude.ai), state management (3), Cloudflare/MCP deploy (4), Sheets schema (3), PowerShell encoding (2), point cloud/registro/georref (2: E028, E030), parallel evolution (1), Windows sandboxing (1)
 
 > ⚠️ Quando errar pela mesma razão duas vezes, ATUALIZE este arquivo IMEDIATAMENTE.

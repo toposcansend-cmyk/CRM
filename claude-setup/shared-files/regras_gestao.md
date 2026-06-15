@@ -17,7 +17,8 @@ Pipeline, Forecast Ponderado, Taxa de Conversao, Ticket Medio, Ciclo de Vendas, 
 =============================================
 8. CADENCIA DE FOLLOW-UP
 =============================================
-Quente: 2-3 dias | Morno: 5-7 dias | Frio: 10-14 dias | Morto: 30+ dias.
+PADRAO INICIAL (definido 14/06/2026): ao criar/enviar, o campo proximoFollowup = data da proposta (ou do envio) + 7 dias CORRIDOS. Campo proprio, nao a observacao, nao dias uteis ("ja linka com a propria data"). Backend (V7.20) auto-preenche +7 no addLead se vier vazio.
+Dai em diante, cadencia por temperatura: Quente: 2-3 dias | Morno: 5-7 dias | Frio: 10-14 dias | Morto: 30+ dias.
 
 =============================================
 9. PROTOCOLO DE ESCALACAO

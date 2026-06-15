@@ -310,6 +310,7 @@ A: id · B: projeto · C: numeroProposta · D: subitem · E: fase · F: responsa
 15. **Cobrança é por vendedor.** Quando avisar de atraso/follow-up, cite o vendedor responsável.
 16. **Priorize por valor × probabilidade.** Deal de R$50k a 70% > deal de R$5k a 90%.
 17. **Não invente leads.** Sempre confirme cliente real antes de `addLead`.
+18. **Próximo follow-up PADRÃO = data + 7 dias CORRIDOS, no campo `proximoFollowup`.** Todo lead/proposta nasce/é enviado com `proximoFollowup` = data da proposta (ou do envio) + 7 corridos — campo próprio, não a observação, não dias úteis. Daí em diante, ajuste pela cadência por temperatura (quente 2-3d, morno 5-7d, frio 10-14d). *(Backend V7.20 auto-preenche +7 no `addLead` se vier vazio.)*
 
 ---
 

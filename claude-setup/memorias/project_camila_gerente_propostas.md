@@ -59,5 +59,8 @@ A Camila não precifica com base congelada — ela **melhora todo dia**. Dois la
 - ⚠️ **Valor da proposta ≠ valor no CRM** em vários casos (CRM grava o negociado) — sempre citar fonte/versão.
 - Padrão de perda dominante: **preço + fora-PR perde pra concorrente local** (vários casos).
 
+## ⚠️ Incidente Galeria Ramal (062026202.0) + correções — 14/06/2026
+A Camila subiu a proposta com **3 anexos duplicados** e `proximoFollowup` fora do padrão (16/06 = +5; o padrão da casa é **+7 dias CORRIDOS**, "já linka com a própria data"). **Causa raiz:** (1) o `+7` **nunca foi auto-computado** no backend/frontend — era só convenção — e o prompt dela tinha a regra ERRADA (Passo 9: "+3-5 dias úteis, na observação"); (2) `linkAttachment` fazia `appendRow` sem dedup → regerar 3× empilhou 3 PDFs. Pior: a versão mais recente (16:06, 121KB) era um re-export DEGRADADO (sem capa/figuras/assinaturas) — a boa era a 15:36 (com tudo + pgto 50/50). **Travado no backend (V7.20 @57):** `agentAddLead` auto-preenche follow-up +7 (helper `_addDiasBR`); `linkAttachment` deduplica/substitui (idempotente por driveFileId; replace por nome+categoria). **Prompt atualizado:** Passos 6 (conferir capa+figuras+assinaturas; 1 anexo), 7 (follow-up +7 no campo; proposta nova = sempre addLead), 9 (re-ancora envio+7); Regras de ouro 18/19; 3 itens em "NUNCA FAZ". Learnings **APR-0167**/**APR-0168**. Erros **E039**/**E040**. ⚠️ **Re-aplicar este prompt no Project live** (Chrome MCP) — pendente; os learnings já chegam por runtime.
+
 ## Refs
-- [[reference-crm-api]] · [[project-crm-toposcan]] · [[project-mcp-toposcan-crm]] · [[feedback-emails-ambos-socios]] · [[error-patterns]] (E032 — falha que retorna vazio)
+- [[reference-crm-api]] · [[project-crm-toposcan]] · [[project-mcp-toposcan-crm]] · [[feedback-emails-ambos-socios]] · [[error-patterns]] (E032 — falha que retorna vazio; **E039** follow-up +7; **E040** dedup de anexo)
