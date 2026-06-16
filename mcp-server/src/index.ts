@@ -19,7 +19,7 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
 
-const SERVER_VERSION = '1.4.0';
+const SERVER_VERSION = '1.5.0';
 const SERVER_BUILD = '2026-06-10-propostas';
 
 // ───────────────────────────────────────────────
@@ -556,6 +556,28 @@ const TOOLS: ToolDef[] = [
     description: 'KPIs do Mapa de Parceiros: total, ativos, modelistas BIM, estados cobertos, contagem por tecnologia e por tipo.',
     action: 'getParceirosKPIs',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+
+  // ═══ AUDITORIA / ACESSOS (uso de gestão — dono) ═══
+  {
+    name: 'crm_get_access_summary',
+    description: 'Resumo de uso por pessoa: último acesso, última ação, total de acessos e de ações de cada usuário do CRM. Use pra responder "quem está usando o sistema / quem anda inativo". Dado de auditoria — uso de gestão.',
+    action: 'getAccessSummary',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'crm_get_audit_log',
+    description: 'Log de auditoria: quem fez o quê e quando (mutações + acessos), mais recente primeiro. Filtros: filtroActor (e-mail/parte do e-mail), filtroAcao (ex.: "acesso","addParceiro","update"), limite. Use pra "o que o Luiz cadastrou", "quem mexeu nessa proposta", etc. Dado de auditoria — uso de gestão.',
+    action: 'getAuditLog',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        filtroActor: { type: 'string', description: 'Filtra por e-mail do usuário (substring). Ex.: "luiz".' },
+        filtroAcao: { type: 'string', description: 'Filtra por tipo de ação. Ex.: "acesso", "addParceiro", "update".' },
+        limite: { type: 'number', description: 'Quantos eventos recentes ler (default 100, máx 500).' },
+      },
+      additionalProperties: false,
+    },
   },
 
   // ═══ ENGENHARIA / Producao ═══

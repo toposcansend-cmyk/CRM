@@ -3192,6 +3192,7 @@
                 onkeyup="if(event.key==='Enter')doLogin()">
             <button onclick="doLogin()">Entrar</button>
             <div class="login-error" id="loginError">Usuário ou senha incorretos</div>
+            <div style="margin-top:16px;font-size:0.66em;color:var(--text-secondary);opacity:.7;line-height:1.45">🔒 Acessos e ações neste sistema são registrados para fins de auditoria interna.</div>
         </div>
     </div>
 
@@ -7894,7 +7895,8 @@ Data: ${h.data}`;
 
             const HERO_MUTATING_ACTIONS = new Set(['update', 'bulkUpdate', 'addLead', 'markPaid', 'addPaymentPlan', 'updatePayment', 'addTopoPartner', 'updateTopoPartner', 'deleteTopoPartner', 'addProducao', 'bulkAddProducao', 'updateProducao', 'deleteProducao', 'setCashBalance', 'addCustosBIM', 'updateCustosBIM', 'deleteCustosBIM']);
             async function finApi(action, payload) {
-                const body = Object.assign({ action: action, secret: FIN_SECRET }, payload || {});
+                // actor = usuário logado (auditoria V8.3). Vai por último p/ não ser sobrescrito.
+                const body = Object.assign({ action: action, secret: FIN_SECRET }, payload || {}, { actor: (sessionStorage.getItem('crm_auth') || '') });
                 const r = await fetch(WEBHOOK_FIN_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -7908,6 +7910,10 @@ Data: ${h.data}`;
                 } catch (e) {}
                 return json;
             }
+
+            // Auditoria V8.3: ping de acesso 1x por carregamento (silencioso). O backend
+            // registra quem abriu o app e quando (getAccessSummary mostra ao dono).
+            try { if (sessionStorage.getItem('crm_auth')) finApi('logAccess', {}); } catch (e) {}
 
             // ─── Anexos (V8.0) — propostas/documentos linkados ao Drive ───
             let _anexoCtx = { numeroProposta: '', isNew: false };
@@ -11860,7 +11866,7 @@ Data: ${h.data}`;
                 if ($('mpfEstrelas')) $('mpfEstrelas').innerHTML = h;
             }
             async function mpApi(action, payload) {
-                const body = Object.assign({ action: action, secret: MP_SECRET }, payload || {});
+                const body = Object.assign({ action: action, secret: MP_SECRET }, payload || {}, { actor: (sessionStorage.getItem('crm_auth') || '') });
                 const r = await fetch(MP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' });
                 return r.json();
             }
