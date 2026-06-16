@@ -4523,6 +4523,15 @@
             #mapaparceiros .mp-empty { color:var(--text-secondary); text-align:center; padding:40px 16px; font-size:0.9em; }
             #mapaparceiros .mp-edit-link { font-size:0.74em; color:var(--text-secondary); cursor:pointer; text-decoration:underline; }
             .mp-pin span { display:block; width:16px; height:16px; border-radius:50%; border:2px solid #0a0e1a; box-shadow:0 0 0 2px rgba(255,255,255,.18); }
+            .mp-pin.mp-pin-bim span { border-radius:3px; transform:rotate(45deg); }
+            #mpModal .mp-stars-pick { display:flex; gap:4px; font-size:1.5em; line-height:1; padding-top:4px; align-items:center; }
+            #mpModal .mp-stars-pick .mp-star { cursor:pointer; color:var(--text-secondary); opacity:.4; transition:transform .1s; }
+            #mpModal .mp-stars-pick .mp-star.on { color:#fac775; opacity:1; }
+            #mpModal .mp-stars-pick .mp-star:hover { transform:scale(1.15); }
+            #mpModal .mp-stars-clear { font-size:0.45em; color:var(--text-secondary); cursor:pointer; margin-left:8px; text-decoration:underline; }
+            #mapaparceiros .mp-stars { color:#fac775; font-size:0.85em; letter-spacing:1px; }
+            #mapaparceiros .mp-tipo-badge { font-size:0.68em; padding:1px 7px; border-radius:10px; border:1px solid var(--border); color:var(--text-secondary); margin-left:6px; white-space:nowrap; }
+            #mapaparceiros .mp-tipo-bim { color:#fac775; border-color:rgba(250,199,117,.45); }
             .leaflet-container { background:#0a0e1a; font-family:inherit; }
             .leaflet-popup-content-wrapper, .leaflet-popup-tip { background:#141b2d; color:#e8ecf4; box-shadow:0 4px 20px rgba(0,0,0,.5); }
             .leaflet-popup-content { color:#e8ecf4; font-size:0.85em; margin:11px 14px; }
@@ -4544,7 +4553,19 @@
             <div class="mp-kpis" id="mpKpis"></div>
             <div class="mp-filters">
                 <div class="mp-search"><input id="mpBusca" placeholder="🔍 Buscar por nome ou cidade…" oninput="mpRender()"></div>
+                <select class="mp-uf" id="mpTipo" onchange="mpRender()">
+                    <option value="">Todos os tipos</option>
+                    <option value="Campo">🚜 Campo</option>
+                    <option value="Modelagem BIM">🏛️ Modelista BIM</option>
+                    <option value="Ambos">🔁 Ambos</option>
+                </select>
                 <select class="mp-uf" id="mpUf" onchange="mpRender()"><option value="">Todos os estados</option></select>
+                <select class="mp-uf" id="mpMinAval" onchange="mpRender()">
+                    <option value="0">⭐ Qualquer nota</option>
+                    <option value="3">⭐ 3+</option>
+                    <option value="4">⭐ 4+</option>
+                    <option value="5">⭐ 5</option>
+                </select>
                 <button class="mp-toggle atende" id="mpAtendeBtn" onclick="mpToggleAtende()">🎯 Atende aqui?</button>
                 <button class="mp-toggle on" id="mpCirculosBtn" onclick="mpToggleCirculos()">⭕ Raios</button>
             </div>
@@ -4565,6 +4586,11 @@
                 </div>
                 <input type="hidden" id="mpEditId">
                 <div class="form-group"><label>Nome *</label><input type="text" id="mpfNome" placeholder="Ex.: Amilton RTK"></div>
+                <div class="form-group"><label>Tipo de parceiro</label><select id="mpfTipo">
+                    <option value="Campo">🚜 Campo (levantamento)</option>
+                    <option value="Modelagem BIM">🏛️ Modelista BIM</option>
+                    <option value="Ambos">🔁 Ambos</option>
+                </select></div>
                 <div class="mp-two">
                     <div class="form-group"><label>Cidade</label><input type="text" id="mpfCidade" placeholder="Curitiba"></div>
                     <div class="form-group"><label>UF</label><input type="text" id="mpfUf" maxlength="2" placeholder="PR" style="text-transform:uppercase"></div>
@@ -4579,17 +4605,20 @@
                 </div>
                 <div class="form-group"><label>Tecnologias atendidas</label><div class="mp-tec-pick" id="mpfTecnologias"></div></div>
                 <div class="mp-two">
-                    <div class="form-group"><label>Raio de cobertura (km)</label><input type="number" id="mpfRaio" placeholder="100" min="0"></div>
-                    <div class="form-group"><label>Avaliação (0–5)</label><input type="number" id="mpfAval" min="0" max="5" step="0.5" placeholder="4.5"></div>
+                    <div class="form-group"><label>Raio de cobertura (km) <span style="color:var(--text-secondary);font-weight:400;font-size:0.85em">· opcional p/ modelista</span></label><input type="text" inputmode="decimal" id="mpfRaio" placeholder="100"></div>
+                    <div class="form-group"><label>Avaliação (qualidade)</label><div class="mp-stars-pick" id="mpfEstrelas"></div><input type="hidden" id="mpfAval"></div>
                 </div>
                 <div class="mp-two">
+                    <div class="form-group"><label>Contato (pessoa)</label><input type="text" id="mpfContato" placeholder="Quem falar"></div>
                     <div class="form-group"><label>Telefone</label><input type="text" id="mpfTel" placeholder="(41) 9 9999-0000"></div>
-                    <div class="form-group"><label>E-mail / contato</label><input type="text" id="mpfEmail" placeholder="nome@email.com"></div>
+                </div>
+                <div class="mp-two">
+                    <div class="form-group"><label>E-mail</label><input type="text" id="mpfEmail" placeholder="nome@email.com"></div>
+                    <div class="form-group"><label>Status</label><select id="mpfStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
                 </div>
                 <div class="form-group"><label>Observações</label><textarea id="mpfObs" placeholder="Notas, disponibilidade, condições…" style="min-height:50px"></textarea></div>
-                <div class="form-group"><label>Status</label><select id="mpfStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
                 <div class="mp-modal-btns">
-                    <button class="btn btn-primary" onclick="mpSalvar()" style="flex:1;padding:13px">💾 Salvar</button>
+                    <button class="btn btn-primary" id="mpSalvarBtn" onclick="mpSalvar()" style="flex:1;padding:13px">💾 Salvar</button>
                     <button class="btn btn-danger" id="mpDelBtn" onclick="mpExcluir()" style="padding:13px 18px;display:none">🗑️</button>
                     <button class="btn btn-secondary" onclick="mpFecharModal()" style="padding:13px 18px">Cancelar</button>
                 </div>
@@ -11779,7 +11808,7 @@ Data: ${h.data}`;
             let mpLastLoad = 0;
 
             // ── Helpers ──
-            function mpEsc(s) { const d = document.createElement('div'); d.textContent = (s == null ? '' : s); return d.innerHTML; }
+            function mpEsc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
             function mpNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim(); }
             function $(id) { return document.getElementById(id); }
             function mpTecColor(p) {
@@ -11793,6 +11822,16 @@ Data: ${h.data}`;
                 return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
             }
             function mpFmtDist(km) { return km < 1 ? Math.round(km * 1000) + ' m' : Math.round(km) + ' km'; }
+            function mpStarsHtml(n) { n = Math.round(parseFloat(n) || 0); if (n < 1) return ''; n = Math.min(5, n); return '<span class="mp-stars" title="' + n + '/5">' + '★'.repeat(n) + '☆'.repeat(5 - n) + '</span>'; }
+            function mpTipoBadge(p) { const t = p.tipo || 'Campo'; if (t === 'Campo') return ''; const bim = (t === 'Modelagem BIM'); return '<span class="mp-tipo-badge' + (bim ? ' mp-tipo-bim' : '') + '">' + (bim ? '🏛️ BIM' : '🔁 Ambos') + '</span>'; }
+            function mpStarPicker(value) {
+                value = Math.round(parseFloat(value) || 0);
+                if ($('mpfAval')) $('mpfAval').value = value || '';
+                let h = '';
+                for (let i = 1; i <= 5; i++) h += '<span class="mp-star' + (i <= value ? ' on' : '') + '" data-star="' + i + '">★</span>';
+                h += '<span class="mp-stars-clear" data-star="0">limpar</span>';
+                if ($('mpfEstrelas')) $('mpfEstrelas').innerHTML = h;
+            }
             async function mpApi(action, payload) {
                 const body = Object.assign({ action: action, secret: MP_SECRET }, payload || {});
                 const r = await fetch(MP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' });
@@ -11828,6 +11867,23 @@ Data: ${h.data}`;
                 mpAtendeLayer = L.layerGroup().addTo(mpMap);
                 mpMap.on('click', mpOnMapClick);
 
+                // Delegação de cliques (data-mp-act) — sem onclick inline com id no markup (anti-XSS)
+                document.addEventListener('click', function (e) {
+                    const t = e.target.closest ? e.target.closest('[data-mp-act]') : null;
+                    if (!t) return;
+                    const act = t.getAttribute('data-mp-act');
+                    const id = t.getAttribute('data-mp-id');
+                    if (act === 'fly') mpFlyTo(id);
+                    else if (act === 'edit') mpEditar(id);
+                    else if (act === 'retry') mpRefresh();
+                });
+
+                // Estrelas clicáveis (avaliação) no modal — delegado no container persistente
+                $('mpfEstrelas').addEventListener('click', function (e) {
+                    const s = e.target.closest ? e.target.closest('[data-star]') : null;
+                    if (s) mpStarPicker(parseInt(s.getAttribute('data-star'), 10));
+                });
+
                 // Hidrata do cache (instantâneo) e busca fresco
                 try { const c = localStorage.getItem(MP_CACHE_KEY); if (c) { mpParceiros = JSON.parse(c) || []; mpRender(); } } catch (e) {}
                 mpRefresh();
@@ -11842,24 +11898,33 @@ Data: ${h.data}`;
                         mpLastLoad = Date.now();
                         try { localStorage.setItem(MP_CACHE_KEY, JSON.stringify(mpParceiros)); } catch (e) {}
                         mpRender();
-                    }
-                } catch (e) { console.warn('mpRefresh falhou', e); }
+                    } else { mpRefreshErro(); }
+                } catch (e) { console.warn('mpRefresh falhou', e); mpRefreshErro(); }
+            }
+            function mpRefreshErro() {
+                if (!mpParceiros.length && $('mpList')) {
+                    $('mpList').innerHTML = '<div class="mp-empty">Não consegui carregar os parceiros. <span class="mp-edit-link" data-mp-act="retry">tentar de novo</span></div>';
+                }
             }
 
             // ── Filtro + render ──
             function mpFiltrar() {
                 const busca = mpNorm($('mpBusca') ? $('mpBusca').value : '');
                 const uf = $('mpUf') ? $('mpUf').value : '';
+                const tipo = $('mpTipo') ? $('mpTipo').value : '';
+                const minAval = parseFloat($('mpMinAval') ? $('mpMinAval').value : '0') || 0;
                 const tecSel = Array.from(mpFiltroTec);
                 let list = mpParceiros.slice();
                 if (busca) list = list.filter(p => mpNorm(p.nome).includes(busca) || mpNorm(p.cidade).includes(busca));
+                if (tipo) list = list.filter(p => (p.tipo || 'Campo') === tipo);
                 if (uf) list = list.filter(p => (p.uf || '') === uf);
+                if (minAval > 0) list = list.filter(p => (parseFloat(p.avaliacao) || 0) >= minAval);
                 if (tecSel.length) list = list.filter(p => (p.tecnologias || []).some(t => tecSel.includes(t)));
                 if (mpAtendeOn && mpAtendePonto) {
                     list = list.filter(p => p.latitude != null && p.longitude != null && p.raioKm > 0)
                         .map(p => Object.assign({}, p, { _dist: mpHaversine(p.latitude, p.longitude, mpAtendePonto.lat, mpAtendePonto.lng) }))
                         .filter(p => p._dist <= p.raioKm)
-                        .sort((a, b) => a._dist - b._dist);
+                        .sort((a, b) => (a._dist - b._dist) || ((parseFloat(b.avaliacao) || 0) - (parseFloat(a.avaliacao) || 0)));
                 } else {
                     list.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
                 }
@@ -11878,7 +11943,8 @@ Data: ${h.data}`;
                     if (mpMostrarCirculos && p.raioKm > 0) {
                         L.circle([p.latitude, p.longitude], { radius: p.raioKm * 1000, color: color, weight: 1, fillColor: color, fillOpacity: 0.07 }).addTo(mpLayer);
                     }
-                    const icon = L.divIcon({ className: 'mp-pin', html: '<span style="background:' + color + '"></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
+                    const isBim = (p.tipo === 'Modelagem BIM');
+                    const icon = L.divIcon({ className: 'mp-pin' + (isBim ? ' mp-pin-bim' : ''), html: '<span style="background:' + color + '"></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
                     const m = L.marker([p.latitude, p.longitude], { icon: icon }).addTo(mpLayer);
                     m.bindPopup(mpPopupHtml(p));
                     mpMarkers[p.id] = m;
@@ -11890,13 +11956,15 @@ Data: ${h.data}`;
 
             function mpPopupHtml(p) {
                 const tecs = (p.tecnologias || []).map(t => mpEsc(t)).join(', ') || '—';
-                let h = '<b>' + mpEsc(p.nome) + '</b>';
+                let h = '<b>' + mpEsc(p.nome) + '</b>' + mpTipoBadge(p);
                 if (p.cidade || p.uf) h += '<br>' + mpEsc(p.cidade || '') + (p.uf ? '/' + mpEsc(p.uf) : '');
                 h += '<br>🛠️ ' + tecs;
                 if (p.raioKm > 0) h += '<br>📡 raio ' + Math.round(p.raioKm) + ' km';
+                const st = mpStarsHtml(p.avaliacao); if (st) h += '<br>' + st;
                 if (typeof p._dist === 'number') h += '<br>📍 ' + mpFmtDist(p._dist) + ' do ponto';
+                if (p.contato) h += '<br>👤 ' + mpEsc(p.contato);
                 if (p.telefone) h += '<br>📞 ' + mpEsc(p.telefone);
-                h += '<br><span class="mp-pop-btn" onclick="mpEditar(\'' + mpEsc(p.id) + '\')">✏️ Editar</span>';
+                h += '<br><span class="mp-pop-btn" data-mp-act="edit" data-mp-id="' + mpEsc(p.id) + '">✏️ Editar</span>';
                 return h;
             }
 
@@ -11910,21 +11978,28 @@ Data: ${h.data}`;
                     const tecs = (p.tecnologias || []).map(t => '<span class="mp-tec-tag">' + mpEsc(t) + '</span>').join('');
                     const dist = (typeof p._dist === 'number') ? '<span class="dist">📍 ' + mpFmtDist(p._dist) + '</span>' : (p.raioKm > 0 ? '<span class="dist">raio ' + Math.round(p.raioKm) + ' km</span>' : '');
                     const sem = (p.latitude == null || p.longitude == null) ? ' ⚠️ sem coords' : '';
+                    const aval = (parseFloat(p.avaliacao) > 0) ? ' · ' + mpStarsHtml(p.avaliacao) : '';
                     const op = (String(p.status || 'ativo').toLowerCase() === 'inativo') ? 'opacity:.55;' : '';
-                    return '<div class="mp-card" style="' + op + '" onclick="mpFlyTo(\'' + mpEsc(p.id) + '\')">' +
-                        '<div class="nm">' + mpEsc(p.nome) + dist + '</div>' +
-                        '<div class="loc">' + (mpEsc(p.cidade || '—')) + (p.uf ? '/' + mpEsc(p.uf) : '') + sem +
-                        ' <span class="mp-edit-link" onclick="event.stopPropagation();mpEditar(\'' + mpEsc(p.id) + '\')">editar</span></div>' +
+                    return '<div class="mp-card" style="' + op + '" data-mp-act="fly" data-mp-id="' + mpEsc(p.id) + '">' +
+                        '<div class="nm">' + mpEsc(p.nome) + mpTipoBadge(p) + dist + '</div>' +
+                        '<div class="loc">' + (mpEsc(p.cidade || '—')) + (p.uf ? '/' + mpEsc(p.uf) : '') + aval + sem +
+                        ' <span class="mp-edit-link" data-mp-act="edit" data-mp-id="' + mpEsc(p.id) + '">editar</span></div>' +
                         '<div class="tecs">' + (tecs || '<span class="mp-tec-tag" style="opacity:.6">sem tecnologia</span>') + '</div>' +
                         '</div>';
                 }).join('');
             }
 
             function mpRenderKpis(exibindo) {
-                const ufs = {}, tecs = {}; let ativos = 0;
-                mpParceiros.forEach(p => { if (p.uf) ufs[p.uf] = 1; (p.tecnologias || []).forEach(t => tecs[t] = 1); if (String(p.status || 'ativo').toLowerCase() === 'ativo') ativos++; });
+                const ufs = {}, tecs = {}; let ativos = 0, modelistas = 0;
+                mpParceiros.forEach(p => {
+                    if (p.uf) ufs[p.uf] = 1;
+                    (p.tecnologias || []).forEach(t => tecs[t] = 1);
+                    if (String(p.status || 'ativo').toLowerCase() === 'ativo') ativos++;
+                    if (p.tipo === 'Modelagem BIM' || p.tipo === 'Ambos') modelistas++;
+                });
                 const cards = [
                     ['Parceiros', mpParceiros.length], ['Ativos', ativos],
+                    ['Modelistas BIM', modelistas],
                     ['Estados', Object.keys(ufs).length], ['Tecnologias', Object.keys(tecs).length],
                     ['Exibindo', exibindo]
                 ];
@@ -11983,9 +12058,11 @@ Data: ${h.data}`;
             // ── Cadastro / edição ──
             function mpSetForm(p) {
                 $('mpfNome').value = p.nome || ''; $('mpfCidade').value = p.cidade || ''; $('mpfUf').value = p.uf || '';
+                $('mpfTipo').value = p.tipo || 'Campo'; $('mpfContato').value = p.contato || '';
                 $('mpfLat').value = (p.latitude != null ? p.latitude : ''); $('mpfLng').value = (p.longitude != null ? p.longitude : '');
-                $('mpfRaio').value = (p.raioKm || ''); $('mpfAval').value = (p.avaliacao || ''); $('mpfTel').value = p.telefone || '';
+                $('mpfRaio').value = (p.raioKm ? p.raioKm : ''); $('mpfTel').value = p.telefone || '';
                 $('mpfEmail').value = p.email || ''; $('mpfObs').value = p.observacoes || ''; $('mpfStatus').value = p.status || 'ativo';
+                mpStarPicker(p.avaliacao);
                 const sel = new Set(p.tecnologias || []);
                 document.querySelectorAll('#mpfTecnologias .mp-chip').forEach(c => {
                     const t = c.getAttribute('data-tec');
@@ -12024,6 +12101,7 @@ Data: ${h.data}`;
             }
             function mpPickOnMap() {
                 if (!mpMap) return;
+                if (mpAtendeOn) { mpAtendeOn = false; $('mpAtendeBtn').classList.remove('on'); mpAtendePonto = null; mpAtendeLayer.clearLayers(); mpRender(); }
                 $('mpModal').classList.remove('active');
                 mpClickMode = 'pick';
                 const h = $('mpAtendeHint');
@@ -12039,15 +12117,18 @@ Data: ${h.data}`;
                 const tecs = Array.from(document.querySelectorAll('#mpfTecnologias .mp-chip.on')).map(c => c.getAttribute('data-tec'));
                 const latRaw = $('mpfLat').value.trim(), lngRaw = $('mpfLng').value.trim();
                 const payload = {
-                    nome: nome, cidade: $('mpfCidade').value.trim(), uf: $('mpfUf').value.trim().toUpperCase(),
+                    nome: nome, tipo: $('mpfTipo').value, cidade: $('mpfCidade').value.trim(), uf: $('mpfUf').value.trim().toUpperCase(),
+                    contato: $('mpfContato').value.trim(),
                     latitude: latRaw === '' ? '' : parseFloat(latRaw.replace(',', '.')),
                     longitude: lngRaw === '' ? '' : parseFloat(lngRaw.replace(',', '.')),
-                    tecnologias: tecs, raioKm: $('mpfRaio').value.trim(), avaliacao: $('mpfAval').value.trim(),
+                    tecnologias: tecs,
+                    raioKm: $('mpfRaio').value.trim().replace(',', '.'),
+                    avaliacao: $('mpfAval').value,
                     telefone: $('mpfTel').value.trim(), email: $('mpfEmail').value.trim(),
                     observacoes: $('mpfObs').value.trim(), status: $('mpfStatus').value
                 };
                 const editId = $('mpEditId').value;
-                const btn = event && event.target; if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+                const btn = $('mpSalvarBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
                 try {
                     const r = editId ? await mpApi('updateParceiro', Object.assign({ id: editId }, payload)) : await mpApi('addParceiro', payload);
                     if (r && r.ok) { mpFecharModal(); await mpRefresh(); }
