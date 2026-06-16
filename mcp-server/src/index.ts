@@ -19,7 +19,7 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
 
-const SERVER_VERSION = '1.3.0';
+const SERVER_VERSION = '1.4.0';
 const SERVER_BUILD = '2026-06-10-propostas';
 
 // ───────────────────────────────────────────────
@@ -489,6 +489,72 @@ const TOOLS: ToolDef[] = [
     name: 'crm_get_topo_partners_kpis',
     description: 'KPIs operação: custo total mês, pendentes, top parceiros por gasto, margem real por projeto.',
     action: 'getTopoPartnersKPIs',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+
+  // ═══ MAPA DE PARCEIROS (cadastro georreferenciado — ≠ custos TopoPartners) ═══
+  {
+    name: 'crm_add_parceiro',
+    description: 'Coloca um PARCEIRO no MAPA DE PARCEIROS (cadastro georreferenciado — NÃO confundir com crm_add_topo_partner, que é CUSTO). Pra adicionar ao mapa: informe nome + tipo + tecnologias e o ENDEREÇO ou a CIDADE/UF — o servidor acha as coordenadas sozinho (NÃO precisa de lat/long). Raio de cobertura é 100 km por padrão. Modelista BIM = tipo "Modelagem BIM" (trabalha remoto; raio menos relevante). Aparece no mapa pros sócios e pro Luiz.',
+    action: 'addParceiro',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        nome: { type: 'string', description: 'Nome do parceiro/empresa' },
+        tipo: { type: 'string', enum: ['Campo', 'Modelagem BIM', 'Ambos'], description: 'Campo=levantamento (RTK/drone/scanner/batimetria/topo); Modelagem BIM=modelista; Ambos. Default Campo.' },
+        endereco: { type: 'string', description: 'Rua/bairro/CEP — base p/ geocodificar. Opcional se passar cidade.' },
+        cidade: { type: 'string' },
+        uf: { type: 'string', description: 'Sigla de 2 letras' },
+        tecnologias: { type: 'array', items: { type: 'string' }, description: 'Ex.: ["RTK/GNSS","Drone/Aerofotogrametria","Scanner terrestre","Batimetria","BIM/Modelagem","Topografia convencional"]' },
+        raioKm: { type: 'number', description: 'Raio de cobertura em km. Default 100 se omitir.' },
+        avaliacao: { type: 'number', minimum: 0, maximum: 5, description: 'Qualidade do trabalho ⭐ 0-5' },
+        telefone: { type: 'string' },
+        email: { type: 'string' },
+        contato: { type: 'string', description: 'Pessoa de contato' },
+        observacoes: { type: 'string' },
+        latitude: { type: 'number', description: 'Opcional — só se já tiver. Senão geocodifica do endereço/cidade.' },
+        longitude: { type: 'number', description: 'Opcional.' },
+        status: { type: 'string', enum: ['ativo', 'inativo'] },
+      },
+      required: ['nome'],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'crm_list_parceiros',
+    description: 'Lista os parceiros do Mapa de Parceiros (nome, tipo, cidade/uf, lat/lng, tecnologias, raioKm, avaliacao). Retorno na chave "parceiros".',
+    action: 'listParceiros',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+  },
+  {
+    name: 'crm_update_parceiro',
+    description: 'Edita um parceiro do mapa (por id ou rowIndex). Se mudar endereco/cidade SEM mandar lat/long, re-geocodifica automaticamente.',
+    action: 'updateParceiro',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string' }, rowIndex: { type: 'number' },
+        nome: { type: 'string' }, tipo: { type: 'string', enum: ['Campo', 'Modelagem BIM', 'Ambos'] },
+        endereco: { type: 'string' }, cidade: { type: 'string' }, uf: { type: 'string' },
+        tecnologias: { type: 'array', items: { type: 'string' } },
+        raioKm: { type: 'number' }, avaliacao: { type: 'number', minimum: 0, maximum: 5 },
+        telefone: { type: 'string' }, email: { type: 'string' }, contato: { type: 'string' },
+        observacoes: { type: 'string' }, status: { type: 'string', enum: ['ativo', 'inativo'] },
+        latitude: { type: 'number' }, longitude: { type: 'number' },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: 'crm_delete_parceiro',
+    description: 'Remove um parceiro do mapa. ⚠️ IRREVERSÍVEL — confirme com o usuário antes. Por id ou rowIndex.',
+    action: 'deleteParceiro',
+    inputSchema: { type: 'object', properties: { id: { type: 'string' }, rowIndex: { type: 'number' } }, additionalProperties: false },
+  },
+  {
+    name: 'crm_get_parceiros_kpis',
+    description: 'KPIs do Mapa de Parceiros: total, ativos, modelistas BIM, estados cobertos, contagem por tecnologia e por tipo.',
+    action: 'getParceirosKPIs',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
   },
 
