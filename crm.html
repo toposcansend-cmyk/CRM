@@ -3224,7 +3224,7 @@
             'guilherme@toposcan.com.br':  TODAS_ABAS,  // dono — acesso total
             'marcelo@toposcan.com.br':    TODAS_ABAS,  // sócio — acesso total
             'allana@toposcan.com.br':     ['oportunidades','pipeline','evolucao','followup','orcamento'],  // SDR/Hunter — só vendas (SEM fluxo de caixa)
-            'arquitetura@toposcan.com.br': ['painelArq','engenharia','custosbim'],  // Ana — gestora de arquitetura BIM (landing = Painel de Arquitetura)
+            'arquitetura@toposcan.com.br': ['painelArq','engenharia','custosbim','mapaparceiros'],  // Ana — gestora de arquitetura BIM (landing = Painel) + Mapa de Parceiros (pedido Marcelo 16/06)
             // Luiz Gustavo (V8.0): acesso amplo MENOS Fluxo de Caixa, Custos de Operação, Evolução e Central. Guilherme: "depois reviso".
             'luiz.gustavo@toposcan.com.br': ['painelArq','oportunidades','pipeline','insights','kpi','followup','orcamento','financeiro','engenharia','custosbim','mapaparceiros']
         };
@@ -6283,6 +6283,10 @@
                 // Carga sob demanda das abas da Ana (V1.0 Arquitetura BIM)
                 if (tabId === 'painelArq' && typeof arqRefresh === 'function') arqRefresh();
                 if (tabId === 'custosbim' && typeof cbRefresh === 'function') cbRefresh();
+                // Mapa de Parceiros: Leaflet precisa recalcular o tamanho ao sair de display:none
+                if (tabId === 'mapaparceiros' && typeof mpMap !== 'undefined' && mpMap && mpMap.invalidateSize) {
+                    setTimeout(function () { try { mpMap.invalidateSize(); } catch (e) {} }, 60);
+                }
             }
 
             function toggleMenu() {
@@ -11449,15 +11453,19 @@ Data: ${h.data}`;
             // ============ PAINEL DE ARQUITETURA ============
             async function arqRefresh(opts) {
                 opts = opts || {};
-                try {
-                    var r = await finApi('getArquiteturaDashboard', {});
-                    if (r && r.ok) {
-                        window._arqData = r;
-                        window._arqProjetos = (r.projetos || []).map(function (p) { return { projeto: p.projeto, numeroProposta: p.numeroProposta }; });
-                        arqRender();
-                        cbPopularDatalists();
-                    }
-                } catch (e) { console.error('arqRefresh err:', e); }
+                // Retry: o /exec do GAS às vezes devolve redirect/HTML transitório. Sem isso,
+                // um hiccup no boot deixava o painel da Ana vazio até ela clicar em Atualizar.
+                var r = null;
+                for (var i = 0; i < 3; i++) {
+                    try { r = await finApi('getArquiteturaDashboard', {}); if (r && r.ok) break; } catch (e) {}
+                    await new Promise(function (res) { setTimeout(res, 600); });
+                }
+                if (r && r.ok) {
+                    window._arqData = r;
+                    window._arqProjetos = (r.projetos || []).map(function (p) { return { projeto: p.projeto, numeroProposta: p.numeroProposta }; });
+                    arqRender();
+                    cbPopularDatalists();
+                }
             }
 
             function arqRender() {
@@ -11503,17 +11511,21 @@ Data: ${h.data}`;
                         projEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhum projeto de produção ainda.</div>';
                     } else {
                         var hp = '';
+                        var ocultos = 0;
                         projetos.forEach(function (p, idx) {
+                            if (p.concluido) { ocultos++; return; } // painel mostra só o que precisa de acompanhamento; concluídos ficam ocultos (pedido Marcelo 16/06)
                             var fill = p.atrasado ? '#ef4444' : (p.pct >= 100 ? '#22c55e' : '#06b6d4');
                             hp += '<div class="arq-proj" onclick="arqAbrirProjetoByIdx(' + idx + ')">';
                             hp += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px">';
-                            hp += '<span style="font-weight:700">' + arqEsc(p.projeto) + (p.concluido ? ' <span style="color:#22c55e;font-size:0.8em">✓ concluído</span>' : '') + '</span>';
+                            hp += '<span style="font-weight:700">' + arqEsc(p.projeto) + '</span>';
                             hp += '<span style="font-size:0.78em;color:' + (p.atrasado ? '#ef4444' : 'var(--text-secondary)') + '">' + (p.responsaveis && p.responsaveis.length ? '👤 ' + arqEsc(p.responsaveis.join(', ')) + ' · ' : '') + (p.atrasado ? '⚠️ ' : '📅 ') + arqEsc(p.previsaoEntrega || 's/ data') + '</span>';
                             hp += '</div>';
                             hp += '<div class="arq-bar"><div class="arq-bar-fill" style="width:' + (p.pct || 0) + '%;background:' + fill + '"></div></div>';
                             hp += arqStrip(p.etapas);
                             hp += '</div>';
                         });
+                        if (!hp) hp = '<div style="text-align:center;padding:24px;color:var(--text-secondary)">Nenhum projeto BIM ativo no momento 🎉</div>';
+                        if (ocultos > 0) hp += '<div style="text-align:center;font-size:0.76em;color:var(--text-secondary);opacity:0.6;margin-top:8px">' + ocultos + ' concluído(s) ocultado(s)</div>';
                         projEl.innerHTML = hp;
                     }
                 }
