@@ -4591,17 +4591,19 @@
                     <option value="Modelagem BIM">🏛️ Modelista BIM</option>
                     <option value="Ambos">🔁 Ambos</option>
                 </select></div>
+                <div class="form-group"><label>Endereço <span style="color:var(--text-secondary);font-weight:400;font-size:0.85em">· rua, bairro ou CEP — acha as coordenadas sozinho</span></label><input type="text" id="mpfEndereco" placeholder="Ex.: Av. Paulista 1000 — ou só o CEP"></div>
                 <div class="mp-two">
                     <div class="form-group"><label>Cidade</label><input type="text" id="mpfCidade" placeholder="Curitiba"></div>
                     <div class="form-group"><label>UF</label><input type="text" id="mpfUf" maxlength="2" placeholder="PR" style="text-transform:uppercase"></div>
                 </div>
-                <div class="mp-two">
-                    <div class="form-group"><label>Latitude</label><input type="text" id="mpfLat" placeholder="-25.4284"></div>
-                    <div class="form-group"><label>Longitude</label><input type="text" id="mpfLng" placeholder="-49.2733"></div>
-                </div>
                 <div class="mp-geo-actions">
-                    <button class="btn btn-secondary" onclick="mpGeoFromCidade()" style="padding:8px 12px;font-size:0.82em">📍 Coords da cidade</button>
+                    <button class="btn btn-primary" onclick="mpGeoBuscar()" style="padding:8px 12px;font-size:0.82em">🔎 Achar pelo endereço</button>
                     <button class="btn btn-secondary" onclick="mpPickOnMap()" style="padding:8px 12px;font-size:0.82em">🖱️ Clicar no mapa</button>
+                </div>
+                <div id="mpGeoStatus" style="display:none;font-size:0.8em;margin:-4px 0 10px"></div>
+                <div class="mp-two">
+                    <div class="form-group"><label>Latitude</label><input type="text" id="mpfLat" placeholder="(preenche sozinho)"></div>
+                    <div class="form-group"><label>Longitude</label><input type="text" id="mpfLng" placeholder="(preenche sozinho)"></div>
                 </div>
                 <div class="form-group"><label>Tecnologias atendidas</label><div class="mp-tec-pick" id="mpfTecnologias"></div></div>
                 <div class="mp-two">
@@ -12070,7 +12072,8 @@ Data: ${h.data}`;
             // ── Cadastro / edição ──
             function mpSetForm(p) {
                 $('mpfNome').value = p.nome || ''; $('mpfCidade').value = p.cidade || ''; $('mpfUf').value = p.uf || '';
-                $('mpfTipo').value = p.tipo || 'Campo'; $('mpfContato').value = p.contato || '';
+                $('mpfTipo').value = p.tipo || 'Campo'; $('mpfContato').value = p.contato || ''; $('mpfEndereco').value = p.endereco || '';
+                $('mpGeoStatus').style.display = 'none';
                 $('mpfLat').value = (p.latitude != null ? p.latitude : ''); $('mpfLng').value = (p.longitude != null ? p.longitude : '');
                 $('mpfRaio').value = (p.raioKm ? p.raioKm : ''); $('mpfTel').value = p.telefone || '';
                 $('mpfEmail').value = p.email || ''; $('mpfObs').value = p.observacoes || ''; $('mpfStatus').value = p.status || 'ativo';
@@ -12086,7 +12089,7 @@ Data: ${h.data}`;
                 $('mpEditId').value = '';
                 $('mpModalTitulo').textContent = 'Cadastrar parceiro';
                 $('mpDelBtn').style.display = 'none';
-                mpSetForm({ status: 'ativo' });
+                mpSetForm({ status: 'ativo', tipo: 'Campo', raioKm: 100 }); // raio padrão 100 km
                 $('mpModal').classList.add('active');
             }
             function mpEditar(id) {
@@ -12104,12 +12107,29 @@ Data: ${h.data}`;
                 const on = el.classList.toggle('on');
                 el.style.background = on ? (MP_TEC_COLOR[el.getAttribute('data-tec')] || 'var(--accent)') : '';
             }
-            function mpGeoFromCidade() {
-                const c = mpNorm($('mpfCidade').value);
-                const hit = MP_CITIES[c];
-                if (!hit) { alert('Cidade não está na tabela de coords. Use "🖱️ Clicar no mapa" pra cravar o pino, ou digite lat/long manualmente.'); return; }
-                $('mpfLat').value = hit[0]; $('mpfLng').value = hit[1];
-                if (!$('mpfUf').value) $('mpfUf').value = hit[2];
+            async function mpGeoBuscar() {
+                const endereco = $('mpfEndereco').value.trim();
+                const cidade = $('mpfCidade').value.trim();
+                const uf = $('mpfUf').value.trim();
+                if (!endereco && !cidade) { alert('Digite um endereço ou ao menos a cidade.'); return; }
+                const st = $('mpGeoStatus'); st.style.display = ''; st.style.color = 'var(--text-secondary)'; st.textContent = '🔎 Procurando…';
+                try {
+                    const r = await mpApi('geocodeEndereco', { endereco: endereco, cidade: cidade, uf: uf });
+                    if (r && r.ok) {
+                        $('mpfLat').value = (+r.lat).toFixed(6); $('mpfLng').value = (+r.lng).toFixed(6);
+                        if (!uf && r.label) { const m = String(r.label).match(/\b([A-Z]{2})\b/); if (m) $('mpfUf').value = m[1]; }
+                        st.style.color = 'var(--accent)'; st.textContent = '📍 ' + mpEsc(r.label || 'Local encontrado');
+                        return;
+                    }
+                } catch (e) {}
+                // Fallback offline pela cidade (tabela embutida)
+                const hit = MP_CITIES[mpNorm(cidade)];
+                if (hit) {
+                    $('mpfLat').value = hit[0]; $('mpfLng').value = hit[1]; if (!uf) $('mpfUf').value = hit[2];
+                    st.style.color = 'var(--accent)'; st.textContent = '📍 ' + mpEsc(cidade) + ' (aproximado pela cidade)';
+                    return;
+                }
+                st.style.color = '#ef4444'; st.textContent = '❌ Não achei esse endereço. Tente mais detalhes, ou use "Clicar no mapa".';
             }
             function mpPickOnMap() {
                 if (!mpMap) return;
@@ -12130,7 +12150,7 @@ Data: ${h.data}`;
                 const latRaw = $('mpfLat').value.trim(), lngRaw = $('mpfLng').value.trim();
                 const payload = {
                     nome: nome, tipo: $('mpfTipo').value, cidade: $('mpfCidade').value.trim(), uf: $('mpfUf').value.trim().toUpperCase(),
-                    contato: $('mpfContato').value.trim(),
+                    contato: $('mpfContato').value.trim(), endereco: $('mpfEndereco').value.trim(),
                     latitude: latRaw === '' ? '' : parseFloat(latRaw.replace(',', '.')),
                     longitude: lngRaw === '' ? '' : parseFloat(lngRaw.replace(',', '.')),
                     tecnologias: tecs,
@@ -12163,7 +12183,7 @@ Data: ${h.data}`;
             Object.assign(window, {
                 mpInit, mpRender, mpRefresh, mpToggleChip, mpToggleCirculos, mpToggleAtende,
                 mpFlyTo, mpAbrirCadastro, mpEditar, mpFecharModal, mpToggleTecPick,
-                mpGeoFromCidade, mpPickOnMap, mpCancelPick, mpSalvar, mpExcluir
+                mpGeoBuscar, mpPickOnMap, mpCancelPick, mpSalvar, mpExcluir
             });
         })();
     </script>
