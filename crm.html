@@ -11455,8 +11455,20 @@ Data: ${h.data}`;
             // ============ PAINEL DE ARQUITETURA ============
             async function arqRefresh(opts) {
                 opts = opts || {};
-                // Retry: o /exec do GAS às vezes devolve redirect/HTML transitório. Sem isso,
-                // um hiccup no boot deixava o painel da Ana vazio até ela clicar em Atualizar.
+                // 1) Pinta IMEDIATO do cache (stale-while-revalidate) — o painel aparece na hora,
+                //    sem esperar o GAS (que lê 4 planilhas). Some o "Carregando…" e o "—" nos KPIs.
+                if (!opts.skipCache && !window._arqData) {
+                    try {
+                        var c = localStorage.getItem('crm_arq_dash_v1');
+                        if (c) {
+                            window._arqData = JSON.parse(c);
+                            window._arqProjetos = (window._arqData.projetos || []).map(function (p) { return { projeto: p.projeto, numeroProposta: p.numeroProposta }; });
+                            arqRender();
+                            cbPopularDatalists();
+                        }
+                    } catch (e) {}
+                }
+                // 2) Revalida em background, com retry (o /exec do GAS às vezes devolve redirect/HTML transitório).
                 var r = null;
                 for (var i = 0; i < 3; i++) {
                     try { r = await finApi('getArquiteturaDashboard', {}); if (r && r.ok) break; } catch (e) {}
@@ -11465,6 +11477,7 @@ Data: ${h.data}`;
                 if (r && r.ok) {
                     window._arqData = r;
                     window._arqProjetos = (r.projetos || []).map(function (p) { return { projeto: p.projeto, numeroProposta: p.numeroProposta }; });
+                    try { localStorage.setItem('crm_arq_dash_v1', JSON.stringify(r)); } catch (e) {}
                     arqRender();
                     cbPopularDatalists();
                 }
