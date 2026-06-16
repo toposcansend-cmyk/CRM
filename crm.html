@@ -1678,6 +1678,12 @@
             justify-content: center;
         }
 
+        /* O detalhe do projeto (Engenharia) é o modal "de fundo": modais abertos DE DENTRO
+           dele (✏️ editar tarefa, ➕ adicionar tarefa) precisam ficar POR CIMA. Sem isso,
+           com z-index igual (1000) o detalhe — que vem depois no DOM — enterrava a edição
+           e "não acontecia nada" ao clicar em editar (bug reportado pelo Marcelo, Jonathan-China). */
+        #engDetalheModal.modal { z-index: 999; }
+
         .modal-content {
             background: var(--bg-secondary);
             backdrop-filter: blur(24px);
