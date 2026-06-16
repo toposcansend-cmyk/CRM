@@ -8,6 +8,9 @@
     <!-- PWA (app instalável) -->
     <meta name="theme-color" content="#0a0e1a">
     <meta name="description" content="CRM Toposcan — gestão comercial, financeira, operação e engenharia, sincronizado.">
+    <!-- Leaflet (Mapa de Parceiros V8.0) — pinado 1.9.4, CDN unpkg. SW ignora cross-origin, vai direto pra rede. -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icon-192.png">
     <meta name="mobile-web-app-capable" content="yes">
@@ -3195,7 +3198,8 @@
             'guilherme@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'marcelo@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
-            'arquitetura@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
+            'arquitetura@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
+            'luiz.gustavo@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
         };
 
         // ═══════════════════════════════════════════════════════════════
@@ -3208,13 +3212,15 @@
         // Para adicionar um usuário: adiciona no AUTH_USERS acima + define aqui.
         // Para mudar permissão: edita a lista de abas dele.
         // ═══════════════════════════════════════════════════════════════
-        const TODAS_ABAS = ['central','painelArq','oportunidades','pipeline','evolucao','insights','kpi','followup','orcamento','financeiro','topopartners','engenharia','custosbim','fluxocaixa'];
+        const TODAS_ABAS = ['central','painelArq','oportunidades','pipeline','evolucao','insights','kpi','followup','orcamento','financeiro','topopartners','engenharia','custosbim','fluxocaixa','mapaparceiros'];
         const USER_PERMISSIONS = {
             'admin@toposcan.com.br':      TODAS_ABAS,  // acesso total
             'guilherme@toposcan.com.br':  TODAS_ABAS,  // dono — acesso total
             'marcelo@toposcan.com.br':    TODAS_ABAS,  // sócio — acesso total
             'allana@toposcan.com.br':     ['oportunidades','pipeline','evolucao','followup','orcamento'],  // SDR/Hunter — só vendas (SEM fluxo de caixa)
-            'arquitetura@toposcan.com.br': ['painelArq','engenharia','custosbim']  // Ana — gestora de arquitetura BIM (landing = Painel de Arquitetura)
+            'arquitetura@toposcan.com.br': ['painelArq','engenharia','custosbim'],  // Ana — gestora de arquitetura BIM (landing = Painel de Arquitetura)
+            // Luiz Gustavo (V8.0): acesso amplo MENOS Fluxo de Caixa, Custos de Operação, Evolução e Central. Guilherme: "depois reviso".
+            'luiz.gustavo@toposcan.com.br': ['painelArq','oportunidades','pipeline','insights','kpi','followup','orcamento','financeiro','engenharia','custosbim','mapaparceiros']
         };
 
         function aplicarPermissoes() {
@@ -3226,6 +3232,10 @@
             // filtros/"Nova Oportunidade", nem o sino de alertas cross-área. Mantém o
             // escopo da Ana 100% em BIM — não só esconder abas, mas o topo global também.
             const ehComercial = permitidas.indexOf('oportunidades') !== -1;
+            // Blindagem por CSS (!important, antes de pintar): a classe no <html> é setada
+            // já no checkAuth (antes do hero existir no DOM) → o comercial nunca aparece
+            // pra Ana, nem por um frame. O display inline abaixo é cinto+suspensório.
+            document.documentElement.classList.toggle('hide-commercial', !ehComercial);
             ['.home-hero', '.stats'].forEach(function (sel) {
                 const el = document.querySelector(sel);
                 if (el) el.style.display = ehComercial ? '' : 'none';
@@ -3596,6 +3606,7 @@
                 <button class="tab-btn" onclick="trocarTab('orcamento')">🧾 Orçamento</button>
                 <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
                 <button class="tab-btn" onclick="trocarTab('topopartners')">💼 Custos de Operação</button>
+                <button class="tab-btn" onclick="trocarTab('mapaparceiros')">🗺️ Mapa de Parceiros</button>
                 <button class="tab-btn" onclick="trocarTab('engenharia')">🛠️ Engenharia</button>
                 <button class="tab-btn" onclick="trocarTab('custosbim')">💸 Custos BIM</button>
                 <button class="tab-btn" onclick="trocarTab('fluxocaixa')">💸 Fluxo de Caixa</button>
@@ -4471,6 +4482,114 @@
 
         <!-- ==================== MODAL DE CADASTRO/EDICAO Custo de Operacao ==================== -->
         <!-- ==================== ABA ENGENHARIA ==================== -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- 🗺️ MAPA DE PARCEIROS V8.0 — cadastro georreferenciado + Leaflet  -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <style>
+            #mapaparceiros .mp-head { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+            #mapaparceiros .mp-head h2 { margin:0; font-size:1.5em; }
+            #mapaparceiros .mp-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:14px; }
+            #mapaparceiros .mp-kpi { background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:10px 14px; }
+            #mapaparceiros .mp-kpi .k { color:var(--text-secondary); font-size:0.78em; }
+            #mapaparceiros .mp-kpi .v { font-size:1.6em; font-weight:800; color:var(--accent); line-height:1.1; }
+            #mapaparceiros .mp-filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+            #mapaparceiros .mp-search { flex:1; min-width:170px; }
+            #mapaparceiros .mp-search input, #mapaparceiros select.mp-uf { width:100%; padding:9px 12px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-primary); border-radius:10px; font-size:0.9em; }
+            #mapaparceiros select.mp-uf { width:auto; min-width:150px; }
+            #mapaparceiros .mp-chips { display:flex; gap:6px; flex-wrap:wrap; }
+            #mapaparceiros .mp-chip { font-size:0.78em; padding:6px 12px; border-radius:20px; background:var(--bg-tertiary); color:var(--text-secondary); border:1px solid var(--border); cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:5px; transition:all .15s; }
+            #mapaparceiros .mp-chip .dot { width:9px; height:9px; border-radius:50%; display:inline-block; }
+            #mapaparceiros .mp-chip.on { color:#042c53; font-weight:700; border-color:transparent; }
+            #mapaparceiros .mp-toggle { font-size:0.82em; padding:8px 13px; border-radius:10px; background:var(--bg-tertiary); color:var(--text-primary); border:1px solid var(--border); cursor:pointer; }
+            #mapaparceiros .mp-toggle.on { background:var(--accent); color:#042c53; font-weight:700; border-color:transparent; }
+            #mapaparceiros .mp-toggle.atende.on { background:var(--accent-secondary); color:#fff; }
+            #mapaparceiros .mp-hint { background:rgba(124,58,237,0.15); border:1px solid var(--accent-secondary); color:var(--text-primary); border-radius:10px; padding:8px 12px; font-size:0.82em; margin-bottom:10px; }
+            #mapaparceiros .mp-grid { display:grid; grid-template-columns:1.6fr 1fr; gap:16px; }
+            #mapaparceiros .mp-map { height:560px; border-radius:16px; overflow:hidden; border:1px solid var(--border); background:#0a0e1a; z-index:1; }
+            #mapaparceiros .mp-list { display:flex; flex-direction:column; gap:10px; max-height:560px; overflow-y:auto; padding-right:4px; }
+            #mapaparceiros .mp-card { background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:11px 13px; cursor:pointer; transition:border-color .15s; }
+            #mapaparceiros .mp-card:hover { border-color:var(--accent); }
+            #mapaparceiros .mp-card .nm { font-weight:700; font-size:0.98em; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+            #mapaparceiros .mp-card .loc { color:var(--text-secondary); font-size:0.82em; margin:3px 0 6px; }
+            #mapaparceiros .mp-card .dist { color:var(--accent); font-size:0.78em; white-space:nowrap; }
+            #mapaparceiros .mp-card .tecs { display:flex; gap:5px; flex-wrap:wrap; }
+            #mapaparceiros .mp-tec-tag { font-size:0.72em; padding:2px 8px; border-radius:12px; background:var(--bg-tertiary); border:1px solid var(--border); }
+            #mapaparceiros .mp-empty { color:var(--text-secondary); text-align:center; padding:40px 16px; font-size:0.9em; }
+            #mapaparceiros .mp-edit-link { font-size:0.74em; color:var(--text-secondary); cursor:pointer; text-decoration:underline; }
+            .mp-pin span { display:block; width:16px; height:16px; border-radius:50%; border:2px solid #0a0e1a; box-shadow:0 0 0 2px rgba(255,255,255,.18); }
+            .leaflet-container { background:#0a0e1a; font-family:inherit; }
+            .leaflet-popup-content-wrapper, .leaflet-popup-tip { background:#141b2d; color:#e8ecf4; box-shadow:0 4px 20px rgba(0,0,0,.5); }
+            .leaflet-popup-content { color:#e8ecf4; font-size:0.85em; margin:11px 14px; }
+            .leaflet-popup-content b { color:#00d4ff; }
+            .leaflet-popup-content .mp-pop-btn { display:inline-block; margin-top:8px; padding:5px 11px; background:#00d4ff; color:#042c53; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.92em; }
+            .leaflet-bar a, .leaflet-control-zoom a { background:#141b2d !important; color:#e8ecf4 !important; border-color:rgba(255,255,255,.1) !important; }
+            .leaflet-bar a:hover { background:#1e2841 !important; }
+            #mapaparceiros .mp-two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+            #mapaparceiros .mp-geo-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+            #mapaparceiros .mp-modal-btns { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+            #mpModal .mp-tec-pick { display:flex; gap:6px; flex-wrap:wrap; }
+            @media (max-width:860px){ #mapaparceiros .mp-grid { grid-template-columns:1fr; } #mapaparceiros .mp-map { height:380px; } #mapaparceiros .mp-list { max-height:none; } }
+        </style>
+        <div id="mapaparceiros" class="section">
+            <div class="mp-head">
+                <h2>🗺️ Mapa de Parceiros</h2>
+                <button class="btn btn-primary" onclick="mpAbrirCadastro()" style="padding:10px 16px">➕ Cadastrar parceiro</button>
+            </div>
+            <div class="mp-kpis" id="mpKpis"></div>
+            <div class="mp-filters">
+                <div class="mp-search"><input id="mpBusca" placeholder="🔍 Buscar por nome ou cidade…" oninput="mpRender()"></div>
+                <select class="mp-uf" id="mpUf" onchange="mpRender()"><option value="">Todos os estados</option></select>
+                <button class="mp-toggle atende" id="mpAtendeBtn" onclick="mpToggleAtende()">🎯 Atende aqui?</button>
+                <button class="mp-toggle on" id="mpCirculosBtn" onclick="mpToggleCirculos()">⭕ Raios</button>
+            </div>
+            <div class="mp-chips" id="mpChips" style="margin-bottom:10px"></div>
+            <div class="mp-hint" id="mpAtendeHint" style="display:none">🎯 Modo "Atende aqui?" ativo — clique no mapa no ponto da demanda. Mostro só quem cobre aquele ponto, do mais perto ao mais longe. <span class="mp-edit-link" onclick="mpToggleAtende()">cancelar</span></div>
+            <div class="mp-grid">
+                <div id="mpMap" class="mp-map"></div>
+                <div class="mp-list" id="mpList"><div class="mp-empty">Carregando parceiros…</div></div>
+            </div>
+        </div>
+
+        <!-- Modal cadastro / edição de parceiro -->
+        <div id="mpModal" class="modal">
+            <div class="modal-content" style="max-width:560px">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+                    <h2 id="mpModalTitulo" style="margin:0">Cadastrar parceiro</h2>
+                    <button class="btn btn-secondary" onclick="mpFecharModal()" style="padding:6px 12px;font-size:0.85em">✕</button>
+                </div>
+                <input type="hidden" id="mpEditId">
+                <div class="form-group"><label>Nome *</label><input type="text" id="mpfNome" placeholder="Ex.: Amilton RTK"></div>
+                <div class="mp-two">
+                    <div class="form-group"><label>Cidade</label><input type="text" id="mpfCidade" placeholder="Curitiba"></div>
+                    <div class="form-group"><label>UF</label><input type="text" id="mpfUf" maxlength="2" placeholder="PR" style="text-transform:uppercase"></div>
+                </div>
+                <div class="mp-two">
+                    <div class="form-group"><label>Latitude</label><input type="text" id="mpfLat" placeholder="-25.4284"></div>
+                    <div class="form-group"><label>Longitude</label><input type="text" id="mpfLng" placeholder="-49.2733"></div>
+                </div>
+                <div class="mp-geo-actions">
+                    <button class="btn btn-secondary" onclick="mpGeoFromCidade()" style="padding:8px 12px;font-size:0.82em">📍 Coords da cidade</button>
+                    <button class="btn btn-secondary" onclick="mpPickOnMap()" style="padding:8px 12px;font-size:0.82em">🖱️ Clicar no mapa</button>
+                </div>
+                <div class="form-group"><label>Tecnologias atendidas</label><div class="mp-tec-pick" id="mpfTecnologias"></div></div>
+                <div class="mp-two">
+                    <div class="form-group"><label>Raio de cobertura (km)</label><input type="number" id="mpfRaio" placeholder="100" min="0"></div>
+                    <div class="form-group"><label>Avaliação (0–5)</label><input type="number" id="mpfAval" min="0" max="5" step="0.5" placeholder="4.5"></div>
+                </div>
+                <div class="mp-two">
+                    <div class="form-group"><label>Telefone</label><input type="text" id="mpfTel" placeholder="(41) 9 9999-0000"></div>
+                    <div class="form-group"><label>E-mail / contato</label><input type="text" id="mpfEmail" placeholder="nome@email.com"></div>
+                </div>
+                <div class="form-group"><label>Observações</label><textarea id="mpfObs" placeholder="Notas, disponibilidade, condições…" style="min-height:50px"></textarea></div>
+                <div class="form-group"><label>Status</label><select id="mpfStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+                <div class="mp-modal-btns">
+                    <button class="btn btn-primary" onclick="mpSalvar()" style="flex:1;padding:13px">💾 Salvar</button>
+                    <button class="btn btn-danger" id="mpDelBtn" onclick="mpExcluir()" style="padding:13px 18px;display:none">🗑️</button>
+                    <button class="btn btn-secondary" onclick="mpFecharModal()" style="padding:13px 18px">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
         <div id="engenharia" class="section">
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px">
@@ -4525,6 +4644,11 @@
              ARQUITETURA BIM V1.0 — Painel da Ana + Custos BIM (15/06/2026)
              ════════════════════════════════════════════════════════════════ -->
         <style>
+            /* Usuário restrito (Ana): esconde TODO o comercial global, à prova de timing/!important */
+            html.hide-commercial .home-hero,
+            html.hide-commercial .stats,
+            html.hide-commercial #homeFilterBar,
+            html.hide-commercial #notifBtn { display: none !important; }
             .arq-pill { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:999px; font-size:0.72em; font-weight:600; white-space:nowrap; }
             .arq-ok    { background:rgba(34,197,94,0.16);  color:#4ade80; }
             .arq-prog  { background:rgba(6,182,212,0.16);  color:#22d3ee; }
@@ -6223,39 +6347,59 @@
                 }
             }
 
-            // Cache logic
-            const cache = localStorage.getItem('crm_data_v18');
+            // Cache logic — V8.2: usuário restrito (Ana) NÃO carrega as propostas da empresa
+            // pra memória/DOM (nem da aba comercial escondida). Fecha o vazamento na raiz.
+            const _restritoNow = (function(){ try { var me=(sessionStorage.getItem('crm_auth')||'').toLowerCase(); var p=(typeof USER_PERMISSIONS!=='undefined'&&USER_PERMISSIONS[me])||[]; return p.length>0 && p.indexOf('oportunidades')===-1; } catch(e){ return false; } })();
+            const cache = _restritoNow ? null : localStorage.getItem('crm_data_v18');
             if (cache) {
                 propostas = JSON.parse(cache);
                 // Normalizar cache
                 propostas.forEach(normalizarProposta);
                 window.propostas = propostas;
+            } else if (_restritoNow) {
+                propostas = []; window.propostas = [];
+                try { localStorage.removeItem('crm_data_v18'); } catch (e) {}
             }
             carregarEdits();
             filtrar();
 
-            // Puxar da nuvem imediatamente
-            puxarDadosDaNuvem();
-            // Sobe qualquer edicao que ficou presa (ex.: feita offline) — antes era manual via botao Sincronizar
+            // V8.2: usuário restrito (Ana) NÃO baixa dado comercial/financeiro/operacional da
+            // empresa pro navegador dele (nem em localStorage). O segredo da API é compartilhado,
+            // então a proteção real é NÃO buscar esses dados — só o que é da área dele (produção BIM).
+            var _meRestrito = (function () {
+                try {
+                    var me = (sessionStorage.getItem('crm_auth') || localStorage.getItem('crm_auth') || '').toLowerCase();
+                    var p = (typeof USER_PERMISSIONS !== 'undefined' && USER_PERMISSIONS[me]) || [];
+                    return p.length > 0 && p.indexOf('oportunidades') === -1;
+                } catch (e) { return false; }
+            })();
+            if (_meRestrito) {
+                // Apaga qualquer dado da empresa que tenha sobrado em cache de sessões antigas
+                ['crm_data_v18', 'crm_hero_kpis_v1', 'crm_fin_parcelas_v1', 'crm_tp_items_v1', 'crm_anexos_v1'].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+            } else {
+                // Puxar da nuvem imediatamente
+                puxarDadosDaNuvem();
+            }
+            // Sobe qualquer edicao que ficou presa (ex.: feita offline)
             flushPendingEdits();
 
-            // Prefetch em background — Financeiro, TopoPartners, Engenharia e Fluxo de Caixa
-            // Dispara apos 500ms para nao competir com puxarDadosDaNuvem (que e prioritario)
+            // Prefetch em background. Restrito (Ana): SÓ engenharia (produção BIM).
             setTimeout(function() {
+                if (typeof engRefresh === 'function') engRefresh().catch(()=>{});
+                if (_meRestrito) return;
                 if (typeof finRefresh === 'function') finRefresh().catch(()=>{});
                 if (typeof tpRefresh === 'function') tpRefresh().catch(()=>{});
-                if (typeof engRefresh === 'function') engRefresh().catch(()=>{});
                 if (typeof fcRefresh === 'function') fcRefresh().catch(()=>{});
                 carregarTodosAnexos(true);
             }, 500);
 
-            // Refresh periodically (optional, every 5 mins)
-            setInterval(puxarDadosDaNuvem, 300000);
-            // Refresh Financeiro, TopoPartners, Engenharia e Fluxo de Caixa em background a cada 5 min
+            // Refresh periodico (5 min)
+            if (!_meRestrito) setInterval(puxarDadosDaNuvem, 300000);
             setInterval(function() {
+                if (typeof engRefresh === 'function') engRefresh({ skipCache: true }).catch(()=>{});
+                if (_meRestrito) return;
                 if (typeof finRefresh === 'function') finRefresh({ skipCache: true }).catch(()=>{});
                 if (typeof tpRefresh === 'function') tpRefresh({ skipCache: true }).catch(()=>{});
-                if (typeof engRefresh === 'function') engRefresh({ skipCache: true }).catch(()=>{});
                 if (typeof fcRefresh === 'function') fcRefresh({ skipCache: true }).catch(()=>{});
             }, 300000);
 
@@ -8674,6 +8818,7 @@ Data: ${h.data}`;
                         const cached = localStorage.getItem('crm_eng_itens_v1');
                         if (cached) {
                             engItens = JSON.parse(cached) || [];
+                            if (typeof arqUsuarioRestrito === 'function' && arqUsuarioRestrito()) engItens = arqFiltrarBIM(engItens);
                             engRenderKPIs(engComputarKPIs(engItens));
                             renderizarEngenharia();
                         }
@@ -8684,6 +8829,7 @@ Data: ${h.data}`;
                     const list = await finApi('listProducao', {});
                     if (list && list.ok) {
                         engItens = list.itens || [];
+                        if (typeof arqUsuarioRestrito === 'function' && arqUsuarioRestrito()) engItens = arqFiltrarBIM(engItens);
                         engLastLoad = Date.now();
                         try { localStorage.setItem('crm_eng_itens_v1', JSON.stringify(engItens)); } catch (e) {}
                     }
@@ -11159,6 +11305,9 @@ Data: ${h.data}`;
                         centralRefresh();
                     }
                 }
+                if (tabId === 'mapaparceiros') {
+                    if (typeof mpInit === 'function') mpInit();
+                }
             };
 
             const _origSalvarEdicao = salvarEdicao;
@@ -11201,6 +11350,26 @@ Data: ${h.data}`;
                 if (!m) return null;
                 var y = parseInt(m[3]); if (y < 100) y += 2000;
                 return new Date(y, parseInt(m[2]) - 1, parseInt(m[1]));
+            }
+
+            // Usuário restrito (sem acesso comercial) — ex.: Ana. Escopa a Engenharia dela só pra BIM.
+            function arqUsuarioRestrito() {
+                try {
+                    var me = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
+                    var p = (typeof USER_PERMISSIONS !== 'undefined' && USER_PERMISSIONS[me]) || [];
+                    return p.length > 0 && p.indexOf('oportunidades') === -1;
+                } catch (e) { return false; }
+            }
+            // Mantém só projetos com tarefa de modelagem (BIM/Modelagem/Revit/IFC). Espelha o backend.
+            function arqFiltrarBIM(itens) {
+                var re = /(\bbim\b|modelag|\brevit\b|\bifc\b)/i;
+                var key = function (r) { return (r.projeto && String(r.projeto).trim()) || ('Proposta ' + r.numeroProposta); };
+                var bim = {};
+                (itens || []).forEach(function (r) {
+                    var txt = String(r.fase || '') + ' ' + String(r.subitem || '');
+                    if (re.test(txt)) bim[key(r)] = true;
+                });
+                return (itens || []).filter(function (r) { return bim[key(r)]; });
             }
 
             // --- estágio cross-area → pílula (cor + ícone) ---
@@ -11299,11 +11468,9 @@ Data: ${h.data}`;
                         projEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhum projeto de produção ainda.</div>';
                     } else {
                         var hp = '';
-                        projetos.forEach(function (p) {
+                        projetos.forEach(function (p, idx) {
                             var fill = p.atrasado ? '#ef4444' : (p.pct >= 100 ? '#22c55e' : '#06b6d4');
-                            var np = String(p.numeroProposta || '').replace(/'/g, "\\'");
-                            var pj = String(p.projeto || '').replace(/'/g, "\\'");
-                            hp += '<div class="arq-proj" onclick="arqAbrirProjeto(\'' + np + '\',\'' + pj + '\')">';
+                            hp += '<div class="arq-proj" onclick="arqAbrirProjetoByIdx(' + idx + ')">';
                             hp += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px">';
                             hp += '<span style="font-weight:700">' + arqEsc(p.projeto) + (p.concluido ? ' <span style="color:#22c55e;font-size:0.8em">✓ concluído</span>' : '') + '</span>';
                             hp += '<span style="font-size:0.78em;color:' + (p.atrasado ? '#ef4444' : 'var(--text-secondary)') + '">' + (p.responsaveis && p.responsaveis.length ? '👤 ' + arqEsc(p.responsaveis.join(', ')) + ' · ' : '') + (p.atrasado ? '⚠️ ' : '📅 ') + arqEsc(p.previsaoEntrega || 's/ data') + '</span>';
@@ -11338,6 +11505,12 @@ Data: ${h.data}`;
                 }
             }
 
+            // Abre o projeto pelo índice no _arqData (sem interpolar nome no HTML — sem risco de aspas/XSS).
+            function arqAbrirProjetoByIdx(idx) {
+                var p = (window._arqData && window._arqData.projetos && window._arqData.projetos[idx]) || null;
+                if (!p) return;
+                arqAbrirProjeto(p.numeroProposta, p.projeto);
+            }
             async function arqAbrirProjeto(numeroProposta, projeto) {
                 if (typeof trocarTab === 'function') trocarTab('engenharia');
                 try { if (typeof engRefresh === 'function') await engRefresh(); } catch (e) {}
@@ -11548,6 +11721,353 @@ Data: ${h.data}`;
             })();
         </script>
     </div><!-- /crmContent -->
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- 🗺️ MAPA DE PARCEIROS V8.0 — módulo isolado (escopo global próprio) -->
+    <!-- Self-contained: fetch + escaper próprios, não depende do escopo do  -->
+    <!-- app. Backend: actions list/add/update/delete/getParceirosKPIs.       -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <script>
+        (function () {
+            const MP_URL = 'https://script.google.com/macros/s/AKfycbz_EE5M_grgoMdkjs7OJHHlDPSQB8qH-oJ4T6Pqg-0qDZYWq1qTZv_sZeJ6mXU-5-Gt3A/exec';
+            const MP_SECRET = 'toposcan-agent-2026';
+            const MP_CACHE_KEY = 'crm_mp_parceiros_v1';
+
+            const MP_TECS = ['RTK/GNSS', 'Drone/Aerofotogrametria', 'Scanner terrestre', 'Batimetria', 'BIM/Modelagem', 'Topografia convencional'];
+            const MP_TEC_COLOR = {
+                'RTK/GNSS': '#00d4ff', 'Drone/Aerofotogrametria': '#7c3aed', 'Scanner terrestre': '#5dcaa5',
+                'Batimetria': '#f0997b', 'BIM/Modelagem': '#fac775', 'Topografia convencional': '#85b7eb'
+            };
+            const MP_DEFAULT_COLOR = '#8a94a8';
+            const MP_UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
+            // Tabela de coords das principais cidades BR (geocode offline). Chave normalizada.
+            const MP_CITIES = {
+                'sao paulo':[-23.5505,-46.6333,'SP'],'rio de janeiro':[-22.9068,-43.1729,'RJ'],'brasilia':[-15.7939,-47.8828,'DF'],
+                'curitiba':[-25.4284,-49.2733,'PR'],'porto alegre':[-30.0346,-51.2177,'RS'],'florianopolis':[-27.5949,-48.5482,'SC'],
+                'joinville':[-26.3045,-48.8487,'SC'],'belo horizonte':[-19.9167,-43.9345,'MG'],'salvador':[-12.9777,-38.5016,'BA'],
+                'recife':[-8.0476,-34.8770,'PE'],'fortaleza':[-3.7319,-38.5267,'CE'],'manaus':[-3.1190,-60.0217,'AM'],
+                'belem':[-1.4558,-48.4902,'PA'],'goiania':[-16.6869,-49.2648,'GO'],'campo grande':[-20.4697,-54.6201,'MS'],
+                'cuiaba':[-15.6014,-56.0979,'MT'],'vitoria':[-20.3155,-40.3128,'ES'],'natal':[-5.7945,-35.2110,'RN'],
+                'joao pessoa':[-7.1195,-34.8450,'PB'],'maceio':[-9.6498,-35.7089,'AL'],'aracaju':[-10.9472,-37.0731,'SE'],
+                'teresina':[-5.0892,-42.8019,'PI'],'sao luis':[-2.5307,-44.3068,'MA'],'palmas':[-10.1840,-48.3336,'TO'],
+                'porto velho':[-8.7619,-63.9039,'RO'],'rio branco':[-9.9747,-67.8100,'AC'],'boa vista':[2.8235,-60.6758,'RR'],
+                'macapa':[0.0349,-51.0694,'AP'],'londrina':[-23.3045,-51.1696,'PR'],'maringa':[-23.4253,-51.9386,'PR'],
+                'cascavel':[-24.9555,-53.4552,'PR'],'ponta grossa':[-25.0945,-50.1633,'PR'],'foz do iguacu':[-25.5163,-54.5854,'PR'],
+                'caxias do sul':[-29.1685,-51.1796,'RS'],'pelotas':[-31.7654,-52.3376,'RS'],'santa maria':[-29.6868,-53.8149,'RS'],
+                'blumenau':[-26.9194,-49.0661,'SC'],'chapeco':[-27.1004,-52.6152,'SC'],'criciuma':[-28.6775,-49.3697,'SC'],
+                'campinas':[-22.9099,-47.0626,'SP'],'ribeirao preto':[-21.1775,-47.8103,'SP'],'sao jose dos campos':[-23.1896,-45.8841,'SP'],
+                'sorocaba':[-23.5015,-47.4526,'SP'],'santos':[-23.9608,-46.3336,'SP'],'uberlandia':[-18.9186,-48.2772,'MG'],
+                'juiz de fora':[-21.7642,-43.3503,'MG']
+            };
+
+            // ── Estado do módulo ──
+            let mpInited = false;
+            let mpMap = null, mpLayer = null, mpAtendeLayer = null;
+            let mpParceiros = [];
+            let mpMarkers = {};
+            const mpFiltroTec = new Set();
+            let mpMostrarCirculos = true;
+            let mpAtendeOn = false, mpAtendePonto = null;
+            let mpClickMode = '';
+            let mpLastLoad = 0;
+
+            // ── Helpers ──
+            function mpEsc(s) { const d = document.createElement('div'); d.textContent = (s == null ? '' : s); return d.innerHTML; }
+            function mpNorm(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim(); }
+            function $(id) { return document.getElementById(id); }
+            function mpTecColor(p) {
+                const t = (p.tecnologias || []).find(x => MP_TEC_COLOR[x]);
+                return t ? MP_TEC_COLOR[t] : MP_DEFAULT_COLOR;
+            }
+            function mpHaversine(a, b, c, d) {
+                const R = 6371, toR = x => x * Math.PI / 180;
+                const dLat = toR(c - a), dLon = toR(d - b);
+                const s = Math.sin(dLat / 2) ** 2 + Math.cos(toR(a)) * Math.cos(toR(c)) * Math.sin(dLon / 2) ** 2;
+                return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+            }
+            function mpFmtDist(km) { return km < 1 ? Math.round(km * 1000) + ' m' : Math.round(km) + ' km'; }
+            async function mpApi(action, payload) {
+                const body = Object.assign({ action: action, secret: MP_SECRET }, payload || {});
+                const r = await fetch(MP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), redirect: 'follow' });
+                return r.json();
+            }
+
+            // ── Init (lazy, na 1ª troca pra aba) ──
+            function mpInit() {
+                if (mpInited) { if (mpMap) setTimeout(() => mpMap.invalidateSize(), 60); return; }
+                if (typeof L === 'undefined') {
+                    $('mpMap').innerHTML = '<div class="mp-empty" style="padding:60px 20px">Não foi possível carregar o mapa (Leaflet offline). Verifique a conexão e atualize.</div>';
+                    return;
+                }
+                mpInited = true;
+
+                // Chips de tecnologia (filtro)
+                const chips = MP_TECS.map(t =>
+                    '<span class="mp-chip" data-tec="' + mpEsc(t) + '" onclick="mpToggleChip(this)"><span class="dot" style="background:' + MP_TEC_COLOR[t] + '"></span>' + mpEsc(t) + '</span>'
+                ).join('');
+                $('mpChips').innerHTML = chips;
+                // Tec-pick (modal)
+                $('mpfTecnologias').innerHTML = MP_TECS.map(t =>
+                    '<span class="mp-chip" data-tec="' + mpEsc(t) + '" onclick="mpToggleTecPick(this)"><span class="dot" style="background:' + MP_TEC_COLOR[t] + '"></span>' + mpEsc(t) + '</span>'
+                ).join('');
+                // UF select
+                $('mpUf').innerHTML = '<option value="">Todos os estados</option>' + MP_UFS.map(u => '<option value="' + u + '">' + u + '</option>').join('');
+
+                mpMap = L.map('mpMap', { zoomControl: true, attributionControl: true }).setView([-14.5, -51.9], 4);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19
+                }).addTo(mpMap);
+                mpLayer = L.layerGroup().addTo(mpMap);
+                mpAtendeLayer = L.layerGroup().addTo(mpMap);
+                mpMap.on('click', mpOnMapClick);
+
+                // Hidrata do cache (instantâneo) e busca fresco
+                try { const c = localStorage.getItem(MP_CACHE_KEY); if (c) { mpParceiros = JSON.parse(c) || []; mpRender(); } } catch (e) {}
+                mpRefresh();
+                setTimeout(() => mpMap.invalidateSize(), 80);
+            }
+
+            async function mpRefresh() {
+                try {
+                    const r = await mpApi('listParceiros');
+                    if (r && r.ok) {
+                        mpParceiros = r.parceiros || [];
+                        mpLastLoad = Date.now();
+                        try { localStorage.setItem(MP_CACHE_KEY, JSON.stringify(mpParceiros)); } catch (e) {}
+                        mpRender();
+                    }
+                } catch (e) { console.warn('mpRefresh falhou', e); }
+            }
+
+            // ── Filtro + render ──
+            function mpFiltrar() {
+                const busca = mpNorm($('mpBusca') ? $('mpBusca').value : '');
+                const uf = $('mpUf') ? $('mpUf').value : '';
+                const tecSel = Array.from(mpFiltroTec);
+                let list = mpParceiros.slice();
+                if (busca) list = list.filter(p => mpNorm(p.nome).includes(busca) || mpNorm(p.cidade).includes(busca));
+                if (uf) list = list.filter(p => (p.uf || '') === uf);
+                if (tecSel.length) list = list.filter(p => (p.tecnologias || []).some(t => tecSel.includes(t)));
+                if (mpAtendeOn && mpAtendePonto) {
+                    list = list.filter(p => p.latitude != null && p.longitude != null && p.raioKm > 0)
+                        .map(p => Object.assign({}, p, { _dist: mpHaversine(p.latitude, p.longitude, mpAtendePonto.lat, mpAtendePonto.lng) }))
+                        .filter(p => p._dist <= p.raioKm)
+                        .sort((a, b) => a._dist - b._dist);
+                } else {
+                    list.sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+                }
+                return list;
+            }
+
+            function mpRender() {
+                if (!mpInited) return;
+                const list = mpFiltrar();
+                mpMarkers = {};
+                mpLayer.clearLayers();
+
+                list.forEach(p => {
+                    if (p.latitude == null || p.longitude == null) return;
+                    const color = mpTecColor(p);
+                    if (mpMostrarCirculos && p.raioKm > 0) {
+                        L.circle([p.latitude, p.longitude], { radius: p.raioKm * 1000, color: color, weight: 1, fillColor: color, fillOpacity: 0.07 }).addTo(mpLayer);
+                    }
+                    const icon = L.divIcon({ className: 'mp-pin', html: '<span style="background:' + color + '"></span>', iconSize: [18, 18], iconAnchor: [9, 9] });
+                    const m = L.marker([p.latitude, p.longitude], { icon: icon }).addTo(mpLayer);
+                    m.bindPopup(mpPopupHtml(p));
+                    mpMarkers[p.id] = m;
+                });
+
+                mpRenderLista(list);
+                mpRenderKpis(list.length);
+            }
+
+            function mpPopupHtml(p) {
+                const tecs = (p.tecnologias || []).map(t => mpEsc(t)).join(', ') || '—';
+                let h = '<b>' + mpEsc(p.nome) + '</b>';
+                if (p.cidade || p.uf) h += '<br>' + mpEsc(p.cidade || '') + (p.uf ? '/' + mpEsc(p.uf) : '');
+                h += '<br>🛠️ ' + tecs;
+                if (p.raioKm > 0) h += '<br>📡 raio ' + Math.round(p.raioKm) + ' km';
+                if (typeof p._dist === 'number') h += '<br>📍 ' + mpFmtDist(p._dist) + ' do ponto';
+                if (p.telefone) h += '<br>📞 ' + mpEsc(p.telefone);
+                h += '<br><span class="mp-pop-btn" onclick="mpEditar(\'' + mpEsc(p.id) + '\')">✏️ Editar</span>';
+                return h;
+            }
+
+            function mpRenderLista(list) {
+                const el = $('mpList');
+                if (!list.length) {
+                    el.innerHTML = '<div class="mp-empty">' + (mpParceiros.length ? 'Nenhum parceiro bate com os filtros.' : 'Nenhum parceiro cadastrado ainda.<br>Clique em <b>➕ Cadastrar parceiro</b>.') + '</div>';
+                    return;
+                }
+                el.innerHTML = list.map(p => {
+                    const tecs = (p.tecnologias || []).map(t => '<span class="mp-tec-tag">' + mpEsc(t) + '</span>').join('');
+                    const dist = (typeof p._dist === 'number') ? '<span class="dist">📍 ' + mpFmtDist(p._dist) + '</span>' : (p.raioKm > 0 ? '<span class="dist">raio ' + Math.round(p.raioKm) + ' km</span>' : '');
+                    const sem = (p.latitude == null || p.longitude == null) ? ' ⚠️ sem coords' : '';
+                    const op = (String(p.status || 'ativo').toLowerCase() === 'inativo') ? 'opacity:.55;' : '';
+                    return '<div class="mp-card" style="' + op + '" onclick="mpFlyTo(\'' + mpEsc(p.id) + '\')">' +
+                        '<div class="nm">' + mpEsc(p.nome) + dist + '</div>' +
+                        '<div class="loc">' + (mpEsc(p.cidade || '—')) + (p.uf ? '/' + mpEsc(p.uf) : '') + sem +
+                        ' <span class="mp-edit-link" onclick="event.stopPropagation();mpEditar(\'' + mpEsc(p.id) + '\')">editar</span></div>' +
+                        '<div class="tecs">' + (tecs || '<span class="mp-tec-tag" style="opacity:.6">sem tecnologia</span>') + '</div>' +
+                        '</div>';
+                }).join('');
+            }
+
+            function mpRenderKpis(exibindo) {
+                const ufs = {}, tecs = {}; let ativos = 0;
+                mpParceiros.forEach(p => { if (p.uf) ufs[p.uf] = 1; (p.tecnologias || []).forEach(t => tecs[t] = 1); if (String(p.status || 'ativo').toLowerCase() === 'ativo') ativos++; });
+                const cards = [
+                    ['Parceiros', mpParceiros.length], ['Ativos', ativos],
+                    ['Estados', Object.keys(ufs).length], ['Tecnologias', Object.keys(tecs).length],
+                    ['Exibindo', exibindo]
+                ];
+                $('mpKpis').innerHTML = cards.map(c => '<div class="mp-kpi"><div class="k">' + c[0] + '</div><div class="v">' + c[1] + '</div></div>').join('');
+            }
+
+            // ── Interações ──
+            function mpToggleChip(el) {
+                const t = el.getAttribute('data-tec');
+                if (mpFiltroTec.has(t)) { mpFiltroTec.delete(t); el.classList.remove('on'); el.style.background = ''; }
+                else { mpFiltroTec.add(t); el.classList.add('on'); el.style.background = MP_TEC_COLOR[t] || 'var(--accent)'; }
+                mpRender();
+            }
+            function mpToggleCirculos() {
+                mpMostrarCirculos = !mpMostrarCirculos;
+                $('mpCirculosBtn').classList.toggle('on', mpMostrarCirculos);
+                mpRender();
+            }
+            function mpToggleAtende() {
+                mpAtendeOn = !mpAtendeOn;
+                $('mpAtendeBtn').classList.toggle('on', mpAtendeOn);
+                $('mpAtendeHint').style.display = mpAtendeOn ? '' : 'none';
+                if (!mpAtendeOn) { mpAtendePonto = null; mpAtendeLayer.clearLayers(); }
+                mpRender();
+            }
+            function mpOnMapClick(e) {
+                if (mpClickMode === 'pick') {
+                    mpClickMode = '';
+                    $('mpfLat').value = e.latlng.lat.toFixed(5);
+                    $('mpfLng').value = e.latlng.lng.toFixed(5);
+                    mpRestoreHint();
+                    $('mpModal').classList.add('active');
+                    return;
+                }
+                if (mpAtendeOn) {
+                    mpAtendePonto = { lat: e.latlng.lat, lng: e.latlng.lng };
+                    mpAtendeLayer.clearLayers();
+                    L.circleMarker([e.latlng.lat, e.latlng.lng], { radius: 8, color: '#7c3aed', weight: 2, fillColor: '#7c3aed', fillOpacity: 0.9 }).addTo(mpAtendeLayer).bindPopup('🎯 Demanda aqui');
+                    mpRender();
+                }
+            }
+            function mpRestoreHint() {
+                const h = $('mpAtendeHint');
+                h.innerHTML = '🎯 Modo "Atende aqui?" ativo — clique no mapa no ponto da demanda. Mostro só quem cobre aquele ponto, do mais perto ao mais longe. <span class="mp-edit-link" onclick="mpToggleAtende()">cancelar</span>';
+                h.style.display = mpAtendeOn ? '' : 'none';
+            }
+
+            function mpFlyTo(id) {
+                const p = mpParceiros.find(x => String(x.id) === String(id));
+                if (!p || p.latitude == null) return;
+                mpMap.setView([p.latitude, p.longitude], 9, { animate: true });
+                const m = mpMarkers[id];
+                if (m) m.openPopup();
+            }
+
+            // ── Cadastro / edição ──
+            function mpSetForm(p) {
+                $('mpfNome').value = p.nome || ''; $('mpfCidade').value = p.cidade || ''; $('mpfUf').value = p.uf || '';
+                $('mpfLat').value = (p.latitude != null ? p.latitude : ''); $('mpfLng').value = (p.longitude != null ? p.longitude : '');
+                $('mpfRaio').value = (p.raioKm || ''); $('mpfAval').value = (p.avaliacao || ''); $('mpfTel').value = p.telefone || '';
+                $('mpfEmail').value = p.email || ''; $('mpfObs').value = p.observacoes || ''; $('mpfStatus').value = p.status || 'ativo';
+                const sel = new Set(p.tecnologias || []);
+                document.querySelectorAll('#mpfTecnologias .mp-chip').forEach(c => {
+                    const t = c.getAttribute('data-tec');
+                    if (sel.has(t)) { c.classList.add('on'); c.style.background = MP_TEC_COLOR[t]; } else { c.classList.remove('on'); c.style.background = ''; }
+                });
+            }
+            function mpAbrirCadastro() {
+                if (!mpInited) mpInit();
+                $('mpEditId').value = '';
+                $('mpModalTitulo').textContent = 'Cadastrar parceiro';
+                $('mpDelBtn').style.display = 'none';
+                mpSetForm({ status: 'ativo' });
+                $('mpModal').classList.add('active');
+            }
+            function mpEditar(id) {
+                const p = mpParceiros.find(x => String(x.id) === String(id));
+                if (!p) return;
+                if (mpMap) mpMap.closePopup();
+                $('mpEditId').value = p.id;
+                $('mpModalTitulo').textContent = 'Editar parceiro';
+                $('mpDelBtn').style.display = '';
+                mpSetForm(p);
+                $('mpModal').classList.add('active');
+            }
+            function mpFecharModal() { $('mpModal').classList.remove('active'); mpClickMode = ''; }
+            function mpToggleTecPick(el) {
+                const on = el.classList.toggle('on');
+                el.style.background = on ? (MP_TEC_COLOR[el.getAttribute('data-tec')] || 'var(--accent)') : '';
+            }
+            function mpGeoFromCidade() {
+                const c = mpNorm($('mpfCidade').value);
+                const hit = MP_CITIES[c];
+                if (!hit) { alert('Cidade não está na tabela de coords. Use "🖱️ Clicar no mapa" pra cravar o pino, ou digite lat/long manualmente.'); return; }
+                $('mpfLat').value = hit[0]; $('mpfLng').value = hit[1];
+                if (!$('mpfUf').value) $('mpfUf').value = hit[2];
+            }
+            function mpPickOnMap() {
+                if (!mpMap) return;
+                $('mpModal').classList.remove('active');
+                mpClickMode = 'pick';
+                const h = $('mpAtendeHint');
+                h.innerHTML = '🖱️ Clique no mapa pra cravar o pino do parceiro. <span class="mp-edit-link" onclick="mpCancelPick()">cancelar</span>';
+                h.style.display = '';
+                setTimeout(() => mpMap.invalidateSize(), 50);
+            }
+            function mpCancelPick() { mpClickMode = ''; mpRestoreHint(); $('mpModal').classList.add('active'); }
+
+            async function mpSalvar() {
+                const nome = $('mpfNome').value.trim();
+                if (!nome) { alert('Nome é obrigatório.'); return; }
+                const tecs = Array.from(document.querySelectorAll('#mpfTecnologias .mp-chip.on')).map(c => c.getAttribute('data-tec'));
+                const latRaw = $('mpfLat').value.trim(), lngRaw = $('mpfLng').value.trim();
+                const payload = {
+                    nome: nome, cidade: $('mpfCidade').value.trim(), uf: $('mpfUf').value.trim().toUpperCase(),
+                    latitude: latRaw === '' ? '' : parseFloat(latRaw.replace(',', '.')),
+                    longitude: lngRaw === '' ? '' : parseFloat(lngRaw.replace(',', '.')),
+                    tecnologias: tecs, raioKm: $('mpfRaio').value.trim(), avaliacao: $('mpfAval').value.trim(),
+                    telefone: $('mpfTel').value.trim(), email: $('mpfEmail').value.trim(),
+                    observacoes: $('mpfObs').value.trim(), status: $('mpfStatus').value
+                };
+                const editId = $('mpEditId').value;
+                const btn = event && event.target; if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+                try {
+                    const r = editId ? await mpApi('updateParceiro', Object.assign({ id: editId }, payload)) : await mpApi('addParceiro', payload);
+                    if (r && r.ok) { mpFecharModal(); await mpRefresh(); }
+                    else { alert('Erro ao salvar: ' + ((r && r.error) || 'desconhecido')); }
+                } catch (e) { alert('Falha de rede ao salvar.'); }
+                finally { if (btn) { btn.disabled = false; btn.textContent = '💾 Salvar'; } }
+            }
+            async function mpExcluir() {
+                const id = $('mpEditId').value;
+                if (!id) return;
+                if (!confirm('Excluir este parceiro do mapa? Esta ação não tem desfazer.')) return;
+                try {
+                    const r = await mpApi('deleteParceiro', { id: id });
+                    if (r && r.ok) { mpFecharModal(); await mpRefresh(); }
+                    else { alert('Erro ao excluir: ' + ((r && r.error) || 'desconhecido')); }
+                } catch (e) { alert('Falha de rede ao excluir.'); }
+            }
+
+            // Expõe os handlers usados por onclick (escopo global)
+            Object.assign(window, {
+                mpInit, mpRender, mpRefresh, mpToggleChip, mpToggleCirculos, mpToggleAtende,
+                mpFlyTo, mpAbrirCadastro, mpEditar, mpFecharModal, mpToggleTecPick,
+                mpGeoFromCidade, mpPickOnMap, mpCancelPick, mpSalvar, mpExcluir
+            });
+        })();
+    </script>
 </body>
 
 </html>
