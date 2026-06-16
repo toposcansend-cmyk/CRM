@@ -4543,7 +4543,11 @@
             #mapaparceiros .mp-two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
             #mapaparceiros .mp-geo-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
             #mapaparceiros .mp-modal-btns { display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
-            #mpModal .mp-tec-pick { display:flex; gap:6px; flex-wrap:wrap; }
+            #mpModal .mp-tec-pick { display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+            #mpModal .mp-tec-pick .mp-chip { font-size:0.82em; padding:7px 13px; border-radius:20px; background:var(--bg-tertiary); color:var(--text-secondary); border:1px solid var(--border); cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:6px; transition:all .15s; }
+            #mpModal .mp-tec-pick .mp-chip:hover { border-color:var(--accent); }
+            #mpModal .mp-tec-pick .mp-chip .dot { width:10px; height:10px; border-radius:50%; display:inline-block; flex:none; }
+            #mpModal .mp-tec-pick .mp-chip.on { color:#042c53; font-weight:700; border-color:transparent; }
             @media (max-width:860px){ #mapaparceiros .mp-grid { grid-template-columns:1fr; } #mapaparceiros .mp-map { height:380px; } #mapaparceiros .mp-list { max-height:none; } }
         </style>
         <div id="mapaparceiros" class="section">
@@ -4606,7 +4610,7 @@
                     <div class="form-group"><label>Latitude</label><input type="text" id="mpfLat" placeholder="(preenche sozinho)"></div>
                     <div class="form-group"><label>Longitude</label><input type="text" id="mpfLng" placeholder="(preenche sozinho)"></div>
                 </div>
-                <div class="form-group"><label>Tecnologias atendidas</label><div class="mp-tec-pick" id="mpfTecnologias"></div></div>
+                <div class="form-group"><label>Tecnologias atendidas <span style="color:var(--text-secondary);font-weight:400;font-size:0.85em">· clique pra marcar (pode várias)</span></label><div class="mp-tec-pick" id="mpfTecnologias"></div></div>
                 <div class="mp-two">
                     <div class="form-group"><label>Raio de cobertura (km) <span style="color:var(--text-secondary);font-weight:400;font-size:0.85em">· opcional p/ modelista</span></label><input type="text" inputmode="decimal" id="mpfRaio" placeholder="100"></div>
                     <div class="form-group"><label>Avaliação (qualidade)</label><div class="mp-stars-pick" id="mpfEstrelas"></div><input type="hidden" id="mpfAval"></div>
