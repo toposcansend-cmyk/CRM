@@ -3194,7 +3194,8 @@
             'admin@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'guilherme@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
             'marcelo@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
-            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
+            'allana@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8',
+            'arquitetura@toposcan.com.br': 'fed77c10a333b7238d970ceed0ef963c520e7d8eedb5a2cd7969276dd4c2b3a8'
         };
 
         // ═══════════════════════════════════════════════════════════════
@@ -3207,17 +3208,32 @@
         // Para adicionar um usuário: adiciona no AUTH_USERS acima + define aqui.
         // Para mudar permissão: edita a lista de abas dele.
         // ═══════════════════════════════════════════════════════════════
-        const TODAS_ABAS = ['central','oportunidades','pipeline','evolucao','insights','kpi','followup','orcamento','financeiro','topopartners','engenharia','fluxocaixa'];
+        const TODAS_ABAS = ['central','painelArq','oportunidades','pipeline','evolucao','insights','kpi','followup','orcamento','financeiro','topopartners','engenharia','custosbim','fluxocaixa'];
         const USER_PERMISSIONS = {
             'admin@toposcan.com.br':      TODAS_ABAS,  // acesso total
             'guilherme@toposcan.com.br':  TODAS_ABAS,  // dono — acesso total
             'marcelo@toposcan.com.br':    TODAS_ABAS,  // sócio — acesso total
-            'allana@toposcan.com.br':     ['oportunidades','pipeline','evolucao','followup','orcamento']  // SDR/Hunter — só vendas (SEM fluxo de caixa)
+            'allana@toposcan.com.br':     ['oportunidades','pipeline','evolucao','followup','orcamento'],  // SDR/Hunter — só vendas (SEM fluxo de caixa)
+            'arquitetura@toposcan.com.br': ['painelArq','engenharia','custosbim']  // Ana — gestora de arquitetura BIM (landing = Painel de Arquitetura)
         };
 
         function aplicarPermissoes() {
             const userEmail = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
             const permitidas = USER_PERMISSIONS[userEmail] || [];
+
+            // V8.1: quem NÃO tem acesso comercial (ex.: Ana/arquitetura) não vê o
+            // hero/dashboard da empresa (pipeline, fechado, maior oportunidade), nem os
+            // filtros/"Nova Oportunidade", nem o sino de alertas cross-área. Mantém o
+            // escopo da Ana 100% em BIM — não só esconder abas, mas o topo global também.
+            const ehComercial = permitidas.indexOf('oportunidades') !== -1;
+            ['.home-hero', '.stats'].forEach(function (sel) {
+                const el = document.querySelector(sel);
+                if (el) el.style.display = ehComercial ? '' : 'none';
+            });
+            ['homeFilterBar', 'notifBtn'].forEach(function (id) {
+                const el = document.getElementById(id);
+                if (el) el.style.display = ehComercial ? '' : 'none';
+            });
 
             // Esconde botões de abas não permitidas
             document.querySelectorAll('.tab-btn[onclick*="trocarTab"]').forEach(btn => {
@@ -3372,7 +3388,7 @@
             </div>
         </div>
 
-        <div style="display:flex;gap:10px;margin:15px 0;flex-wrap:wrap;align-items:center">
+        <div id="homeFilterBar" style="display:flex;gap:10px;margin:15px 0;flex-wrap:wrap;align-items:center">
             <select id="anoFilter" onchange="filtrar()"
                 style="padding:10px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:8px;min-width:120px">
                 <option value="">Todos os Anos</option>
@@ -3570,6 +3586,7 @@
             </button>
             <div class="tabs-menu" id="tabsMenu">
                 <button class="tab-btn" id="tabBtnCentral" onclick="trocarTab('central')" style="display:none">🎯 Central</button>
+                <button class="tab-btn" onclick="trocarTab('painelArq')">🏛️ Arquitetura</button>
                 <button class="tab-btn active" onclick="trocarTab('oportunidades')">🎯 Oportunidades</button>
                 <button class="tab-btn" onclick="trocarTab('pipeline')">📊 Pipeline</button>
                 <button class="tab-btn" onclick="trocarTab('evolucao')">📈 Evolução</button>
@@ -3580,6 +3597,7 @@
                 <button class="tab-btn" onclick="trocarTab('financeiro')">💰 Financeiro</button>
                 <button class="tab-btn" onclick="trocarTab('topopartners')">💼 Custos de Operação</button>
                 <button class="tab-btn" onclick="trocarTab('engenharia')">🛠️ Engenharia</button>
+                <button class="tab-btn" onclick="trocarTab('custosbim')">💸 Custos BIM</button>
                 <button class="tab-btn" onclick="trocarTab('fluxocaixa')">💸 Fluxo de Caixa</button>
             </div>
         </div>
@@ -4503,6 +4521,140 @@
             </div>
         </div>
 
+        <!-- ════════════════════════════════════════════════════════════════
+             ARQUITETURA BIM V1.0 — Painel da Ana + Custos BIM (15/06/2026)
+             ════════════════════════════════════════════════════════════════ -->
+        <style>
+            .arq-pill { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:999px; font-size:0.72em; font-weight:600; white-space:nowrap; }
+            .arq-ok    { background:rgba(34,197,94,0.16);  color:#4ade80; }
+            .arq-prog  { background:rgba(6,182,212,0.16);  color:#22d3ee; }
+            .arq-warn  { background:rgba(245,158,11,0.16); color:#fbbf24; }
+            .arq-bad   { background:rgba(239,68,68,0.16);  color:#f87171; }
+            .arq-naoini{ background:rgba(120,130,150,0.16);color:#94a3b8; }
+            .arq-strip { display:flex; flex-wrap:wrap; gap:6px; }
+            .arq-proj  { background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer; transition:transform .18s, border-color .18s, box-shadow .18s; }
+            .arq-proj:hover { transform:translateY(-2px); border-color:var(--accent); box-shadow:0 6px 18px rgba(0,0,0,0.25); }
+            .arq-bar { background:var(--bg-tertiary); border-radius:8px; overflow:hidden; height:8px; margin-bottom:10px; }
+            .arq-bar-fill { height:100%; transition:width .4s; }
+            .arq-acao { display:flex; align-items:center; gap:8px; font-size:0.86em; padding:6px 0; border-bottom:1px solid var(--glass-border); }
+            .arq-acao:last-child { border-bottom:none; }
+            .arq-acao-ico { font-size:1.05em; }
+            .arq-360 { background:var(--bg-tertiary); border:1px solid var(--glass-border); border-radius:12px; padding:12px 14px; margin:4px 0 14px; }
+            .arq-360-head { font-size:0.82em; font-weight:700; margin-bottom:8px; }
+            .cb-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:12px; padding:10px 14px; margin-bottom:8px; }
+            .cb-pill { padding:3px 10px; border-radius:999px; font-size:0.72em; font-weight:700; white-space:nowrap; }
+        </style>
+
+        <!-- ==================== PAINEL DE ARQUITETURA (Ana) ==================== -->
+        <div id="painelArq" class="section">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+                    <div>
+                        <h2 style="margin:0">🏛️ Painel de Arquitetura BIM</h2>
+                        <div id="arqSaudacao" style="font-size:0.85em;color:var(--text-secondary);margin-top:4px">Acompanhe suas modelagens e o que precisa de ação hoje.</div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-primary" onclick="cbAbrirNovo()" style="padding:8px 16px;font-size:0.9em">➕ Lançar custo</button>
+                        <button class="btn btn-primary" onclick="arqRefresh({skipCache:true})" style="padding:8px 16px;font-size:0.9em;background:var(--bg-tertiary);color:var(--accent)">🔄 Atualizar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="arqKPIs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px">
+                <div class="fin-kpi-card kpi-tint-blue"><div class="fin-kpi-label">🛠️ Projetos BIM ativos</div><div class="fin-kpi-value" id="arqKpiAtivos">—</div><div class="fin-kpi-hint">modelagens em aberto</div></div>
+                <div class="fin-kpi-card kpi-tint-green"><div class="fin-kpi-label">📊 Progresso médio</div><div class="fin-kpi-value" id="arqKpiProgresso">—</div><div class="fin-kpi-hint">dos projetos ativos</div></div>
+                <div class="fin-kpi-card kpi-tint-red"><div class="fin-kpi-label">⚠️ Em atraso / risco</div><div class="fin-kpi-value" id="arqKpiAtraso">—</div><div class="fin-kpi-hint">prazo vencido, não concluído</div></div>
+                <div class="fin-kpi-card kpi-tint-amber"><div class="fin-kpi-label">💸 A pagar modelistas</div><div class="fin-kpi-value" id="arqKpiPagar">—</div><div class="fin-kpi-hint">pendente</div></div>
+            </div>
+
+            <div class="card" id="arqAcoesCard" style="display:none">
+                <div style="font-weight:700;color:#f59e0b;margin-bottom:10px">⚡ Precisa de ação hoje</div>
+                <div id="arqAcoes"></div>
+            </div>
+
+            <div class="card">
+                <div style="font-weight:700;margin-bottom:8px">Projetos BIM <span style="color:var(--text-secondary);font-weight:400">· etapas cruzando as áreas (clique para abrir)</span></div>
+                <div id="arqProjetos"><div style="text-align:center;padding:30px;color:var(--text-secondary)">Carregando…</div></div>
+            </div>
+
+            <div class="card">
+                <div style="font-weight:700;margin-bottom:8px">Custos por modelista <span style="color:var(--text-secondary);font-weight:400">· só BIM, sai do caixa quando pago</span></div>
+                <div id="arqModelistas"><div style="text-align:center;padding:20px;color:var(--text-secondary)">—</div></div>
+            </div>
+        </div>
+
+        <!-- ==================== CUSTOS BIM (Ana) ==================== -->
+        <div id="custosbim" class="section">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <div>
+                        <h2 style="margin:0">💸 Custos BIM — modelagens</h2>
+                        <div style="font-size:0.82em;color:var(--text-secondary);margin-top:4px">O que você tem que pagar pros modelistas. Marcar pago baixa do caixa da empresa.</div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-primary" onclick="cbAbrirNovo()" style="padding:8px 16px;font-size:0.9em">➕ Novo custo</button>
+                        <button class="btn btn-primary" onclick="cbRefresh({skipCache:true})" style="padding:8px 16px;font-size:0.9em;background:var(--bg-tertiary);color:var(--accent)">🔄 Atualizar</button>
+                    </div>
+                </div>
+
+                <div id="cbKPIs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
+                    <div class="fin-kpi-card kpi-tint-amber"><div class="fin-kpi-label">A pagar (pendente)</div><div class="fin-kpi-value" id="cbKpiPendente">—</div></div>
+                    <div class="fin-kpi-card kpi-tint-red"><div class="fin-kpi-label">Vencido</div><div class="fin-kpi-value" id="cbKpiAtrasado">—</div></div>
+                    <div class="fin-kpi-card kpi-tint-blue"><div class="fin-kpi-label">Vence em 7 dias</div><div class="fin-kpi-value" id="cbKpiVencendo">—</div></div>
+                    <div class="fin-kpi-card kpi-tint-green"><div class="fin-kpi-label">Já pago</div><div class="fin-kpi-value" id="cbKpiPago">—</div></div>
+                </div>
+
+                <div class="filters" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:15px">
+                    <select id="cbFilterStatus" onchange="cbRender()">
+                        <option value="">Todos os status</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Parcial">Parcial</option>
+                        <option value="Pago">Pago</option>
+                    </select>
+                    <input type="text" id="cbBusca" placeholder="Buscar projeto ou modelista..." onkeyup="cbRender()" style="flex:1;min-width:200px">
+                </div>
+
+                <div id="cbLista"><div style="text-align:center;padding:30px;color:var(--text-secondary)">Carregando…</div></div>
+            </div>
+        </div>
+
+        <!-- Modal novo/editar custo BIM -->
+        <div id="cbModal" class="modal">
+            <div class="modal-content" style="max-width:560px">
+                <h2 id="cbModalTitulo">➕ Novo custo de modelagem</h2>
+                <input type="hidden" id="cbRowIndex" value="">
+                <div class="form-group">
+                    <label>Projeto *</label>
+                    <input type="text" id="cbProjeto" list="cbProjetosList" placeholder="Projeto (cliente / proposta)" autocomplete="off">
+                    <datalist id="cbProjetosList"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>Modelista *</label>
+                    <input type="text" id="cbModelista" list="cbModelistasList" placeholder="Quem vai modelar" autocomplete="off">
+                    <datalist id="cbModelistasList"></datalist>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <div class="form-group" style="flex:1;min-width:150px">
+                        <label>Valor (R$) *</label>
+                        <input type="number" id="cbValor" placeholder="0" step="0.01" min="0">
+                    </div>
+                    <div class="form-group" style="flex:1;min-width:150px">
+                        <label>Vencimento</label>
+                        <input type="text" id="cbVencimento" placeholder="DD/MM/AAAA">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observação</label>
+                    <input type="text" id="cbObs" placeholder="Opcional (LOD, escopo, etc.)">
+                </div>
+                <div id="cbModalErro" style="color:#ef4444;font-size:0.85em;margin-bottom:8px;display:none"></div>
+                <div style="display:flex;gap:8px;justify-content:flex-end">
+                    <button class="btn btn-secondary" onclick="cbFecharModal()">Cancelar</button>
+                    <button class="btn btn-primary" id="cbSalvarBtn" onclick="cbSalvar()">Salvar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ==================== MODAL NOVO PROJETO (templates) ==================== -->
         <div id="engNovoProjetoModal" class="modal">
             <div class="modal-content" style="max-width:720px">
@@ -4657,6 +4809,7 @@
                 </div>
 
                 <div id="engDetalheProgresso" style="margin:14px 0"></div>
+                <div id="engDetalhe360"></div>
                 <div id="engDetalheTabela" style="overflow-x:auto"></div>
             </div>
         </div>
@@ -5960,8 +6113,17 @@
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.getElementById(tabId).classList.add('active');
                 if (typeof event !== 'undefined' && event && event.target) event.target.classList.add('active');
+                // Sincroniza o botão da aba mesmo quando trocarTab é chamado por código
+                // (ex.: landing automática da Ana via aplicarPermissoes) — não só por clique.
+                try {
+                    const _btn = document.querySelector('.tab-btn[onclick*="trocarTab(\'' + tabId + '\')"]');
+                    if (_btn) _btn.classList.add('active');
+                } catch (e) {}
                 // V7.15: fecha a gaveta lateral no mobile após escolher
                 document.body.classList.remove('drawer-open');
+                // Carga sob demanda das abas da Ana (V1.0 Arquitetura BIM)
+                if (tabId === 'painelArq' && typeof arqRefresh === 'function') arqRefresh();
+                if (tabId === 'custosbim' && typeof cbRefresh === 'function') cbRefresh();
             }
 
             function toggleMenu() {
@@ -7545,7 +7707,7 @@ Data: ${h.data}`;
                 if (_hk) window._heroKpis = JSON.parse(_hk);
             } catch (e) {}
 
-            const HERO_MUTATING_ACTIONS = new Set(['update', 'bulkUpdate', 'addLead', 'markPaid', 'addPaymentPlan', 'updatePayment', 'addTopoPartner', 'updateTopoPartner', 'deleteTopoPartner', 'addProducao', 'bulkAddProducao', 'updateProducao', 'deleteProducao', 'setCashBalance']);
+            const HERO_MUTATING_ACTIONS = new Set(['update', 'bulkUpdate', 'addLead', 'markPaid', 'addPaymentPlan', 'updatePayment', 'addTopoPartner', 'updateTopoPartner', 'deleteTopoPartner', 'addProducao', 'bulkAddProducao', 'updateProducao', 'deleteProducao', 'setCashBalance', 'addCustosBIM', 'updateCustosBIM', 'deleteCustosBIM']);
             async function finApi(action, payload) {
                 const body = Object.assign({ action: action, secret: FIN_SECRET }, payload || {});
                 const r = await fetch(WEBHOOK_FIN_URL, {
@@ -8696,6 +8858,9 @@ Data: ${h.data}`;
                 // V7.16: SEMPRE lista de cards (estilo R3) — a matriz subitem×fase ficou confusa.
                 // O card já mostra o subitem (📍) quando existe, então nada se perde e fica limpo.
                 engRenderListaLinear(itens);
+
+                // Status 360° das outras áreas deste projeto (Arquitetura BIM V1.0)
+                if (typeof eng360Render === 'function') eng360Render(itens);
             }
 
             function engRenderMatriz(subitens, fases, itens) {
@@ -11016,6 +11181,371 @@ Data: ${h.data}`;
             };
 
             console.log('Modulo Financeiro carregado.');
+        </script>
+
+        <!-- ════════════════════════════════════════════════════════════════
+             ARQUITETURA BIM V1.0 — lógica do Painel da Ana + Custos BIM + Status 360
+             ════════════════════════════════════════════════════════════════ -->
+        <script>
+            function cbMoney(n) {
+                n = parseFloat(n) || 0;
+                return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            }
+            function arqEsc(s) {
+                if (typeof esc === 'function') return esc(s);
+                return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; });
+            }
+            function cbParseData(s) {
+                if (!s) return null;
+                var m = String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+                if (!m) return null;
+                var y = parseInt(m[3]); if (y < 100) y += 2000;
+                return new Date(y, parseInt(m[2]) - 1, parseInt(m[1]));
+            }
+
+            // --- estágio cross-area → pílula (cor + ícone) ---
+            function arqStagePill(area, valor) {
+                var cls = 'naoini', icon = '○', label = valor;
+                if (area === 'modelagem') {
+                    var pct = parseInt(valor) || 0;
+                    label = 'Modelagem ' + pct + '%';
+                    if (pct >= 100) { cls = 'ok'; icon = '✓'; }
+                    else if (pct > 0) { cls = 'prog'; icon = '◐'; }
+                    return '<span class="arq-pill arq-' + cls + '">' + icon + ' ' + label + '</span>';
+                }
+                if (area === 'comercial') {
+                    label = 'Comercial · ' + valor;
+                    if (valor === 'Fechada') { cls = 'ok'; icon = '✓'; }
+                    else if (valor === 'Perdida') { cls = 'bad'; icon = '✕'; }
+                    else if (valor === 'Sem registro') { cls = 'naoini'; icon = '○'; }
+                    else { cls = 'prog'; icon = '◐'; }
+                } else if (area === 'campo') {
+                    if (valor === 'Registrado') { cls = 'ok'; icon = '✓'; label = 'Campo / scan'; }
+                    else { cls = 'naoini'; icon = '○'; label = 'Campo · sem registro'; }
+                } else if (area === 'financeiro') {
+                    label = 'Financeiro · ' + valor;
+                    if (valor === 'Quitado') { cls = 'ok'; icon = '✓'; }
+                    else if (valor === 'Sinal pago') { cls = 'prog'; icon = '◐'; }
+                    else if (valor === 'Em atraso') { cls = 'bad'; icon = '⚠'; }
+                    else if (valor === 'Sem registro') { cls = 'naoini'; icon = '○'; }
+                    else { cls = 'warn'; icon = '○'; }
+                }
+                return '<span class="arq-pill arq-' + cls + '">' + icon + ' ' + arqEsc(label) + '</span>';
+            }
+            function arqStrip(etapas) {
+                if (!etapas) return '';
+                return '<div class="arq-strip">' +
+                    arqStagePill('comercial', etapas.comercial) +
+                    arqStagePill('campo', etapas.campo) +
+                    arqStagePill('modelagem', etapas.modelagem) +
+                    arqStagePill('financeiro', etapas.financeiro) +
+                    '</div>';
+            }
+
+            // ============ PAINEL DE ARQUITETURA ============
+            async function arqRefresh(opts) {
+                opts = opts || {};
+                try {
+                    var r = await finApi('getArquiteturaDashboard', {});
+                    if (r && r.ok) {
+                        window._arqData = r;
+                        window._arqProjetos = (r.projetos || []).map(function (p) { return { projeto: p.projeto, numeroProposta: p.numeroProposta }; });
+                        arqRender();
+                        cbPopularDatalists();
+                    }
+                } catch (e) { console.error('arqRefresh err:', e); }
+            }
+
+            function arqRender() {
+                var d = window._arqData; if (!d) return;
+                var k = d.kpis || {};
+                var set = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+                set('arqKpiAtivos', k.projetosAtivos != null ? k.projetosAtivos : '—');
+                set('arqKpiProgresso', (k.progressoMedio != null ? k.progressoMedio : 0) + '%');
+                set('arqKpiAtraso', k.emAtraso != null ? k.emAtraso : '—');
+                set('arqKpiPagar', cbMoney(k.aPagarModelistas || 0));
+
+                var saud = document.getElementById('arqSaudacao');
+                if (saud) {
+                    var hora = new Date().getHours();
+                    var ola = hora < 12 ? 'Bom dia' : (hora < 18 ? 'Boa tarde' : 'Boa noite');
+                    var me = (sessionStorage.getItem('crm_auth') || '').toLowerCase();
+                    var nome = me.indexOf('arquitetura') === 0 ? 'Ana' : '';
+                    saud.textContent = (nome ? (ola + ', ' + nome + ' 👋 — ') : '') + 'acompanhe suas modelagens e o que precisa de ação hoje.';
+                }
+
+                var acoesCard = document.getElementById('arqAcoesCard');
+                var acoesEl = document.getElementById('arqAcoes');
+                var acoes = d.acoes || [];
+                if (acoes.length === 0) {
+                    if (acoesCard) acoesCard.style.display = 'none';
+                } else {
+                    if (acoesCard) acoesCard.style.display = '';
+                    var ha = '';
+                    acoes.forEach(function (a) {
+                        if (a.tipo === 'atraso') {
+                            ha += '<div class="arq-acao"><span class="arq-acao-ico" style="color:#ef4444">⏰</span><span><b>' + arqEsc(a.projeto) + '</b> · modelagem ' + (a.pct || 0) + '%, prazo ' + arqEsc(a.previsaoEntrega || 's/ data') + ' vencido</span></div>';
+                        } else {
+                            ha += '<div class="arq-acao"><span class="arq-acao-ico" style="color:#f59e0b">💸</span><span><b>' + arqEsc(a.modelista) + '</b> · ' + cbMoney(a.valor) + (a.atrasado ? ' VENCIDO' : ' vence') + ' ' + arqEsc(a.vencimento || '') + (a.projeto ? ' (' + arqEsc(a.projeto) + ')' : '') + '</span></div>';
+                        }
+                    });
+                    if (acoesEl) acoesEl.innerHTML = ha;
+                }
+
+                var projEl = document.getElementById('arqProjetos');
+                var projetos = d.projetos || [];
+                if (projEl) {
+                    if (projetos.length === 0) {
+                        projEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhum projeto de produção ainda.</div>';
+                    } else {
+                        var hp = '';
+                        projetos.forEach(function (p) {
+                            var fill = p.atrasado ? '#ef4444' : (p.pct >= 100 ? '#22c55e' : '#06b6d4');
+                            var np = String(p.numeroProposta || '').replace(/'/g, "\\'");
+                            var pj = String(p.projeto || '').replace(/'/g, "\\'");
+                            hp += '<div class="arq-proj" onclick="arqAbrirProjeto(\'' + np + '\',\'' + pj + '\')">';
+                            hp += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px">';
+                            hp += '<span style="font-weight:700">' + arqEsc(p.projeto) + (p.concluido ? ' <span style="color:#22c55e;font-size:0.8em">✓ concluído</span>' : '') + '</span>';
+                            hp += '<span style="font-size:0.78em;color:' + (p.atrasado ? '#ef4444' : 'var(--text-secondary)') + '">' + (p.responsaveis && p.responsaveis.length ? '👤 ' + arqEsc(p.responsaveis.join(', ')) + ' · ' : '') + (p.atrasado ? '⚠️ ' : '📅 ') + arqEsc(p.previsaoEntrega || 's/ data') + '</span>';
+                            hp += '</div>';
+                            hp += '<div class="arq-bar"><div class="arq-bar-fill" style="width:' + (p.pct || 0) + '%;background:' + fill + '"></div></div>';
+                            hp += arqStrip(p.etapas);
+                            hp += '</div>';
+                        });
+                        projEl.innerHTML = hp;
+                    }
+                }
+
+                var modEl = document.getElementById('arqModelistas');
+                var mods = (d.custos && d.custos.porModelista) || [];
+                if (modEl) {
+                    if (mods.length === 0) {
+                        modEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-secondary)">Nenhum custo de modelagem lançado.</div>';
+                    } else {
+                        var max = Math.max.apply(null, mods.map(function (m) { return m.total || 0; }).concat([1]));
+                        var hm = '';
+                        mods.forEach(function (m) {
+                            var pendente = m.pendente || 0;
+                            var cor = pendente > 0 ? '#f59e0b' : '#22c55e';
+                            var w = Math.round(((m.total || 0) / max) * 100);
+                            hm += '<div style="margin-bottom:10px">';
+                            hm += '<div style="display:flex;justify-content:space-between;font-size:0.85em;margin-bottom:3px"><span>' + arqEsc(m.modelista) + '</span><span style="color:' + cor + '">' + (pendente > 0 ? cbMoney(pendente) + ' pendente' : 'quitado') + '</span></div>';
+                            hm += '<div class="arq-bar"><div class="arq-bar-fill" style="width:' + w + '%;background:' + cor + '"></div></div>';
+                            hm += '</div>';
+                        });
+                        modEl.innerHTML = hm;
+                    }
+                }
+            }
+
+            async function arqAbrirProjeto(numeroProposta, projeto) {
+                if (typeof trocarTab === 'function') trocarTab('engenharia');
+                try { if (typeof engRefresh === 'function') await engRefresh(); } catch (e) {}
+                var key = projeto || ('Proposta ' + numeroProposta);
+                if (typeof engAbrirDetalhe === 'function') engAbrirDetalhe(key);
+            }
+
+            // ============ STATUS 360 (dentro do detalhe de Engenharia) ============
+            async function eng360Render(itens) {
+                var cont = document.getElementById('engDetalhe360');
+                if (!cont) return;
+                var np = '', projeto = '';
+                for (var i = 0; i < itens.length; i++) { if (itens[i].numeroProposta && String(itens[i].numeroProposta).trim()) { np = String(itens[i].numeroProposta).trim(); break; } }
+                if (itens.length) projeto = itens[0].projeto || '';
+                cont.innerHTML = '<div class="arq-360"><div style="color:var(--text-secondary);font-size:0.8em">Carregando status das áreas…</div></div>';
+                try {
+                    var r = await finApi('getProjetoBIM360', { numeroProposta: np || undefined, projeto: np ? undefined : projeto });
+                    if (!r || !r.ok) { cont.innerHTML = ''; return; }
+                    var h = '<div class="arq-360"><div class="arq-360-head">🔭 Status 360° do projeto <span style="color:var(--text-secondary);font-weight:400">· etapas das outras áreas</span></div>';
+                    h += arqStrip(r.etapas);
+                    cont.innerHTML = h + '</div>';
+                } catch (e) { cont.innerHTML = ''; }
+            }
+
+            // ============ CUSTOS BIM ============
+            async function cbRefresh(opts) {
+                opts = opts || {};
+                if (!opts.skipCache) {
+                    try { var c = localStorage.getItem('crm_cb_items_v1'); if (c) { window._cbItems = JSON.parse(c) || []; cbRenderKPIs(); cbRender(); } } catch (e) {}
+                }
+                try {
+                    var r = await finApi('listCustosBIM', {});
+                    if (r && r.ok) {
+                        window._cbItems = r.items || [];
+                        try { localStorage.setItem('crm_cb_items_v1', JSON.stringify(window._cbItems)); } catch (e) {}
+                        cbPopularDatalists();
+                        cbRenderKPIs();
+                        cbRender();
+                    }
+                } catch (e) { console.error('cbRefresh err:', e); }
+            }
+
+            function cbRenderKPIs() {
+                var items = window._cbItems || [];
+                var hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+                var em7 = new Date(hoje); em7.setDate(hoje.getDate() + 7);
+                var pend = 0, atras = 0, venc7 = 0, pago = 0;
+                items.forEach(function (o) {
+                    pend += o.restante || 0; pago += o.valorPago || 0;
+                    if ((o.restante || 0) > 0) {
+                        var v = cbParseData(o.vencimento);
+                        if (v && v < hoje) atras += o.restante;
+                        else if (v && v <= em7) venc7 += o.restante;
+                    }
+                });
+                var set = function (id, v) { var e = document.getElementById(id); if (e) e.textContent = v; };
+                set('cbKpiPendente', cbMoney(pend));
+                set('cbKpiAtrasado', cbMoney(atras));
+                set('cbKpiVencendo', cbMoney(venc7));
+                set('cbKpiPago', cbMoney(pago));
+            }
+
+            function cbRender() {
+                var cont = document.getElementById('cbLista'); if (!cont) return;
+                var items = (window._cbItems || []).slice();
+                var fsEl = document.getElementById('cbFilterStatus');
+                var qEl = document.getElementById('cbBusca');
+                var fs = fsEl ? fsEl.value : '';
+                var q = (qEl ? qEl.value : '').toLowerCase();
+                if (fs) items = items.filter(function (o) { return o.status === fs; });
+                if (q) items = items.filter(function (o) { return (String(o.projeto || '') + ' ' + String(o.modelista || '')).toLowerCase().indexOf(q) !== -1; });
+                if (items.length === 0) { cont.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-secondary)">Nenhum custo de modelagem. Clique em "➕ Novo custo" pra lançar.</div>'; return; }
+                items.sort(function (a, b) {
+                    var pa = (a.restante || 0) > 0 ? 0 : 1, pb = (b.restante || 0) > 0 ? 0 : 1;
+                    if (pa !== pb) return pa - pb;
+                    var da = cbParseData(a.vencimento), db = cbParseData(b.vencimento);
+                    if (!da) return 1; if (!db) return -1; return da - db;
+                });
+                var hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+                var h = '';
+                items.forEach(function (o) {
+                    var v = cbParseData(o.vencimento);
+                    var atrasado = (o.restante || 0) > 0 && v && v < hoje;
+                    var stColor = o.status === 'Pago' ? '#22c55e' : (atrasado ? '#ef4444' : (o.status === 'Parcial' ? '#a855f7' : '#f59e0b'));
+                    var stLabel = o.status === 'Pago' ? 'Pago' : (atrasado ? 'Vencido' : o.status);
+                    h += '<div class="cb-row">';
+                    h += '<div style="flex:1;min-width:200px"><div style="font-weight:700">' + arqEsc(o.modelista || '—') + '</div><div style="font-size:0.8em;color:var(--text-secondary)">' + arqEsc(o.projeto || '—') + (o.vencimento ? ' · 📅 ' + arqEsc(o.vencimento) : '') + '</div></div>';
+                    h += '<div style="text-align:right;min-width:110px"><div style="font-weight:700">' + cbMoney(o.valor) + '</div>' + ((o.valorPago || 0) > 0 && (o.restante || 0) > 0 ? '<div style="font-size:0.75em;color:var(--text-secondary)">pago ' + cbMoney(o.valorPago) + '</div>' : '') + '</div>';
+                    h += '<div style="min-width:80px;text-align:center"><span class="cb-pill" style="background:' + stColor + '22;color:' + stColor + '">' + stLabel + '</span></div>';
+                    h += '<div style="display:flex;gap:6px">';
+                    if ((o.restante || 0) > 0) h += '<button class="btn btn-primary" style="padding:5px 10px;font-size:0.8em" onclick="cbMarcarPago(' + o.rowIndex + ')">✓ Pagar</button>';
+                    h += '<button class="btn btn-secondary" style="padding:5px 10px;font-size:0.8em" onclick="cbEditar(' + o.rowIndex + ')" title="Editar">✏️</button>';
+                    h += '<button class="btn btn-secondary" style="padding:5px 8px;font-size:0.8em" onclick="cbExcluir(' + o.rowIndex + ')" title="Excluir">🗑️</button>';
+                    h += '</div>';
+                    h += '</div>';
+                });
+                cont.innerHTML = h;
+            }
+
+            function cbPopularDatalists() {
+                window._cbProjMap = window._cbProjMap || {};
+                var projList = document.getElementById('cbProjetosList');
+                if (projList && window._arqProjetos) {
+                    var hp = '';
+                    window._arqProjetos.forEach(function (p) {
+                        if (!p.projeto) return;
+                        window._cbProjMap[p.projeto.toLowerCase()] = p.numeroProposta || '';
+                        hp += '<option value="' + arqEsc(p.projeto) + '"></option>';
+                    });
+                    projList.innerHTML = hp;
+                }
+                var modList = document.getElementById('cbModelistasList');
+                if (modList) {
+                    var seen = {};
+                    (window._cbItems || []).forEach(function (o) { if (o.modelista) seen[o.modelista] = true; });
+                    modList.innerHTML = Object.keys(seen).map(function (m) { return '<option value="' + arqEsc(m) + '"></option>'; }).join('');
+                }
+            }
+
+            function cbAbrirNovo() {
+                document.getElementById('cbModalTitulo').textContent = '➕ Novo custo de modelagem';
+                document.getElementById('cbRowIndex').value = '';
+                document.getElementById('cbProjeto').value = '';
+                document.getElementById('cbModelista').value = '';
+                document.getElementById('cbValor').value = '';
+                document.getElementById('cbVencimento').value = '';
+                document.getElementById('cbObs').value = '';
+                var err = document.getElementById('cbModalErro'); if (err) err.style.display = 'none';
+                cbPopularDatalists();
+                document.getElementById('cbModal').classList.add('active');
+            }
+            function cbFecharModal() { document.getElementById('cbModal').classList.remove('active'); }
+
+            function cbEditar(rowIndex) {
+                var o = (window._cbItems || []).find(function (x) { return x.rowIndex == rowIndex; });
+                if (!o) return;
+                document.getElementById('cbModalTitulo').textContent = '✏️ Editar custo de modelagem';
+                document.getElementById('cbRowIndex').value = rowIndex;
+                document.getElementById('cbProjeto').value = o.projeto || '';
+                document.getElementById('cbModelista').value = o.modelista || '';
+                document.getElementById('cbValor').value = o.valor || '';
+                document.getElementById('cbVencimento').value = o.vencimento || '';
+                document.getElementById('cbObs').value = o.observacoes || '';
+                var err = document.getElementById('cbModalErro'); if (err) err.style.display = 'none';
+                cbPopularDatalists();
+                document.getElementById('cbModal').classList.add('active');
+            }
+
+            async function cbSalvar() {
+                var erro = function (msg) { var e = document.getElementById('cbModalErro'); if (e) { e.textContent = msg; e.style.display = 'block'; } };
+                var projeto = document.getElementById('cbProjeto').value.trim();
+                var modelista = document.getElementById('cbModelista').value.trim();
+                var valor = parseFloat(document.getElementById('cbValor').value);
+                var venc = document.getElementById('cbVencimento').value.trim();
+                var obs = document.getElementById('cbObs').value.trim();
+                if (!projeto) return erro('Informe o projeto.');
+                if (!modelista) return erro('Informe o modelista.');
+                if (isNaN(valor) || valor <= 0) return erro('Valor inválido.');
+                if (venc && !/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(venc)) return erro('Vencimento deve ser DD/MM/AAAA.');
+                var rowIndex = document.getElementById('cbRowIndex').value;
+                var btn = document.getElementById('cbSalvarBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Salvando…'; }
+                try {
+                    if (rowIndex) {
+                        await finApi('updateCustosBIM', { rowIndex: parseInt(rowIndex), fields: { projeto: projeto, modelista: modelista, valor: valor, vencimento: venc, observacoes: obs } });
+                    } else {
+                        var numeroProposta = (window._cbProjMap || {})[projeto.toLowerCase()] || '';
+                        await finApi('addCustosBIM', { projeto: projeto, numeroProposta: numeroProposta, modelista: modelista, valor: valor, vencimento: venc, observacao: obs });
+                    }
+                    cbFecharModal();
+                    await cbRefresh({ skipCache: true });
+                    if (typeof arqRefresh === 'function') arqRefresh({ skipCache: true });
+                } catch (e) {
+                    erro('Erro ao salvar: ' + (e.message || e));
+                } finally {
+                    if (btn) { btn.disabled = false; btn.textContent = 'Salvar'; }
+                }
+            }
+
+            async function cbMarcarPago(rowIndex) {
+                var o = (window._cbItems || []).find(function (x) { return x.rowIndex == rowIndex; });
+                if (!o) return;
+                if (!confirm('Marcar ' + cbMoney(o.restante) + ' pra ' + (o.modelista || 'modelista') + ' como PAGO? (sai do caixa da empresa)')) return;
+                try {
+                    await finApi('updateCustosBIM', { rowIndex: rowIndex, fields: { valorPago: o.valor } });
+                    await cbRefresh({ skipCache: true });
+                    if (typeof arqRefresh === 'function') arqRefresh({ skipCache: true });
+                } catch (e) { alert('Erro: ' + (e.message || e)); }
+            }
+
+            async function cbExcluir(rowIndex) {
+                if (!confirm('Excluir este custo de modelagem? Não dá pra desfazer.')) return;
+                try {
+                    await finApi('deleteCustosBIM', { rowIndex: rowIndex });
+                    await cbRefresh({ skipCache: true });
+                    if (typeof arqRefresh === 'function') arqRefresh({ skipCache: true });
+                } catch (e) { alert('Erro: ' + (e.message || e)); }
+            }
+
+            // Prefetch quando a Ana já está logada (o painel abre como landing dela)
+            (function arqBootPrefetch() {
+                try {
+                    var me = (sessionStorage.getItem('crm_auth') || localStorage.getItem('crm_auth') || '').toLowerCase();
+                    if (me.indexOf('arquitetura') === 0) {
+                        if (typeof arqRefresh === 'function') arqRefresh();
+                        if (typeof cbRefresh === 'function') cbRefresh();
+                    }
+                } catch (e) {}
+            })();
         </script>
     </div><!-- /crmContent -->
 </body>
