@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://topocore.com.br/sitemap.xml

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Topocore — Sistema de gestão e CRM sob medida, da proposta ao PIX</title>
+<meta name="description" content="Sistema de gestão e CRM sob medida: proposta automática, cobrança PIX por WhatsApp, financeiro e nota fiscal num só lugar. Em real, com gente de verdade.">
+<meta name="keywords" content="sistema de gestão para PME, CRM brasileiro, cobrança PIX WhatsApp, proposta automática, software sob medida, ERP para pequena empresa, sistema para engenharia e construção, gestão financeira PIX, grupo Toposcan">
+<meta name="author" content="Topocore — Grupo Toposcan">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
+<meta name="theme-color" content="#070B14">
+<link rel="canonical" href="https://topocore.com.br/">
+<!-- Open Graph (WhatsApp / Facebook / LinkedIn) -->
+<meta property="og:site_name" content="Topocore">
+<meta property="og:title" content="Topocore — O núcleo do seu negócio, da proposta ao PIX">
+<meta property="og:description" content="A Toposcan transforma a realidade em dados. A Topocore transforma seus dados em gestão. Proposta automática, cobrança PIX por WhatsApp, financeiro e nota fiscal — sob medida, em real, com gente de verdade do seu lado.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://topocore.com.br/">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:image" content="https://topocore.com.br/marca/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Topocore — sistema de gestão: da proposta ao PIX, num só sistema.">
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Topocore — O núcleo do seu negócio, da proposta ao PIX">
+<meta name="twitter:description" content="Proposta automática, cobrança PIX por WhatsApp, financeiro e nota fiscal num sistema sob medida. Em real, com gente de verdade do seu lado.">
+<meta name="twitter:image" content="https://topocore.com.br/marca/og-cover.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23006CFF'/%3E%3Cg stroke='white' stroke-width='2.6' stroke-linecap='round'%3E%3Cline x1='32' y1='32' x2='32' y2='16'/%3E%3Cline x1='32' y1='32' x2='48' y2='32'/%3E%3Cline x1='32' y1='32' x2='32' y2='48'/%3E%3Cline x1='32' y1='32' x2='16' y2='32'/%3E%3C/g%3E%3Ccircle cx='32' cy='16' r='3' fill='white'/%3E%3Ccircle cx='48' cy='32' r='3' fill='white'/%3E%3Ccircle cx='32' cy='48' r='3' fill='white'/%3E%3Ccircle cx='16' cy='32' r='3' fill='white'/%3E%3Ccircle cx='32' cy='32' r='5.5' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --azul:#006CFF; --azul-claro:#3D9BFF; --verde:#16C784;
+  --bg:#070B14; --bg2:#0B1220; --surf:#0F1A2E; --surf2:#13203A;
+  --borda:#1E2A44; --borda2:#2A3A5C;
+  --branco:#FFFFFF; --txt:#AEBBD0; --txt2:#7C8AA5;
+  --raio:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{font-family:'Rubik',system-ui,sans-serif;color:var(--txt);background:var(--bg);line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Jost',sans-serif;line-height:1.12;letter-spacing:-.01em;color:var(--branco);font-weight:600}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+header{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,11,20,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--borda)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:72px}
+.logo{display:flex;align-items:center;gap:11px;font-family:'Jost';font-weight:600;font-size:25px;color:var(--branco);letter-spacing:-.01em}
+.logo .core{color:var(--azul)}
+.nav-links{display:flex;gap:26px;align-items:center}
+.nav-links a{font-size:14.5px;font-weight:400;color:var(--txt);transition:color .2s}
+.nav-links a:hover{color:var(--branco)}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:'Jost';font-weight:600;font-size:15px;padding:12px 22px;border-radius:11px;cursor:pointer;border:none;transition:transform .15s,box-shadow .2s,background .2s;white-space:nowrap}
+.btn-primary{background:var(--azul);color:#fff;box-shadow:0 8px 24px -8px rgba(0,108,255,.7)}
+.btn-primary:hover{transform:translateY(-2px);background:#1a7cff;box-shadow:0 12px 30px -8px rgba(0,108,255,.85)}
+.btn-ghost{background:transparent;color:var(--branco);border:1.5px solid var(--borda2)}
+.btn-ghost:hover{border-color:var(--azul);color:var(--azul-claro)}
+.menu-btn{display:none;background:none;border:none;cursor:pointer;color:#fff}
+
+.hero{padding:148px 0 70px;position:relative;overflow:hidden;background:
+  radial-gradient(900px 460px at 78% -8%,rgba(0,108,255,.22),transparent 60%),
+  radial-gradient(700px 380px at 10% 110%,rgba(0,108,255,.10),transparent 55%);}
+.dots{position:absolute;inset:0;background-image:radial-gradient(rgba(120,160,255,.16) 1.1px,transparent 1.2px);background-size:26px 26px;mask-image:radial-gradient(700px 400px at 75% 10%,#000,transparent 75%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.06fr .94fr;gap:54px;align-items:center;position:relative}
+.gp{display:inline-flex;align-items:center;gap:9px;background:rgba(0,108,255,.12);border:1px solid rgba(0,108,255,.3);color:var(--azul-claro);font-weight:500;font-size:13px;padding:7px 14px;border-radius:999px;margin-bottom:22px}
+.gp b{color:#fff;font-weight:600}
+.hero h1{font-size:clamp(34px,4.7vw,54px);font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:-.02em}
+.hero h1 .hl{color:var(--azul-claro)}
+.hero p.sub{font-size:19px;color:var(--txt);margin-bottom:18px;max-width:560px}
+.hero p.body{font-size:15.5px;color:var(--txt2);margin-bottom:30px;max-width:540px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-trust{margin-top:26px;display:flex;gap:22px;flex-wrap:wrap;font-size:13.5px;color:var(--txt2)}
+.hero-trust span{display:flex;align-items:center;gap:7px}
+.hero-trust svg{color:var(--azul);flex-shrink:0}
+
+.mock{background:var(--surf);border-radius:18px;box-shadow:0 30px 70px -25px rgba(0,0,0,.8);border:1px solid var(--borda2);overflow:hidden}
+.mock-top{background:var(--bg2);padding:13px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--borda)}
+.mock-top .d{width:11px;height:11px;border-radius:50%;background:#2a3a5c}
+.mock-top .t{margin-left:10px;color:#fff;font-size:13px;font-family:'Jost';font-weight:500;opacity:.9}
+.mock-body{padding:20px}
+.mock-row{display:flex;gap:12px;margin-bottom:14px}
+.mock-card{flex:1;background:var(--bg2);border-radius:12px;padding:14px;border:1px solid var(--borda)}
+.mock-card .lbl{font-size:11px;color:var(--txt2);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.mock-card .val{font-family:'Jost';font-weight:600;font-size:22px;color:#fff;margin-top:4px}
+.mock-card .val.b{color:var(--azul-claro)} .mock-card .val.g{color:var(--verde)}
+.mock-pipe{display:flex;gap:8px}
+.mock-col{flex:1;background:var(--bg2);border-radius:10px;padding:10px 8px;border:1px solid var(--borda)}
+.mock-col .ch{font-size:10.5px;font-weight:600;color:var(--txt2);margin-bottom:8px}
+.mock-deal{background:var(--surf2);border:1px solid var(--borda);border-radius:8px;padding:8px;margin-bottom:6px;font-size:11px;color:var(--txt)}
+.mock-deal b{display:block;font-size:11.5px;color:#fff;font-family:'Jost';font-weight:500}
+.mock-deal .pix{color:var(--verde);font-weight:500;font-size:10px}
+
+.divisor{display:block;width:100%;height:46px;color:var(--bg2)}
+
+section{padding:90px 0}
+.alt{background:var(--bg2)}
+.section-head{max-width:730px;margin:0 auto 54px;text-align:center}
+.section-head .kicker{color:var(--azul-claro);font-weight:500;font-size:13px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
+.section-head h2{font-size:clamp(28px,3.4vw,40px);font-weight:700;margin-bottom:16px}
+.section-head p{font-size:18px;color:var(--txt)}
+
+.pains{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:900px;margin:0 auto}
+.pain{display:flex;gap:16px;background:var(--surf);border:1px solid var(--borda);border-radius:var(--raio);padding:24px}
+.pain .ic{width:44px;height:44px;flex-shrink:0;border-radius:11px;background:rgba(226,73,73,.12);display:flex;align-items:center;justify-content:center;color:#ff6b6b}
+.pain h4{font-size:16.5px;margin-bottom:5px;color:#fff}
+.pain p{font-size:14.5px;color:var(--txt2)}
+
+.flow{display:flex;align-items:stretch;justify-content:center;flex-wrap:wrap;max-width:1000px;margin:0 auto;gap:14px}
+.flow-step{flex:1;min-width:175px;text-align:center;padding:26px 18px;background:var(--surf);border:1px solid var(--borda);border-radius:var(--raio)}
+.flow-step .n{width:42px;height:42px;margin:0 auto 14px;border-radius:50%;background:rgba(0,108,255,.14);border:1px solid rgba(0,108,255,.4);color:var(--azul-claro);display:flex;align-items:center;justify-content:center;font-family:'Jost';font-weight:600}
+.flow-step h4{font-size:16px;margin-bottom:6px;color:#fff}
+.flow-step p{font-size:13.5px;color:var(--txt2)}
+
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.prod-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,108,255,.12);border:1px solid rgba(0,108,255,.35);color:var(--azul-claro);font-family:'Jost';font-weight:600;font-size:13px;padding:6px 14px;border-radius:8px;margin-bottom:18px}
+.prod h3{font-size:30px;margin-bottom:14px;color:#fff}
+.feat-list{list-style:none;margin-top:20px;display:grid;gap:12px}
+.feat-list li{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--txt)}
+.feat-list .ck{flex-shrink:0;width:24px;height:24px;border-radius:7px;background:rgba(0,108,255,.16);display:flex;align-items:center;justify-content:center;color:var(--azul-claro);margin-top:1px}
+.stat-band{display:flex;gap:14px;margin-top:26px;flex-wrap:wrap}
+.stat{background:var(--surf);border:1px solid var(--borda);border-radius:14px;padding:16px 20px;flex:1;min-width:140px}
+.stat .big{font-family:'Jost';font-weight:700;font-size:30px;color:var(--azul-claro)}
+.stat .sm{font-size:12.5px;color:var(--txt2)}
+
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--surf);border:1px solid var(--borda);border-radius:var(--raio);padding:30px;transition:transform .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:var(--borda2)}
+.card .ic{width:52px;height:52px;border-radius:13px;background:rgba(0,108,255,.12);display:flex;align-items:center;justify-content:center;color:var(--azul-claro);margin-bottom:18px}
+.card h4{font-size:18px;margin-bottom:8px;color:#fff}
+.card p{font-size:14.5px;color:var(--txt2)}
+
+.case{background:linear-gradient(135deg,#0b1830,#0a1424);border:1px solid var(--borda2);border-radius:22px;padding:54px;position:relative;overflow:hidden}
+.case::after{content:"";position:absolute;right:-60px;top:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(0,108,255,.22),transparent 70%)}
+.case .kicker{color:var(--azul-claro);font-weight:500;font-size:13px;text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;position:relative;z-index:1}
+.case h2{font-size:clamp(25px,3vw,35px);margin-bottom:18px;max-width:780px;position:relative;z-index:1}
+.case h2 em{color:var(--azul-claro);font-style:normal}
+.case p{color:var(--txt);font-size:17px;max-width:730px;position:relative;z-index:1}
+.case .pills{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap;position:relative;z-index:1}
+.case .pill{background:rgba(255,255,255,.05);border:1px solid var(--borda2);padding:9px 16px;border-radius:999px;font-size:13.5px;color:var(--txt)}
+
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.plan{background:var(--surf);border:1px solid var(--borda);border-radius:18px;padding:32px 28px;display:flex;flex-direction:column}
+.plan.feat{border-color:var(--azul);box-shadow:0 0 0 1px var(--azul),0 24px 50px -24px rgba(0,108,255,.5);position:relative}
+.plan.feat .ribbon{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--azul);color:#fff;font-family:'Jost';font-weight:600;font-size:12px;padding:5px 16px;border-radius:999px}
+.plan h4{font-size:20px;margin-bottom:6px;color:#fff}
+.plan .desc{font-size:13.5px;color:var(--txt2);min-height:40px}
+.plan .price{font-family:'Jost';font-weight:700;font-size:34px;color:#fff;margin:18px 0 4px}
+.plan .price span{font-size:15px;font-weight:400;color:var(--txt2)}
+.plan .from{font-size:12.5px;color:var(--txt2);margin-bottom:20px}
+.plan ul{list-style:none;display:grid;gap:11px;margin-bottom:26px;flex:1}
+.plan li{display:flex;gap:10px;font-size:14px;align-items:flex-start;color:var(--txt)}
+.plan li svg{flex-shrink:0;color:var(--azul-claro);margin-top:3px}
+.plan .btn{width:100%;justify-content:center}
+.plans-note{text-align:center;margin-top:24px;font-size:13.5px;color:var(--txt2)}
+
+.faq{max-width:780px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--borda)}
+.faq-q{width:100%;background:none;border:none;text-align:left;padding:22px 0;font-family:'Jost';font-weight:500;font-size:17px;color:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.faq-q .pm{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:var(--surf);border:1px solid var(--borda);display:flex;align-items:center;justify-content:center;transition:transform .25s,background .2s;color:var(--azul-claro)}
+.faq-item.open .faq-q .pm{transform:rotate(45deg);background:var(--azul);color:#fff;border-color:var(--azul)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;font-size:15px;color:var(--txt2)}
+.faq-a div{padding:0 0 22px}
+
+.cta-final{background:linear-gradient(135deg,#006CFF,#0047b3);border-radius:24px;padding:62px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-final::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.18) 1px,transparent 1.2px);background-size:24px 24px;opacity:.5}
+.cta-final h2{color:#fff;font-size:clamp(28px,3.4vw,42px);margin-bottom:16px;max-width:680px;margin-inline:auto;position:relative}
+.cta-final p{color:rgba(255,255,255,.92);font-size:18px;max-width:620px;margin:0 auto 30px;position:relative}
+.cta-final .btn{background:#fff;color:#0047b3;font-size:17px;padding:15px 30px;position:relative}
+.cta-final .btn:hover{transform:translateY(-2px)}
+
+footer{background:#060912;border-top:1px solid var(--borda);padding:58px 0 30px;font-size:14px;color:var(--txt2)}
+.foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:36px;margin-bottom:38px}
+footer h5{font-family:'Jost';color:#fff;font-size:15px;margin-bottom:16px;font-weight:500}
+footer ul{list-style:none;display:grid;gap:9px}
+footer a:hover{color:var(--azul-claro)}
+.foot-brand p{margin-top:14px;max-width:310px;font-size:13.5px;line-height:1.7}
+.foot-legal{border-top:1px solid var(--borda);padding-top:22px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:12.5px;color:#54607a}
+.ph{background:rgba(255,255,255,.08);border-radius:5px;padding:1px 7px;color:#fff;font-size:12px}
+
+.wa{position:fixed;right:22px;bottom:22px;z-index:200;width:60px;height:60px;border-radius:50%;background:#25D366;box-shadow:0 10px 26px -6px rgba(37,211,102,.6);display:flex;align-items:center;justify-content:center;transition:transform .2s}
+.wa:hover{transform:scale(1.08)}
+
+@media(max-width:880px){
+  .nav-links{display:none}
+  .menu-btn{display:flex}
+  .hero-grid,.prod-grid{grid-template-columns:1fr}
+  .mock{margin-top:10px}
+  .pains,.cards3,.plans,.foot-grid{grid-template-columns:1fr}
+  .case,.cta-final{padding:40px 26px}
+  section{padding:62px 0}
+  .nav-links.show{display:flex;position:absolute;top:72px;left:0;right:0;flex-direction:column;background:var(--bg2);padding:20px 24px;border-bottom:1px solid var(--borda);gap:18px}
+}
+</style>
+<!-- Dados estruturados (Google rich results) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://topocore.com.br/#organization",
+      "name": "Topocore",
+      "legalName": "Topocore — Grupo Toposcan",
+      "url": "https://topocore.com.br/",
+      "logo": "https://topocore.com.br/marca/topocore-logo.svg",
+      "image": "https://topocore.com.br/marca/og-cover.png",
+      "description": "Empresa de software do Grupo Toposcan. Sistemas de gestão sob medida: proposta automática, cobrança PIX por WhatsApp, financeiro e nota fiscal.",
+      "slogan": "O núcleo do seu negócio, da proposta ao PIX.",
+      "email": "contato@topocore.com.br",
+      "areaServed": "BR",
+      "parentOrganization": { "@type": "Organization", "name": "Grupo Toposcan", "url": "https://toposcan.com.br" },
+      "address": { "@type": "PostalAddress", "addressLocality": "Curitiba", "addressRegion": "PR", "addressCountry": "BR" },
+      "contactPoint": { "@type": "ContactPoint", "contactType": "sales", "email": "comercial@topocore.com.br", "availableLanguage": "Portuguese" }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://topocore.com.br/#website",
+      "url": "https://topocore.com.br/",
+      "name": "Topocore",
+      "inLanguage": "pt-BR",
+      "publisher": { "@id": "https://topocore.com.br/#organization" }
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Topocore CRM",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "url": "https://topocore.com.br/#produto",
+      "description": "CRM e gestão sob medida para PMEs brasileiras: funil de leads, proposta automática em PDF, cobrança PIX por WhatsApp, financeiro completo e nota fiscal (CBS/IBS).",
+      "inLanguage": "pt-BR",
+      "publisher": { "@id": "https://topocore.com.br/#organization" },
+      "offers": [
+        { "@type": "Offer", "name": "Essencial", "price": "690", "priceCurrency": "BRL", "description": "Prestadores técnicos e pequenos escritórios saindo da planilha + WhatsApp." },
+        { "@type": "Offer", "name": "Plataforma de Gestão AEC", "price": "1800", "priceCurrency": "BRL", "description": "Construtoras e escritórios de engenharia: receita, produção e margem real por obra." },
+        { "@type": "Offer", "name": "Parceria Estratégica", "priceCurrency": "BRL", "description": "Plataforma + evolução contínua + parceiro de tecnologia. Sob proposta." }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Serve para o meu setor?", "acceptedAnswer": { "@type": "Answer", "text": "Sim. Partimos de uma base pronta e ajustamos ao seu fluxo — engenharia, construção, clínicas, escritórios de serviço e comércio. O sistema fala a língua do seu negócio, não o contrário." } },
+        { "@type": "Question", "name": "Vou ter trabalho para migrar meus dados?", "acceptedAnswer": { "@type": "Answer", "text": "Não. A implantação concierge migra sua planilha pra dentro do sistema junto com você, configura o funil, a proposta e o financeiro, e treina sua equipe." } },
+        { "@type": "Question", "name": "Quanto tempo até rodar?", "acceptedAnswer": { "@type": "Answer", "text": "Dias, não meses. Como partimos de um produto pronto e só ajustamos ao seu setor, você sai da planilha e entra na operação rapidamente — sem projeto longo nem consultor caro." } },
+        { "@type": "Question", "name": "Qual a relação com a Toposcan?", "acceptedAnswer": { "@type": "Answer", "text": "A Topocore é a empresa de software do Grupo Toposcan. O sistema nasceu da operação real do grupo — proposta, cobrança e gestão de projetos — e por isso já vem provado no mundo real." } },
+        { "@type": "Question", "name": "Tem fidelidade ou pegadinha de preço?", "acceptedAnswer": { "@type": "Answer", "text": "Preço em real e previsível: você paga o que vê. Nada de reajuste por câmbio como nos sistemas gringos. As condições são claras e combinadas antes." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#hero" class="logo" aria-label="Topocore - início">
+      <svg width="38" height="38" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <g stroke="#006CFF" stroke-width="2.6" stroke-linecap="round"><line x1="32" y1="32" x2="32" y2="16"/><line x1="32" y1="32" x2="48" y2="32"/><line x1="32" y1="32" x2="32" y2="48"/><line x1="32" y1="32" x2="16" y2="32"/></g>
+        <circle cx="32" cy="16" r="3" fill="#fff"/><circle cx="48" cy="32" r="3" fill="#fff"/><circle cx="32" cy="48" r="3" fill="#fff"/><circle cx="16" cy="32" r="3" fill="#fff"/><circle cx="32" cy="32" r="5.4" fill="#fff"/>
+      </svg>
+      Topo<span class="core">core</span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#dores">O que resolve</a>
+      <a href="#produto">Topocore CRM</a>
+      <a href="#sob-medida">Sob medida</a>
+      <a href="#grupo">Grupo Toposcan</a>
+      <a href="#planos">Planos</a>
+      <a href="#faq">FAQ</a>
+      <a href="#cta-final" class="btn btn-primary">Falar com a gente</a>
+    </nav>
+    <button class="menu-btn" id="menuBtn" aria-label="Menu">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="dots"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="gp">Uma empresa do <b>Grupo Toposcan</b></span>
+      <h1>O núcleo do seu negócio: da proposta ao <span class="hl">PIX</span>, num só sistema.</h1>
+      <p class="sub">Proposta automática, cobrança por WhatsApp e PIX, financeiro e nota fiscal num sistema feito sob medida para a sua empresa. Montado junto com você, em real, por uma fração do custo de um ERP.</p>
+      <p class="body">A Toposcan transforma a realidade em dados. A Topocore transforma os seus dados em gestão — reunindo numa tela só o que hoje vive espalhado entre planilha, WhatsApp e e-mail, com gente de verdade do seu lado.</p>
+      <div class="hero-cta">
+        <a href="#cta-final" class="btn btn-primary">Organizar meu negócio</a>
+        <a href="#produto" class="btn btn-ghost">Ver como funciona</a>
+      </div>
+      <div class="hero-trust">
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Preço em R$, sem câmbio</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Implantação concierge</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Diagnóstico antes de fechar</span>
+      </div>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="mock-top"><span class="d"></span><span class="d"></span><span class="d"></span><span class="t">Topocore · Painel</span></div>
+      <div class="mock-body">
+        <div class="mock-row">
+          <div class="mock-card"><div class="lbl">A receber (mês)</div><div class="val b">R$ 48.250</div></div>
+          <div class="mock-card"><div class="lbl">Recebido via PIX</div><div class="val g">R$ 31.900</div></div>
+        </div>
+        <div class="mock-pipe">
+          <div class="mock-col"><div class="ch">Proposta</div>
+            <div class="mock-deal"><b>Engeplan Projetos</b>R$ 4.800 · <span class="pix">PIX enviado</span></div>
+            <div class="mock-deal"><b>Mendes Instalações</b>R$ 12.300</div>
+          </div>
+          <div class="mock-col"><div class="ch">Negociação</div>
+            <div class="mock-deal"><b>Obra Vila Nova</b>R$ 27.500</div>
+          </div>
+          <div class="mock-col"><div class="ch">Fechado</div>
+            <div class="mock-deal"><b>Contábil Prado</b>R$ 1.290/mês <span class="pix">✓ pago</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<svg class="divisor" viewBox="0 0 1920 110" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M1491.7 94.9H1920V109.8H0V94.9H434.4c14.6 0 28.7-6.6 39-18.4l50.6-57.7c10.4-11.8 24.4-18.4 39-18.4h800c14.6 0 28.7 6.6 39 18.4l50.6 57.7c10.4 11.8 24.4 18.4 39 18.4Z" fill="currentColor"/></svg>
+
+<section id="dores" class="alt" style="padding-top:50px">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">O que resolve</div>
+      <h2>Vender é difícil. Mas perder venda por desorganização dói mais.</h2>
+      <p>Se o seu dia é apagar incêndio entre planilha, WhatsApp e e-mail, o problema não é falta de esforço — é falta de sistema.</p>
+    </div>
+    <div class="pains">
+      <div class="pain"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div><div><h4>Proposta que demora</h4><p>O orçamento leva dias para sair e o cliente esfria antes de você responder.</p></div></div>
+      <div class="pain"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div><div><h4>Cobrança esquecida</h4><p>Você esquece de mandar a cobrança e o que era venda vira inadimplência.</p></div></div>
+      <div class="pain"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div><div><h4>Caixa no escuro</h4><p>Fim de mês sem saber quanto entrou, quanto saiu e quanto realmente sobrou.</p></div></div>
+      <div class="pain"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div><div><h4>Você vira o sistema</h4><p>Cada ferramenta de um lado, nenhuma conversando — e você no improviso, todo dia.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="solucao">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Como funciona</div>
+      <h2>Um sistema que vende, cobra e entrega por você.</h2>
+      <p>A Topocore conecta as quatro pontas que hoje vivem soltas — funil, proposta, cobrança e financeiro — tudo falando a mesma língua.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><div class="n">1</div><h4>Lead entra</h4><p>No funil, com alerta de follow-up automático.</p></div>
+      <div class="flow-step"><div class="n">2</div><h4>Vira proposta</h4><p>Orçamento automático em PDF, em segundos.</p></div>
+      <div class="flow-step"><div class="n">3</div><h4>Dispara cobrança</h4><p>PIX e lembrete por WhatsApp, sem redigitar.</p></div>
+      <div class="flow-step"><div class="n">4</div><h4>Cai no caixa</h4><p>Entra no fluxo financeiro e no painel, sozinho.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="produto" class="alt">
+  <div class="wrap prod-grid">
+    <div class="prod">
+      <span class="prod-badge">★ Carro-chefe</span>
+      <h3>Topocore CRM: o meio-termo que faltava entre o CRM raso e o ERP caro.</h3>
+      <p style="color:var(--txt2);font-size:16px">Nascido de uma operação real do Grupo Toposcan, que vive de proposta, cobrança e projeto — não de um manual. Ajustado à realidade da empresa brasileira.</p>
+      <ul class="feat-list">
+        <li><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Funil de leads com alertas e follow-up automático</li>
+        <li><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Proposta e orçamento automáticos em PDF</li>
+        <li><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Cobrança e lembrete por WhatsApp + PIX (QR e recorrente)</li>
+        <li><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Financeiro completo: fluxo de caixa, contas a pagar e receber</li>
+        <li><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Módulo de produção/entrega e gestão de parceiros</li>
+        <li><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Painel que cruza vendas, financeiro e produção</li>
+        <li><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Pronto para a reforma tributária (CBS/IBS na nota)</li>
+      </ul>
+      <div class="stat-band">
+        <div class="stat"><div class="big">-91%</div><div class="sm">no custo de cobrança ao ligar WhatsApp + PIX</div></div>
+        <div class="stat"><div class="big">-27%</div><div class="sm">de inadimplência com lembrete automático</div></div>
+      </div>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="mock-top"><span class="d"></span><span class="d"></span><span class="d"></span><span class="t">Topocore CRM · Proposta</span></div>
+      <div class="mock-body">
+        <div class="mock-card" style="margin-bottom:12px"><div class="lbl">Proposta nº 0142 · gerada em 3s</div><div class="val" style="font-size:18px">Mendes Instalações Elétricas</div></div>
+        <div class="mock-row">
+          <div class="mock-card"><div class="lbl">Valor</div><div class="val" style="font-size:19px">R$ 12.300</div></div>
+          <div class="mock-card"><div class="lbl">Status</div><div class="val g" style="font-size:16px">PIX enviado ✓</div></div>
+        </div>
+        <div class="mock-deal" style="margin-top:12px"><b>WhatsApp automático</b>"Olá! Segue sua proposta nº 0142. Para aprovar, é só pagar via PIX neste QR 👇" <span class="pix">entregue</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sob-medida">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Sob medida</div>
+      <h2>Feito sob medida — pelo preço de um sistema de prateleira.</h2>
+      <p>Partimos de uma base pronta e ajustamos o fluxo ao seu setor em dias, não em meses. Software no seu jeito, sem pagar o que uma fábrica cobraria.</p>
+    </div>
+    <div class="cards3">
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h4>Customização verticalizada</h4><p>Vocabulário, etapas e relatórios do seu setor: engenharia, construção, clínica, escritório ou comércio.</p></div>
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div><h4>Integrações</h4><p>PIX, WhatsApp, NF-e/NFS-e e até o seu ERP ou sistema legado conectados ao seu fluxo.</p></div>
+      <div class="card"><div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg></div><h4>Automações com IA</h4><p>Follow-up, qualificação de lead e texto de proposta no automático, com implantação concierge inclusa.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="grupo" class="alt">
+  <div class="wrap">
+    <div class="case">
+      <div class="kicker">Grupo Toposcan</div>
+      <h2><em>A Toposcan transforma a realidade em dados.</em> A Topocore transforma os seus dados em gestão.</h2>
+      <p>A Topocore é a empresa de software do Grupo Toposcan — referência em captura de realidade, escaneamento 3D e tecnologia geoespacial para engenharia e construção. O mesmo rigor de quem trabalha com "zero margem de erro" agora organiza a operação da sua empresa: um sistema forjado numa rotina real de proposta, cobrança e projeto, não numa ideia bonita de laboratório.</p>
+      <div class="pills">
+        <span class="pill">📄 Proposta automática</span>
+        <span class="pill">💸 Cobrança PIX + WhatsApp</span>
+        <span class="pill">📊 Financeiro e produção</span>
+        <span class="pill">🛠️ Sob medida para o seu setor</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="planos">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Planos</div>
+      <h2>Preço por valor, não por usuário.</h2>
+      <p>Você não compra "assentos de CRM" — contrata gestão. Tudo começa por um diagnóstico da sua operação (abatível na implantação), e o preço deriva do valor que a gente destrava.</p>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <h4>Essencial</h4>
+        <div class="desc">Prestadores técnicos e pequenos escritórios saindo da planilha + WhatsApp.</div>
+        <div class="price">R$ 690<span>/mês</span></div>
+        <div class="from">a partir de · equipe ilimitada · + implantação enxuta</div>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Funil de leads e clientes</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Proposta automática em PDF</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Cobrança PIX + WhatsApp (QR)</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Agenda, lembretes e relatórios</li>
+        </ul>
+        <a href="#cta-final" class="btn btn-ghost">Começar com diagnóstico</a>
+      </div>
+      <div class="plan feat">
+        <span class="ribbon">★ Mais escolhido</span>
+        <h4>Plataforma de Gestão AEC</h4>
+        <div class="desc">Construtoras e escritórios de engenharia: receita, produção e margem real por obra.</div>
+        <div class="price">R$ 1.800<span>/mês</span></div>
+        <div class="from">a partir de · equipe ilimitada · + implantação consultiva</div>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Tudo do Essencial, e mais:</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Financeiro completo + fluxo de caixa</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Produção, parceiros e PIX recorrente</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> NF-e/NFS-e com CBS/IBS + KPIs cruzados</li>
+        </ul>
+        <a href="#cta-final" class="btn btn-primary">Quero a Plataforma AEC</a>
+      </div>
+      <div class="plan">
+        <h4>Parceria Estratégica</h4>
+        <div class="desc">O sistema + evolução contínua + um parceiro de tecnologia do seu lado.</div>
+        <div class="price">Sob<span> proposta</span></div>
+        <div class="from">parceria anual · plataforma + evolução + SLA</div>
+        <ul>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Tudo da Plataforma AEC, e mais:</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Customização real do seu fluxo</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Integrações com ERP/legado + IA</li>
+          <li><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Suporte prioritário + gerente dedicado</li>
+        </ul>
+        <a href="#cta-final" class="btn btn-ghost">Falar sobre parceria</a>
+      </div>
+    </div>
+    <p class="plans-note">Sem preço por usuário — você paga por valor. A implantação consultiva (migração da sua planilha, configuração e treinamento) é dimensionada no diagnóstico, abatível ao fechar. Cobrança em real, via PIX.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">FAQ</div>
+      <h2>As perguntas que todo mundo faz antes de fechar.</h2>
+      <p>Direto ao ponto, sem letrinha miúda.</p>
+    </div>
+    <div class="faq">
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Serve para o meu setor?<span class="pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button><div class="faq-a"><div>Sim. Partimos de uma base pronta e ajustamos ao seu fluxo — engenharia, construção, clínicas, escritórios de serviço e comércio. O sistema fala a língua do seu negócio, não o contrário.</div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Vou ter trabalho para migrar meus dados?<span class="pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button><div class="faq-a"><div>Não. A implantação concierge migra sua planilha pra dentro do sistema junto com você, configura o funil, a proposta e o financeiro, e treina sua equipe.</div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Quanto tempo até rodar?<span class="pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button><div class="faq-a"><div>Dias, não meses. Como partimos de um produto pronto e só ajustamos ao seu setor, você sai da planilha e entra na operação rapidamente — sem projeto longo nem consultor caro.</div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Qual a relação com a Toposcan?<span class="pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button><div class="faq-a"><div>A Topocore é a empresa de software do Grupo Toposcan. O sistema nasceu da operação real do grupo — proposta, cobrança e gestão de projetos — e por isso já vem provado no mundo real, com o mesmo rigor de quem trabalha com "zero margem de erro".</div></div></div>
+      <div class="faq-item"><button class="faq-q" aria-expanded="false">Tem fidelidade ou pegadinha de preço?<span class="pm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg></span></button><div class="faq-a"><div>Preço em real e previsível: você paga o que vê. Nada de reajuste por câmbio como nos sistemas gringos. As condições são claras e combinadas antes.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="cta-final">
+  <div class="wrap">
+    <div class="cta-final">
+      <h2>Pare de ser o sistema da sua empresa. Deixe a Topocore ser.</h2>
+      <p>Uma conversa de 30 minutos é o suficiente para a gente mostrar seu negócio organizado numa tela só — e dizer, em real, quanto custa. Sem compromisso e sem enrolação.</p>
+      <a href="https://wa.me/554184908105?text=Oi!%20Quero%20conhecer%20a%20Topocore" class="btn" target="_blank" rel="noopener">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.5-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6 1.9.8 2.7.9 3.6.8.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.4zM12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.3A10 10 0 1 0 12 2z"/></svg>
+        Falar no WhatsApp agora
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#hero" class="logo" style="font-size:23px">
+          <svg width="34" height="34" viewBox="0 0 64 64" fill="none"><g stroke="#006CFF" stroke-width="2.6" stroke-linecap="round"><line x1="32" y1="32" x2="32" y2="16"/><line x1="32" y1="32" x2="48" y2="32"/><line x1="32" y1="32" x2="32" y2="48"/><line x1="32" y1="32" x2="16" y2="32"/></g><circle cx="32" cy="16" r="3" fill="#fff"/><circle cx="48" cy="32" r="3" fill="#fff"/><circle cx="32" cy="48" r="3" fill="#fff"/><circle cx="16" cy="32" r="3" fill="#fff"/><circle cx="32" cy="32" r="5.4" fill="#fff"/></svg>
+          <span style="color:#fff">Topo<span style="color:var(--azul)">core</span></span>
+        </a>
+        <p>O núcleo do seu negócio. Sistemas de gestão sob medida, em real, com gente de verdade do seu lado. Uma empresa do Grupo Toposcan.</p>
+      </div>
+      <div>
+        <h5>Produto</h5>
+        <ul>
+          <li><a href="#produto">Topocore CRM</a></li>
+          <li><a href="#sob-medida">Software sob medida</a></li>
+          <li><a href="#sob-medida">Integrações (PIX, WhatsApp, NF-e)</a></li>
+          <li><a href="#sob-medida">Automações com IA</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Empresa</h5>
+        <ul>
+          <li><a href="#grupo">Grupo Toposcan</a></li>
+          <li><a href="#planos">Planos</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="https://toposcan.com.br" target="_blank" rel="noopener">Toposcan ↗</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Contato</h5>
+        <ul>
+          <li>WhatsApp <a href="https://wa.me/554184908105" target="_blank" rel="noopener">(41) 8490-8105</a></li>
+          <li>E-mail <span class="ph">contato@topocore.com.br</span></li>
+          <li>Comercial <span class="ph">comercial@topocore.com.br</span></li>
+          <li style="margin-top:6px;color:#54607a">Atendimento em português, de gente de verdade.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-legal">
+      <span><span class="ph">RAZÃO SOCIAL LTDA</span> — CNPJ <span class="ph">00.000.000/0001-00</span> · <span class="ph">Cidade/UF</span></span>
+      <span>© 2026 Topocore · Grupo Toposcan. Preços em real (R$), sem reajuste por câmbio. · Política de Privacidade · Termos de Uso</span>
+    </div>
+  </div>
+</footer>
+
+<a href="https://wa.me/554184908105?text=Oi!%20Quero%20conhecer%20a%20Topocore" class="wa" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><path d="M17.5 14.4c-.3-.2-1.7-.8-2-.9-.3-.1-.5-.2-.7.2-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.5-.3-.5.3-.5.8-1.6.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.3 5.2 4.6 1.9.8 2.7.9 3.6.8.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.4zM12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.3A10 10 0 1 0 12 2z"/></svg>
+</a>
+
+<script>
+document.getElementById('menuBtn').addEventListener('click',function(){document.getElementById('navLinks').classList.toggle('show')});
+document.querySelectorAll('#navLinks a').forEach(function(a){a.addEventListener('click',function(){document.getElementById('navLinks').classList.remove('show')})});
+document.querySelectorAll('.faq-q').forEach(function(q){
+  q.addEventListener('click',function(){
+    var item=q.parentElement,ans=q.nextElementSibling,open=item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(function(i){i.classList.remove('open');i.querySelector('.faq-a').style.maxHeight=null;i.querySelector('.faq-q').setAttribute('aria-expanded','false')});
+    if(!open){item.classList.add('open');ans.style.maxHeight=ans.scrollHeight+'px';q.setAttribute('aria-expanded','true')}
+  });
+});
+</script>
+</body>
+</html>

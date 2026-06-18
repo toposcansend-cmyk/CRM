@@ -1,0 +1,39 @@
+name: Deploy to HostGator (FTP)
+
+# Publica o site no topocore.com.br (HostGator) a cada push na main.
+# Requer 3 secrets no repo (Settings -> Secrets and variables -> Actions):
+#   FTP_SERVER    -> host FTP do cPanel (ex.: ftp.topocore.com.br ou IP do servidor)
+#   FTP_USERNAME  -> usuario FTP (ex.: deploy@topocore.com.br)
+#   FTP_PASSWORD  -> senha do usuario FTP
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          # Se o usuario FTP cair na home do cPanel, use ./public_html/.
+          # Se o usuario FTP ja for "jailed" na pasta do dominio, troque para ./
+          server-dir: ./public_html/
+          local-dir: ./
+          # NUNCA ligar dangerous-clean-slate: ele apagaria arquivos do servidor
+          # que nao estao no repo (.htaccess, cgi-bin, etc.).
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/README.md
+            **/.gitignore
