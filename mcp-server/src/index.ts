@@ -19,8 +19,8 @@ interface Env {
 const app = new Hono<{ Bindings: Env }>();
 app.use('*', cors());
 
-const SERVER_VERSION = '1.5.0';
-const SERVER_BUILD = '2026-06-10-propostas';
+const SERVER_VERSION = '1.6.0';
+const SERVER_BUILD = '2026-07-01-actor';
 
 // ───────────────────────────────────────────────
 // Telemetria estruturada — JSON lines pro Workers Logs / wrangler tail
@@ -53,7 +53,11 @@ async function callWebhook(
   params: Record<string, unknown> = {}
 ): Promise<unknown> {
   const start = Date.now();
-  const payload = { action, secret, ...params };
+  // Auditoria: acoes via IA gerente nao tem usuario logado — marca a origem
+  // (em vez de cair como "(desconhecido)"). Se params trouxer actor (param
+  // opcional das tools de escrita — GER-08), o spread sobrescreve o default
+  // e o audit log passa a distinguir QUAL gerente escreveu.
+  const payload = { action, secret, actor: 'IA (gerente)', ...params };
   let httpStatus: number | undefined;
   let ok = false;
   let errorMsg: string | undefined;
@@ -691,7 +695,7 @@ const TOOLS: ToolDef[] = [
       properties: {
         titulo: { type: 'string', description: 'Resumo curto, ≤80 chars idealmente' },
         conteudo: { type: 'string', description: 'Texto livre, SEM LIMITE de tamanho' },
-        categoria: { type: 'string', enum: ['Cliente', 'Padrao', 'Regra', 'Webhook', 'Identidade', 'Fluxo', 'Equipe', 'Tecnico', 'Email', 'Financeiro'] },
+        categoria: { type: 'string', enum: ['Cliente', 'Padrao', 'Regra', 'Webhook', 'Identidade', 'Fluxo', 'Equipe', 'Tecnico', 'Email', 'Financeiro', 'Precificacao', 'Processo', 'pessoal'], description: 'Enum canônico (o GAS normaliza acento/caixa). "pessoal" é reservada à Sofia — nunca sai em consultas sem flag explícita.' },
         tags: { type: 'string', description: 'CSV: ex "perda,fora-pr,brasilia"' },
         clienteRelacionado: { type: 'string' },
         numeroProposta: { type: 'string' },
@@ -715,6 +719,7 @@ const TOOLS: ToolDef[] = [
         numeroProposta: { type: 'string' },
         search: { type: 'string', description: 'Busca livre em titulo+conteudo+tags' },
         limit: { type: 'number', description: 'Limita número de resultados' },
+        incluirPessoal: { type: 'boolean', default: false, description: 'Categoria "pessoal" (Sofia) só sai com esta flag explícita — a trava é no servidor (GAS), não aqui.' },
       },
       additionalProperties: false,
     },
@@ -824,6 +829,45 @@ const TOOLS: ToolDef[] = [
     },
   },
 ];
+
+// ───────────────────────────────────────────────
+// Param "actor" nas tools de ESCRITA (GER-08)
+// Auditoria hoje grava tudo como 'IA (gerente)' — impossível saber QUAL
+// gerente escreveu. Cada tool de escrita ganha o param opcional "actor";
+// como callWebhook faz `{ actor: 'IA (gerente)', ...params }`, o valor
+// enviado pela IA sobrescreve o default e chega ao audit log do GAS.
+// ───────────────────────────────────────────────
+const WRITE_ACTIONS = new Set<string>([
+  // Vendas
+  'update', 'bulkUpdate', 'addLead',
+  // Propostas
+  'generateProposal',
+  // Anexos
+  'linkAttachment', 'uploadAttachment', 'deleteAttachment',
+  // Financeiro
+  'addPaymentPlan', 'updatePayment', 'markPaid', 'setCashBalance',
+  // Operação / TopoPartners
+  'addTopoPartner', 'addTopoPartnerParcelado', 'updateTopoPartner', 'deleteTopoPartner',
+  // Mapa de Parceiros
+  'addParceiro', 'updateParceiro', 'deleteParceiro',
+  // Engenharia / Producao
+  'addProducao', 'bulkAddProducao', 'updateProducao',
+  // Aprendizados
+  'ensureAprendizados', 'addLearning', 'updateLearning', 'deleteLearning',
+  // Assistente (efeitos externos reais)
+  'sendEmail', 'createMeetEvent',
+]);
+
+const ACTOR_PARAM_SCHEMA = {
+  type: 'string',
+  description: 'Seu nome de gerente (Rafaela/Vanessa/Beatriz/Fernanda/Camila/Sofia) — obrigatório por convenção',
+} as const;
+
+for (const t of TOOLS) {
+  if (!WRITE_ACTIONS.has(t.action)) continue;
+  const schema = t.inputSchema as { properties?: Record<string, unknown> };
+  schema.properties = { ...(schema.properties ?? {}), actor: ACTOR_PARAM_SCHEMA };
+}
 
 // ───────────────────────────────────────────────
 // JSON-RPC 2.0 MCP endpoint
