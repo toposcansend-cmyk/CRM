@@ -3760,7 +3760,12 @@
             <!-- LINHA 2: Timeline horizontal QUINZENAL (14 dias) -->
             <div class="card" style="margin-bottom:18px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-                    <div style="font-weight:600">📅 Próximos 14 dias (quinzena)</div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <span style="font-weight:600">📅 <span id="fcJanelaLabel">Próximos 14 dias</span></span>
+                        <button onclick="fcNav(-14)" title="Voltar 14 dias" style="padding:4px 10px;border:1px solid var(--glass-border);border-radius:8px;background:var(--glass-bg);color:var(--text-primary);cursor:pointer;font-weight:700">◀</button>
+                        <button onclick="fcHojeFluxo()" style="padding:4px 12px;border:1px solid var(--glass-border);border-radius:8px;background:var(--glass-bg);color:var(--text-primary);cursor:pointer;font-weight:600">Hoje</button>
+                        <button onclick="fcNav(14)" title="Avançar 14 dias" style="padding:4px 10px;border:1px solid var(--glass-border);border-radius:8px;background:var(--glass-bg);color:var(--text-primary);cursor:pointer;font-weight:700">▶</button>
+                    </div>
                     <div style="font-size:0.78em;color:var(--text-secondary)">📥 entradas verdes · 📤 saídas vermelhas · saldo do dia no rodapé</div>
                 </div>
                 <div id="fcTimelineHorizontal" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px">Carregando...</div>
@@ -9593,9 +9598,12 @@ Data: ${h.data}`;
             // - Em paralelo busca dados frescos do backend
             // - Quando chega resposta, re-renderiza silenciosamente
             // - Skip do fetch se cache fresco (< TTL) e skipCache não foi passado
+            // Navegacao de calendario do Fluxo (V7.21): desloca a janela em blocos de 14 dias.
+            function fcNav(delta) { window.fcOffset = (window.fcOffset || 0) + delta; fcRefresh({ skipCache: true }); }
+            function fcHojeFluxo() { window.fcOffset = 0; fcRefresh({ skipCache: true }); }
             async function fcRefresh(opts) {
                 opts = opts || {};
-                const skipCache = opts.skipCache === true;
+                const skipCache = opts.skipCache === true || (window.fcOffset || 0) !== 0;
 
                 // 1) Render IMEDIATO se temos cache (mesmo se vai buscar novo depois)
                 if (fcDados && !skipCache) {
@@ -9614,7 +9622,7 @@ Data: ${h.data}`;
 
                 // 2) Fetch real em background
                 try {
-                    const r = await finApi('getCashFlow', { dias: 14 }); // só 14 = payload menor + render só 14 mesmo
+                    const r = await finApi('getCashFlow', { dias: 14, offsetDias: (window.fcOffset || 0) }); // 14d; offsetDias desloca a janela (nav calendario)
                     if (!r || !r.ok) {
                         if (!fcDados) {
                             document.getElementById('fcTimelineHorizontal').innerHTML = '<div style="padding:20px;color:#fca5a5">Erro: ' + (r && r.error || 'desconhecido') + '</div>';
@@ -9624,7 +9632,7 @@ Data: ${h.data}`;
                     fcDados = r;
                     fcLastLoad = Date.now();
                     try {
-                        localStorage.setItem(FC_CACHE_KEY, JSON.stringify({ dados: r, timestamp: fcLastLoad }));
+                        if ((window.fcOffset || 0) === 0) localStorage.setItem(FC_CACHE_KEY, JSON.stringify({ dados: r, timestamp: fcLastLoad }));
                     } catch (e) {}
                     fcRender();
                 } catch (e) {
@@ -9638,6 +9646,14 @@ Data: ${h.data}`;
                 if (!fcDados) return;
                 const d = fcDados;
                 const dias = d.dias || [];
+
+                // Label da janela + navegacao (V7.21)
+                const _lbl = document.getElementById('fcJanelaLabel');
+                if (_lbl) {
+                    const _off = window.fcOffset || 0;
+                    if (_off === 0) _lbl.textContent = 'Próximos 14 dias';
+                    else if (dias.length) _lbl.textContent = dias[0].data.substring(0, 5) + ' – ' + dias[dias.length - 1].data.substring(0, 5) + (_off < 0 ? ' (histórico)' : ' (futuro)');
+                }
 
                 // ─── Saldo top ───
                 document.getElementById('fcSaldoValor').textContent = fcBRL(d.saldoInicial);
