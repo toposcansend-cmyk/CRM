@@ -10370,7 +10370,7 @@ Data: ${h.data}`;
                 h += _fcLinha('Vendedor', o.vendedor);
                 h += _fcLinha('Forma', o.formaPagamento);
                 h += _fcLinha('Vencimento', o.vencimento || o.data);
-                h += _fcLinha('Pago em', o.dataPagamento);
+                h += _fcRowDataEdit('Data de recebimento', 'fcEditDataEntrada', o.dataPagamento, 'fcSalvarDataEntrada(' + o.rowIndex + ')');
                 h += _fcLinha('Status', status);
                 h += _fcLinha('Comprovante', o.comprovante);
                 h += _fcLinha('Observação', o.observacao);
@@ -10385,10 +10385,58 @@ Data: ${h.data}`;
                 h += _fcLinha('Pago', fcBRL(o.valorPago));
                 h += _fcLinha('Restante', fcBRL(o.valorRestante));
                 h += _fcLinha('Status', o.status);
-                h += _fcLinha('Previsão pagto', o.previsaoPagamento);
+                h += _fcRowDataEdit('Data de pagamento', 'fcEditDataSaida', o.previsaoPagamento, 'fcSalvarDataSaida(' + o.rowIndex + ')');
                 h += _fcLinha('Categoria', o.categoria);
                 h += _fcLinha('Observações', o.observacoes);
                 return h;
+            }
+            // ── Edicao de data direto no card do Fluxo (P2): recebimento (entrada) / pagamento (saida) ──
+            function _fcBRtoISO(br) {
+                if (!br) return '';
+                var p = String(br).trim().split('/');
+                if (p.length !== 3) return '';
+                var y = p[2].length <= 2 ? ('20' + p[2]) : p[2];
+                return y + '-' + ('0' + p[1]).slice(-2) + '-' + ('0' + p[0]).slice(-2);
+            }
+            function _fcISOtoBR(iso) {
+                if (!iso) return '';
+                var p = String(iso).trim().split('-');
+                if (p.length !== 3) return '';
+                return ('0' + p[2]).slice(-2) + '/' + ('0' + p[1]).slice(-2) + '/' + p[0];
+            }
+            function _fcRowDataEdit(label, inputId, valorBR, onclickSave) {
+                return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--glass-border)">'
+                    + '<span style="color:var(--text-secondary);font-size:0.85em">' + label + '</span>'
+                    + '<span style="display:flex;gap:6px;align-items:center">'
+                    + '<input type="date" id="' + inputId + '" value="' + _fcBRtoISO(valorBR || '') + '" style="padding:6px 8px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-bg);color:var(--text-primary);font-size:0.9em">'
+                    + '<button onclick="' + onclickSave + '" style="padding:6px 12px;border:none;border-radius:8px;background:#34d399;color:#04231a;font-weight:700;cursor:pointer">Salvar</button>'
+                    + '</span></div>';
+            }
+            async function fcSalvarDataEntrada(rowIndex) {
+                var inp = document.getElementById('fcEditDataEntrada');
+                var br = inp ? _fcISOtoBR(inp.value) : '';
+                try {
+                    var r = await finApi('updatePayment', { rowIndex: rowIndex, fields: { dataPagamento: br } });
+                    if (r && r.ok) {
+                        fcToast(br ? ('✅ Recebimento em ' + br) : '✅ Data limpa (voltou a Pendente)', '#34d399');
+                        fcFecharCardModal();
+                        if (typeof fcInvalidarCachesRelacionados === 'function') fcInvalidarCachesRelacionados('entrada');
+                        fcRefresh({ skipCache: true });
+                    } else { fcToast('❌ ' + (r && r.error || 'erro'), '#ef4444'); }
+                } catch (e) { fcToast('❌ ' + e.message, '#ef4444'); }
+            }
+            async function fcSalvarDataSaida(rowIndex) {
+                var inp = document.getElementById('fcEditDataSaida');
+                var br = inp ? _fcISOtoBR(inp.value) : '';
+                try {
+                    var r = await finApi('updateTopoPartner', { rowIndex: rowIndex, fields: { previsaoPagamento: br } });
+                    if (r && r.ok) {
+                        fcToast('✅ Pagamento reprogramado p/ ' + (br || '—'), '#34d399');
+                        fcFecharCardModal();
+                        if (typeof fcInvalidarCachesRelacionados === 'function') fcInvalidarCachesRelacionados('saida');
+                        fcRefresh({ skipCache: true });
+                    } else { fcToast('❌ ' + (r && r.error || 'erro'), '#ef4444'); }
+                } catch (e) { fcToast('❌ ' + e.message, '#ef4444'); }
             }
             async function fcAbrirCardDetalhe(tipo, rowIndex) {
                 fcCardModalShow('<div style="text-align:center;opacity:0.6;padding:24px">Carregando…</div>');
