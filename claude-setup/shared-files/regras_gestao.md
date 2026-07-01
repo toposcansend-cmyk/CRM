@@ -50,3 +50,11 @@ Metodo SBI: Situacao, Comportamento, Impacto.
 14. SCRIPTS DE ABORDAGEM
 =============================================
 Follow-up pos-proposta, Resgate de lead frio, Pedir indicacao, Negociacao de valor.
+
+=============================================
+15. REGRA MASTER — VENDA FECHADA PROPAGA (30/06/2026)
+=============================================
+Toda proposta status=Fechada DEVE existir em Financeiro (addPaymentPlan) + Engenharia (bulkAddProducao) + Custos (addTopoPartner; pode ser 0 se producao 100% interna). Chave: numeroProposta.
+Fechar editando a celula DIRETO na planilha NAO dispara a cascata -> venda fica ORFA (sem recebivel/producao/custo), aparece so no total de "fechadas do mes".
+Enforcement automatico: alerta "Venda fechada incompleta" (getActiveAlerts, Code.js V7.20) reconcilia Vendas x todas as abas POR LEITURA e lista QUAIS abas faltam. Ao ver um alerta 🟣, o gerente cria o registro que falta na sua area.
+Vale para operadores manuais (Guilherme/Marcelo/Allana/Luiz Gustavo) E para os 5 gerentes IA. Doc completa: REGRA-MASTER-VENDA-FECHADA.md.
