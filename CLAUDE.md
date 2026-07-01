@@ -7,12 +7,12 @@
 
 ## 🎯 Identidade do projeto
 
-Você está no **CRM Toposcan** (V7.18+, jun/2026) — sistema vivo de gestão de uma empresa real de topografia/escaneamento 3D em Curitiba/PR. Não é POC, não é demo. Cada `update` muda dado real, cada email envia de verdade, cada Meet vai pra agenda real.
+Você está no **CRM Toposcan** (V7.21, jul/2026) — sistema vivo de gestão de uma empresa real de topografia/escaneamento 3D em Curitiba/PR. Não é POC, não é demo. Cada `update` muda dado real, cada email envia de verdade, cada Meet vai pra agenda real.
 
 - **Repositório:** https://github.com/toposcansend-cmyk/CRM (branch `main` → GitHub Pages)
 - **Frontend ao vivo:** https://toposcansend-cmyk.github.io/CRM/ (PWA instalável)
-- **Stack:** `crm.html` (single-page HTML/CSS/JS, ~10.800 linhas) + Google Apps Script backend + Google Sheets como banco + MCP server (Cloudflare Workers, 42 tools) pras 4 IAs gerentes
-- **Estado VIVO:** não confie em snapshot deste arquivo — o estado operacional curado mora em `~/.claude/projects/C--Users-23GAMER/memory/boot-state.md` (injetado no boot). Emails autônomos: 2/semana (seg 9h plano + sex 16h recap).
+- **Stack:** `crm.html` (single-page HTML/CSS/JS, ~11.000 linhas) + Google Apps Script backend + Google Sheets como banco + MCP server (Cloudflare Workers v1.6.0, 49 tools) pras 5 IAs gerentes + Sofia
+- **Estado VIVO:** não confie em snapshot deste arquivo — o estado operacional curado mora em `~/.claude/projects/C--Users-23GAMER/memory/boot-state.md` (injetado no boot). Emails autônomos: seg 9h (plano) + sex 16h (recap) + masterRuleSweep 7h (SÓ quando acha venda fechada órfã nova).
 
 ---
 
@@ -208,11 +208,14 @@ Os 4 gerentes cuidam da **operação da empresa**. A Sofia cuida do **Guilherme 
 - Info pessoal do Guilherme **NÃO** vai pro Marcelo sem autorização
 - Sofia (secretária) nunca compartilha info pessoal entre sócios sem permissão
 
-### Auto-cascata ao virar "Fechada"
-- `agentUpdate` detecta mudança de status → "Fechada" e dispara:
-  - Observação automática registrada
-  - Email pra Guilherme+Marcelo
-  - Sugestão de próximos passos (Financeiro/Engenharia/Operação)
+### Auto-cascata ao virar "Fechada" (V7.21 — agora CRIA, não só avisa)
+- `agentUpdate` OU **edição manual na planilha** (trigger onEdit instalável) detecta status → "Fechada" (case-insensitive) e dispara `_cascataFechada` (idempotente):
+  - Se a proposta não tem parcelas → **cria 1 parcela AUTO** (valor total, +30d, obs "AUTO-CASCATA — revisar plano")
+  - Se não tem tarefas de produção → **cria "Kickoff — planejamento"**
+  - Observação + email honesto aos 2 sócios (diz o que foi auto-criado)
+  - Chave vazia/placeholder (NOVO/TESTE) → NÃO cria nada, alerta nominal
+- Rede de segurança: `masterRuleSweep` (diário 7h) caça órfãs e emaila SÓ achado novo; NÃO cria termos pra venda antiga
+- Higiene V7.21: datas validadas (`_parseDataBR` — lixo é REJEITADO), status enum, `addPaymentPlan`/`addProducao` rejeitam numeroProposta órfão, toda escrita aceita `actor` (auditoria com nome), respostas das tools-núcleo trazem `_licoes` (memória institucional de carona)
 
 ### Quota de email
 - Workspace: 100 emails/dia
